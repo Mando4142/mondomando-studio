@@ -2,122 +2,157 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Mondo Mando Studio - Chef Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mondo Mando - Admin Schaltzentrale</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0b0b12; color: #fff; padding: 30px; }
-        h1 { color: #00ffcc; }
-        .admin-box { background: #14141f; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #232335; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #232335; }
-        th { background: #1e1e2e; color: #aaa; }
-        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: #fff; margin-right: 5px; }
-        .btn-hit { background: #ffaa00; }
-        .btn-done { background: #00ffcc; color: #000; }
-        .btn-reset { background: #ff3366; padding: 10px 20px; font-size: 14px; }
-        tr.is-done { opacity: 0.3; text-decoration: line-through; }
-        tr.is-hit { background: rgba(255, 170, 0, 0.05); }
+        :root { --neon-pink: #ff007f; --neon-cyan: #00f2fe; --neon-gold: #ffd700; --text-main: #ffffff; --form-bg: rgba(19, 19, 26, 0.9); }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Impact', 'Arial Black', sans-serif; color: var(--text-main); overflow: hidden; }
+        .studio-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('studio_bg.jpg'); background-size: cover; background-position: center; filter: brightness(0.6); z-index: -1; }
+        .overlay-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; overflow-y: auto; padding: 40px 0; box-sizing: border-box; }
+        .interface-content { width: 100%; max-width: 800px; }
+        .card { background-color: var(--form-bg); border: 2px solid var(--neon-pink); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 25px rgba(255, 0, 127, 0.3); backdrop-filter: blur(5px); }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--neon-cyan); padding-bottom: 10px; margin-bottom: 20px;}
+        h1 { margin: 0; font-size: 32px; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-pink); }
+        .btn-reset { background-color: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-family: sans-serif; font-weight: bold; cursor: pointer; transition: all 0.2; }
+        .btn-reset:hover { background-color: #b91c1c; transform: scale(1.05); }
+        
+        /* Neuer Style für die Zeit-Statistiken oben */
+        .admin-time-box { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: rgba(5, 5, 7, 0.6); border: 1px dashed var(--neon-cyan); border-radius: 8px; font-family: sans-serif; font-size: 16px; font-weight: bold; }
+        .time-value { color: var(--neon-cyan); text-shadow: 0 0 5px rgba(0, 242, 254, 0.5); }
+        .status-open { color: var(--neon-cyan); }
+        .status-closed { color: var(--neon-pink); text-shadow: 0 0 5px var(--neon-pink); }
+
+        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: rgba(5, 5, 7, 0.85); border: 2px solid #2a2a35; border-radius: 8px; margin-bottom: 15px; font-family: sans-serif; }
+        .admin-item.is-active-first { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
+        .admin-item.is-hit { border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+        
+        .admin-item.is-done-admin { border-color: #22c55e; opacity: 0.4; box-shadow: none; }
+
+        .song-details h3 { margin: 0 0 5px 0; font-size: 20px; color: #fff; }
+        .song-details p { margin: 0; color: #8e8e9f; font-size: 14px; }
+        .actions-flex { display: flex; gap: 10px; }
+        
+        .btn-listen { background: linear-gradient(45deg, var(--neon-cyan), #008fa3); color: black; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; box-shadow: 0 0 10px rgba(0, 242, 254, 0.3); }
+        .btn-listen:hover { filter: brightness(1.2); transform: scale(1.05); }
+        
+        .btn-hit-toggle { background: linear-gradient(45deg, var(--neon-gold), #ccac00); color: black; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; cursor: pointer; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        .btn-hit-toggle:hover { filter: brightness(1.2); transform: scale(1.05); }
+
+        .btn-delete { background: linear-gradient(45deg, #22c55e, #15803d); color: white; border: none; padding: 14px 24px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; cursor: pointer; box-shadow: 0 0 10px rgba(34, 197, 94, 0.3); }
+        .btn-delete:hover { filter: brightness(1.2); transform: scale(1.05); }
+        
+        .btn-undo { background: #374151; color: #d1d5db; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
+        .btn-undo:hover { background: #4b5563; }
+
+        .section-title { font-size: 22px; letter-spacing: 1px; color: #ffffff; margin: 25px 0 15px 0; text-transform: uppercase; border-bottom: 2px dashed #3a3a45; padding-bottom: 5px; }
+        .no-songs { text-align: center; font-family: sans-serif; color: #8e8e9f; padding: 20px 0; font-size: 16px; }
     </style>
 </head>
 <body>
+    <div class="studio-background"></div>
+    <div class="overlay-container">
+        <div class="interface-content">
+            <div class="card">
+                <div class="header-flex">
+                    <h1>MONDO MANDO LIVE-BOARD</h1>
+                    <button class="btn-reset" onclick="resetQueue()">LISTE RESETTEN</button>
+                </div>
 
-    <h1>👑 MONDO MANDO STUDIO – ADMIN PANEL</h1>
+                <div class="admin-time-box">
+                    <div>SHOW-ZEIT BELEGT (+2M FEEDBACK): <span id="admin-total-time" class="time-value">0 Min. 00 Sek.</span></div>
+                    <div id="admin-form-status" class="status-open">🟢 FORMULAR GEÖFFNET</div>
+                </div>
 
-    <div class="admin-box" style="border-color: #7f4ed2;">
-        <h3 style="margin: 0 0 5px 0; font-size: 16px; color: #aaa;">Stream-Zeit-Manager (Max 90 Min)</h3>
-        <p style="margin: 5px 0; font-size: 20px; font-weight: bold;">
-            Aktuell verplante Sendezeit: <span id="admin-total-time" style="color: #00ffcc;">0 Min.</span>
-        </p>
-        <p id="admin-form-status" style="margin: 5px 0; font-weight: bold; color: #00ffcc;">🟢 Formular geöffnet</p>
+                <div class="section-title" style="color: var(--neon-cyan);">Offene Einsendungen 🔥</div>
+                <div id="admin-active-list"></div>
+
+                <div class="section-title" style="color: #22c55e;">Bereits bewertet (Historie) ✓</div>
+                <div id="admin-done-list"></div>
+            </div>
+        </div>
     </div>
-
-    <div class="admin-box">
-        <button class="btn btn-reset" onclick="resetQueue()">🧹 Warteliste komplett zurücksetzen</button>
-    </div>
-
-    <h2>📋 Song-Eingänge</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Künstler</th>
-                <th>Titel</th>
-                <th>Genre</th>
-                <th>Dauer (+2m Feedback)</th>
-                <th>Link</th>
-                <th>Aktionen</th>
-            </tr>
-        </thead>
-        <tbody id="adminTableBody"></tbody>
-    </table>
-
-    <script>
-        function loadAdminQueue() {
-            fetch('/api/queue')
-                .then(res => res.json())
-                .then(data => {
-                    // 1. Statistiken updaten
-                    document.getElementById('admin-total-time').innerText = data.totalTimeFormatted;
-                    
-                    const statusText = document.getElementById('admin-form-status');
-                    if (data.submissionsOpen) {
-                        statusText.innerText = "🟢 Formular geöffnet (Zuschauer können senden)";
-                        statusText.style.color = "#00ffcc";
-                    } else {
-                        statusText.innerText = "🔴 LIMIT ERREICHT: Formular wurde automatisch gesperrt!";
-                        statusText.style.color = "#ff3366";
-                    }
-
-                    // 2. Tabelle aufbauen
-                    const tbody = document.getElementById('adminTableBody');
-                    tbody.innerHTML = '';
-
-                    data.queue.forEach((song, index) => {
-                        const min = Math.floor(song.duration / 60);
-                        const sec = song.duration % 60;
-                        // Zeigt echte Dauer + 2 Min im Admin-Panel an
-                        const totalSongTime = `${min + 2}:${sec < 10 ? '0' : ''}${sec}`;
-
-                        let trClass = "";
-                        if(song.isHit) trClass = "is-hit";
-                        if(song.isDone) trClass = "is-done";
-
-                        tbody.innerHTML += `
-                            <tr class="${trClass}">
-                               <td>${index + 1}</td>
-                               <td><strong>${song.artist}</strong></td>
-                               <td>${song.title}</td>
-                               <td>${song.genre}</td>
-                               <td>⏱️ ${totalSongTime}</td>
-                               <td><a href="${song.songLink}" target="_blank" style="color: #00ffcc;">Link ↗</a></td>
-                               <td>
-                                   <button class="btn btn-hit" onclick="toggleHit(${index})">🔥 Hit</button>
-                                   <button class="btn btn-done" onclick="toggleDone(${index})">✅ Erledigt</button>
-                               </td>
-                            </tr>
-                        `;
-                    });
-                });
-        }
-
-        function toggleHit(index) {
-            fetch(`/api/queue/${index}/hit`, { method: 'POST' })
-                .then(() => loadAdminQueue());
-        }
-
-        function toggleDone(index) {
-            fetch(`/api/queue/${index}/done`, { method: 'POST' })
-                .then(() => loadAdminQueue());
-        }
-
-        function resetQueue() {
-            if(confirm("Möchtest du die Warteliste wirklich komplett leeren?")) {
-                fetch('/api/queue/reset', { method: 'POST' })
-                    .then(() => loadAdminQueue());
+<script>
+    async function loadAdminQueue() {
+        try {
+            const res = await fetch('/api/queue'); const data = await res.json();
+            
+            // FIX: Da die Songs im neuen JSON-Format in data.queue liegen
+            const queue = data.queue || [];
+            
+            const activeList = document.getElementById('admin-active-list');
+            const doneList = document.getElementById('admin-done-list');
+            
+            // Live-Zeiten updaten
+            document.getElementById('admin-total-time').innerText = data.spentFormatted;
+            const statusText = document.getElementById('admin-form-status');
+            if (data.submissionsOpen) {
+                statusText.innerText = "🟢 FORMULAR GEÖFFNET";
+                statusText.className = "status-open";
+            } else {
+                statusText.innerText = "🔴 LIMIT ERREICHT (GESPERRT)";
+                statusText.className = "status-closed";
             }
-        }
+            
+            const activeSongs = queue.filter(item => !item.isDone);
+            
+            activeList.innerHTML = '';
+            doneList.innerHTML = '';
+            
+            if(activeSongs.length === 0) { activeList.innerHTML = '<div class="no-songs">Keine offenen Songs in der Warteliste.</div>'; }
+            if(queue.length - activeSongs.length === 0) { doneList.innerHTML = '<div class="no-songs">Noch keine Songs bewertet.</div>'; }
 
-        setInterval(loadAdminQueue, 5000);
-        loadAdminQueue();
-    </script>
+            queue.forEach((item, index) => {
+                const min = Math.floor(item.duration / 60); const sec = item.duration % 60;
+                const safeLink = item.songLink ? item.songLink : '#';
+                const listenButtonStyle = item.songLink ? '' : 'style="opacity: 0.3; pointer-events: none;"';
+
+                if(!item.isDone) {
+                    let activeIndex = activeSongs.indexOf(item);
+                    let titlePrefix = activeIndex === 0 ? '<span style="color:var(--neon-cyan); font-weight:bold;">[DRAN] </span>' : '';
+                    if (item.isHit) { titlePrefix = '<span style="color:var(--neon-gold); font-weight:bold;">[⭐ HIT] </span>' + titlePrefix; }
+                    
+                    let itemStyleClass = item.isHit ? 'is-hit' : '';
+                    if (activeIndex === 0 && !item.isHit) { itemStyleClass = 'is-active-first'; }
+
+                    // Visuelle Anzeige der Sendezeit: Echte Songdauer + 2 Min Feedback für dich als Admin
+                    const totalSongTime = `${min + 2}:${sec < 10 ? '0' : ''}${sec} Min.`;
+
+                    activeList.innerHTML += `
+                        <div class="admin-item ${itemStyleClass}">
+                            <div class="song-details">
+                                <h3>${titlePrefix}${item.artist} - ${item.title}</h3>
+                                <p>Genre: ${item.genre} | Sendezeit inkl. Feedback: ⏱️ ${totalSongTime}</p>
+                            </div>
+                            <div class="actions-flex">
+                                <a href="${safeLink}" target="_blank" class="btn-listen" ${listenButtonStyle}>ANHÖREN 🎧</a>
+                                <button class="btn-hit-toggle" onclick="toggleHit(${index})">HIT ⭐</button>
+                                <button class="btn-delete" onclick="toggleDone(${index})">ERLEDIGT ✓</button>
+                            </div>
+                        </div>`;
+                } else {
+                    let titlePrefix = item.isHit ? '<span style="color:var(--neon-gold); font-weight:bold;">[⭐ HIT] </span>' : '';
+                    doneList.innerHTML += `
+                        <div class="admin-item is-done-admin">
+                            <div class="song-details">
+                                <h3>${titlePrefix}${item.artist} - ${item.title}</h3>
+                                <p>Genre: ${item.genre}</p>
+                            </div>
+                            <div class="actions-flex">
+                                <button class="btn-undo" onclick="toggleDone(${index})">↩ ZURÜCK</button>
+                            </div>
+                        </div>`;
+                }
+            });
+        } catch(e) { console.log(e); }
+    }
+    async function toggleHit(index) { await fetch(`/api/queue/${index}/hit`, { method: 'POST' }); loadAdminQueue(); }
+    async function toggleDone(index) { await fetch(`/api/queue/${index}/done`, { method: 'POST' }); loadAdminQueue(); }
+    async function resetQueue() {
+        if(confirm("Möchtest du wirklich ALLE Songs (auch die Historie) löschen?")) {
+            await fetch('/api/queue/reset', { method: 'POST' }); loadAdminQueue();
+        }
+    }
+    loadAdminQueue(); setInterval(loadAdminQueue, 4000);
+</script>
 </body>
 </html>
