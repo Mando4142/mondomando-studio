@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mondo Mando Studio - Stream Infos & Regeln</title>
+    <style>
+        :root {
+            --bg-color: #0d0d11;
+            --card-bg: #14141f;
+            --neon-pink: #ff007f;
+            --neon-cyan: #00f2fe;
+            --neon-gold: #ffd700;
+            --text-main: #ffffff;
+            --text-muted: #8e8e9f;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .info-container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.2), 0 0 40px rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(255, 0, 127, 0.3);
+        }
+        h1 {
+            text-align: center;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--neon-pink);
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 0;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
+        }
+        .stream-time-box {
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid var(--neon-cyan);
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+            box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+        .rule-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(142, 142, 159, 0.1);
+        }
+        .rule-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        h2 { color: var(--neon-cyan); font-size: 1.2rem; margin-bottom: 8px; }
+        p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0; }
+        .highlight-pink { color: var(--neon-pink); font-weight: bold; }
+        .highlight-cyan { color: var(--neon-cyan); font-weight: bold; }
+        footer { text-align: center; margin-top: 30px; font-size: 0.8rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+<div class="info-container">
+    <h1>Mondo Mando Studio</h1>
+    <div class="subtitle">Live-Stream Regelwerk</div>
+
+    <div class="stream-time-box">
+        🎬 <span class="highlight-cyan">JEDEN SONNTAG</span> AB <span class="highlight-pink">19:00 UHR</span> LIVE!
+    </div>
+
+    <div class="rule-section">
+        <h2>⏱️ 1. Das Standard-Zeitlimit</h2>
+        <p>Das normale Limit liegt fest bei <span class="highlight-cyan">90 Minuten Gesamtzeit</span> für alle Gratis-Einsendungen. Ist der Topf voll, schließt das Formular automatisch.</p>
+    </div>
+
+    <div class="rule-section">
+        <h2>🐸 2. Die Frosch-Overtime & Harte Sperre</h2>
+        <p>Durch das Senden eines <span class="highlight-pink">„Singenden Froschs“ (249 Coins)</span> im Stream können Sonderplätze freigegeben werden. Bei maximal <span class="highlight-cyan">+30 Minuten extra</span> (insgesamt 120 Min. Musik) ist aber absolut Schicht im Schacht!</p>
+    </div>
+
+    <div class="rule-section">
+        <h2>🚫 3. Die Forbidden-Genres</h2>
+        <p>Songs aus den Genres <span class="highlight-pink">Schlager, Hardstyle, Hardcore und Metal</span> sind komplett gesperrt. Diese werden vom System automatisch blockiert, um Mondos Ohren zu schützen!</p>
+    </div>
+
+    <div class="rule-section">
+        <h2>🎧 4. Das Premium-Upgrade (DJ-Set)</h2>
+        <p>Normalerweise darf jeder Künstler maximal 2 aktive Songs im Topf haben. Nach einem <span class="highlight-pink">„DJ-Set“ (399 Coins)</span> schaltet Mondo manuell für kurze Zeit das Einreichen eines <span class="highlight-cyan">3. Songs</span> frei.</p>
+    </div>
+
+    <div class="rule-section">
+        <h2>💎 5. Der monatliche Stammzuschauer-Joker</h2>
+        <p>Treue VIPs können <span class="highlight-cyan">1x im Monat</span> einen Joker einlösen, um die Warteschlange zu überspringen (Platz 1) oder trotz voller Liste einzureichen. Die Datenbank merkt sich eiskalt, wer ihn benutzt hat.</p>
+    </div>
+
+    <div class="rule-section">
+        <h2>🏆 6. Die Hall of Fame & Live-Voting</h2>
+        <p>Am Ende des Streams wird das Live-Voting freigeschaltet. Ihr votet direkt auf dem Handy für den <span class="highlight-cyan">„Hit des Tages“</span>, der Champion wird automatisch in der ewigen Hall of Fame verewigt!</p>
+    </div>
+
+    <footer>© 2026 Mondo Mando Studio • Musik, Real Talk & Community</footer>
+</div>
+</body>
+</html>
