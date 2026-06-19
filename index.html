@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mondo Mando Studio - Song Einsenden</title>
+    <title>Mondo Mando Studio - Song Einsenden & Infos</title>
     <style>
         :root {
             --neon-pink: #ff007f;
@@ -33,14 +33,20 @@
         
         .logo-container { 
             text-align: center; 
-            margin-bottom: 20px; 
+            margin-bottom: 25px; 
         }
         .logo-container img { max-width: 100%; height: auto; border-radius: 12px; border: 2px solid var(--neon-pink); box-shadow: 0 0 20px rgba(255, 0, 127, 0.4); }
-        .stream-schedule-title { text-transform: uppercase; text-align: center; font-size: 28px; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink); margin: 0 0 25px 0; }
+        
+        .stream-time-box-fixed { background: rgba(0, 242, 254, 0.05); border: 2px solid var(--neon-cyan); padding: 15px; text-align: center; border-radius: 12px; font-size: 22px; font-weight: bold; margin-bottom: 25px; color: #fff; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.15); backdrop-filter: blur(5px); }
+
         .card { background-color: var(--form-bg); border: 2px solid var(--neon-cyan); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.1); backdrop-filter: blur(5px); }
         .card.pink-glow { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 127, 0.2), inset 0 0 15px rgba(255, 0, 127, 0.1); }
         .card.gold-glow { border-color: var(--neon-gold); box-shadow: 0 0 25px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1); }
         h2 { text-transform: uppercase; margin-top: 0; font-size: 24px; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 8px var(--neon-cyan); border-bottom: 3px solid var(--neon-pink); padding-bottom: 8px; margin-bottom: 20px; }
+        
+        .live-ticker-banner { background: black; border: 2px solid var(--neon-pink); border-radius: 8px; padding: 15px; text-align: center; font-size: 20px; letter-spacing: 1px; color: #fff; text-shadow: 0 0 8px var(--neon-pink); animation: neonPulse 1.5s infinite alternate; margin-bottom: 25px; }
+        @keyframes neonPulse { from { box-shadow: 0 0 10px var(--neon-pink); } to { box-shadow: 0 0 25px var(--neon-pink), inset 0 0 10px var(--neon-pink); } }
+
         .status-container { display: flex; justify-content: space-between; align-items: center; font-family: sans-serif; font-weight: bold; }
         .badge-live { background-color: var(--neon-pink); color: white; padding: 6px 14px; border-radius: 4px; font-size: 16px; letter-spacing: 1px; box-shadow: 0 0 15px var(--neon-pink); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 25px var(--neon-pink); } 100% { transform: scale(1); opacity: 0.8; } }
@@ -57,10 +63,11 @@
         input[type="text"]:focus, input[type="url"]:focus, select:focus { outline: none; border-color: var(--neon-cyan); box-shadow: 0 0 12px rgba(0, 242, 254, 0.5); }
         .duration-inputs { display: flex; gap: 15px; }
         .duration-inputs input { width: 50%; text-align: center; }
-        .error-message { color: #ef4444; background-color: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 12px; border-radius: 8px; margin-top: 10px; font-weight: bold; display: none; text-transform: uppercase; font-size: 14px; letter-spacing: 0.5px; }
+        
         .checkbox-group { display: flex; align-items: flex-start; gap: 15px; background-color: rgba(5, 5, 7, 0.8); padding: 15px; border: 1px dashed var(--neon-pink); border-radius: 8px; margin-top: 15px; cursor: pointer; font-family: sans-serif; }
         .checkbox-group input { margin-top: 4px; transform: scale(1.4); accent-color: var(--neon-pink); }
         .checkbox-label { font-size: 14px; color: var(--text-main); line-height: 1.5; }
+        
         .btn-submit { width: 100%; padding: 20px; font-size: 24px; text-transform: uppercase; color: #ffffff; border: none; border-radius: 8px; cursor: pointer; letter-spacing: 3px; font-family: 'Impact', sans-serif; text-shadow: 0 2px 4px rgba(0,0,0,0.8); box-shadow: 0 0 20px var(--neon-pink); margin-top: 20px; transition: all 0.2s ease; background: linear-gradient(45deg, var(--neon-pink) 25%, #bc005b 25%, #bc005b 50%, var(--neon-pink) 50%, var(--neon-pink) 75%, #bc005b 75%, #bc005b); background-size: 50px 50px; animation: move-stripes 1.5s linear infinite; }
         .btn-submit:hover { transform: scale(1.02); box-shadow: 0 0 35px var(--neon-pink); filter: brightness(1.1); }
         @keyframes move-stripes { 0% { background-position: 0 0; } 100% { background-position: 50px 0; } }
@@ -79,15 +86,9 @@
         .badge-hit { background-color: var(--neon-gold); color: black; font-family: 'Impact', sans-serif; font-size: 12px; letter-spacing: 1px; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; box-shadow: 0 0 10px var(--neon-gold); }
         .badge-done { background-color: #22c55e; color: white; font-family: 'Impact', sans-serif; font-size: 12px; letter-spacing: 1px; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; }
         .no-hits { font-family: sans-serif; color: var(--text-muted); text-align: center; padding: 15px 0; font-size: 15px; }
-
-        /* NEU: Custom Danke-Modal / Popup */
-        .thank-you-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(5,5,10,0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
-        .thank-you-overlay.show { opacity: 1; pointer-events: auto; }
-        .thank-you-card { max-width: 500px; width: 90%; text-align: center; border: 3px solid var(--neon-pink); box-shadow: 0 0 30px var(--neon-pink); background: #13131a; border-radius: 16px; padding: 40px; }
-        .thank-you-title { font-size: 32px; color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); margin-bottom: 20px; }
-        .thank-you-speech { font-family: sans-serif; font-size: 16px; line-height: 1.6; color: var(--text-main); margin-bottom: 25px; }
-        .btn-close-thankyou { background: var(--neon-pink); color: white; border: none; padding: 12px 30px; font-family: 'Impact', sans-serif; font-size: 18px; border-radius: 6px; letter-spacing: 1px; cursor: pointer; box-shadow: 0 0 15px var(--neon-pink); transition: transform 0.2s; }
-        .btn-close-thankyou:hover { transform: scale(1.05); }
+        
+        .btn-vote { background: var(--neon-gold); color: black; border: none; padding: 8px 15px; font-family: 'Impact', sans-serif; border-radius: 4px; cursor: pointer; font-size: 14px; letter-spacing: 1px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+        .btn-vote:hover { transform: scale(1.05); filter: brightness(1.1); }
     </style>
 </head>
 <body>
@@ -95,8 +96,15 @@
     <div class="overlay-container">
         <div class="interface-content">
             <div class="logo-container"><img src="logo.png" alt="Mondo Mando Studio" onerror="this.style.display='none';"></div>
-            <div class="stream-schedule-title">Jeden Sonntag um 18:00 Uhr Live</div>
             
+            <div class="stream-time-box-fixed">
+                ⏰ JEDEN SONNTAG AB <span style="color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold), 0 0 20px var(--neon-gold);">19:00 UHR</span> LIVE!
+            </div>
+
+            <div class="live-ticker-banner" id="live-ticker">
+                🎵 WAITING FOR TRACK...
+            </div>
+
             <div class="card">
                 <div class="status-container">
                     <div>
@@ -112,27 +120,26 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div id="dynamic-main-card" class="card pink-glow">
                 <h2>SONG EINREICHEN</h2>
                 <form id="songForm" onsubmit="addSongToServer(event)">
                     <div class="form-group">
                         <label for="artistName">Künstlername</label>
-                        <input type="text" id="artistName" required placeholder="z.B. Mando" oninput="checkArtistLimit()">
-                        <div id="artist-error" class="error-message">🚫 Limit erreicht! Du hast bereits 2 aktive Songs eingereicht.</div>
+                        <input type="text" id="artistName" required placeholder="z.B. Mando">
                     </div>
                     <div class="form-group">
                         <label for="songTitle">Song Titel</label>
                         <input type="text" id="songTitle" required placeholder="Titel deines Tracks">
                     </div>
                     <div class="form-group">
-                        <label for="songLink">Song Link (Suno, YouTube, Spotify, etc.)</label>
-                        <input type="url" id="songLink" required placeholder="https://suno.com/... oder https://youtube.com/...">
+                        <label for="songLink">Song Link (Suno, YouTube, Spotify, SoundCloud)</label>
+                        <input type="url" id="songLink" required placeholder="https://spotify.com/... / https://youtube.com/... etc.">
                     </div>
                     <div class="form-group">
                         <label>Genaue Song-Dauer</label>
                         <div class="duration-inputs">
-                            <input type="text" id="durationMin" required placeholder="MIN" maxlength="2">
-                            <input type="text" id="durationSec" required placeholder="SEK" maxlength="2">
+                            <input type="number" id="durationMin" required placeholder="MIN" min="0">
+                            <input type="number" id="durationSec" required placeholder="SEK" min="0" max="59">
                         </div>
                     </div>
                     <div class="form-group">
@@ -155,7 +162,7 @@
                             <option value="Hardcore" style="color: #ef4444; background-color: #221111;">[GESPERRT] Hardcore</option>
                             <option value="Metal" style="color: #ef4444; background-color: #221111;">[GESPERRT] Metal / Heavy Metal</option>
                         </select>
-                        <div id="genre-error" class="error-message">🚫 Dieses Genre verletzt Mondos Ohren! Einreichung blockiert.</div>
+                        <div id="genre-error" class="error-message" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 12px; border-radius: 8px; margin-top: 10px; font-weight: bold; display: none; text-transform: uppercase; font-size: 14px;">🚫 Dieses Genre verletzt Mondos Ohren! Einreichung blockiert.</div>
                     </div>
                     <div class="form-group">
                         <label style="color: var(--neon-cyan); text-shadow: 0 0 5px rgba(0,242,254,0.3);">Rechte & Richtlinien</label>
@@ -163,6 +170,10 @@
                             <input type="checkbox" required>
                             <span class="checkbox-label"><strong>BESTÄTIGEN:</strong> Ich besitze alle Rechte an diesem Song, verwende keine fremden/geschützten Samples und der Track entspricht vollständig den TikTok-Musikrichtlinien.</span>
                         </label>
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                        <input type="checkbox" id="vipJoker" style="width:auto; transform:scale(1.3); accent-color:var(--neon-gold);">
+                        <label for="vipJoker" style="margin:0; color:var(--neon-gold); cursor:pointer;">💎 1x im Monat Stammzuschauer-VIP-Joker einlösen?</label>
                     </div>
                     <button type="submit" id="submitBtn" class="btn-submit">SONG EINSENDEN</button>
                 </form>
@@ -178,27 +189,20 @@
                 <div id="hit-bestenliste"></div>
             </div>
 
+            <div class="card gold-glow" style="border-color: #ffaa00; box-shadow: 0 0 15px rgba(255, 170, 0, 0.2);">
+                <h2 style="text-shadow: 0 0 8px #ffaa00; border-bottom-color: #ffaa00; color: #ffaa00;">🏆 EWIGE HALL OF FAME LEGENDE 🏆</h2>
+                <div id="hof-list"></div>
+            </div>
+
             <div class="card" style="border-color: #22c55e; box-shadow: 0 0 15px rgba(34,197,94,0.15);">
                 <h2 style="text-shadow: 0 0 8px #22c55e; border-bottom-color: #22c55e;">BEREITS BEWERTET 🔥</h2>
                 <div id="done-list"></div>
             </div>
         </div>
     </div>
-
-    <div id="thankYouOverlay" class="thank-you-overlay">
-        <div class="thank-you-card">
-            <div class="thank-you-title">Vielen Dank! 🔥</div>
-            <div class="thank-you-speech">
-                Dein Track wurde erfolgreich im <strong>Mondo Mando Studio</strong> registriert! Schalte am Sonntag pünktlich ein, sei im Chat am Start und feiere mit der Community. Dein Feedback wartet auf dich!
-            </div>
-            <button class="btn-close-thankyou" onclick="closeThankYou()">LET'S GO</button>
-        </div>
-    </div>
-
 <script>
     const FEEDBACK_BUFFER_SEC = 120;
-    let currentGlobalQueue = []; // Speichert die Queue für lokale Validierungen
-
+    
     function checkGenreSafety() {
         const genre = document.getElementById('genre').value;
         const errorBox = document.getElementById('genre-error');
@@ -206,91 +210,43 @@
         if (["Schlager", "Hardstyle", "Hardcore", "Metal"].includes(genre)) {
             errorBox.style.display = "block"; submitBtn.disabled = true; submitBtn.style.opacity = "0.3"; submitBtn.style.cursor = "not-allowed";
         } else {
-            errorBox.style.display = "none"; 
-            // Falls das Limit des Künstlers nicht überschritten ist, wieder freigeben
-            if(!checkArtistLimit()) {
-                submitBtn.disabled = false; submitBtn.style.opacity = "1"; submitBtn.style.cursor = "pointer";
-            }
+            errorBox.style.display = "none"; submitBtn.disabled = false; submitBtn.style.opacity = "1"; submitBtn.style.cursor = "pointer";
         }
     }
-
-    // NEU: Überprüft, wie viele aktive Songs ein Künstler bereits in der Warteliste hat
-    function checkArtistLimit() {
-        const nameInput = document.getElementById('artistName').value.trim().toLowerCase();
-        const artistError = document.getElementById('artist-error');
-        const submitBtn = document.getElementById('submitBtn');
-        
-        if (nameInput === "") {
-            artistError.style.display = "none";
-            return false;
-        }
-
-        // Zähle nur unbewertete Songs (isDone === false)
-        const activeSongsFromArtist = currentGlobalQueue.filter(item => !item.isDone && item.artist.toLowerCase() === nameInput);
-        
-        if (activeSongsFromArtist.length >= 2) {
-            artistError.style.display = "block";
-            submitBtn.disabled = true;
-            submitBtn.style.opacity = "0.3";
-            submitBtn.style.cursor = "not-allowed";
-            return true;
-        } else {
-            artistError.style.display = "none";
-            return false;
-        }
-    }
-
-    // NEU: Sortiert die Songs so, dass Zweitsongs ans Ende geschoben werden (Interleaving)
-    function arrangeQueueInterleaved(songs) {
-        const active = songs.filter(item => !item.isDone);
-        const done = songs.filter(item => item.isDone);
-        
-        let orderedActive = [];
-        let mapArtists = new Map();
-
-        // Gruppiere Songs nach Künstler
-        active.forEach(song => {
-            const art = song.artist.toLowerCase();
-            if (!mapArtists.has(art)) mapArtists.set(art, []);
-            mapArtists.get(art).push(song);
-        });
-
-        // Schiebe die Songs abwechselnd in die Liste (Erst-Songs zuerst, dann Zweit-Songs)
-        let maxSongs = 0;
-        mapArtists.forEach(list => { if(list.length > maxSongs) maxSongs = list.length; });
-
-        for (let i = 0; i < maxSongs; i++) {
-            mapArtists.forEach((list) => {
-                if (list[i]) {
-                    orderedActive.push(list[i]);
-                }
-            });
-        }
-
-        // Kombiniere die neu geordneten aktiven Songs mit den erledigten Songs
-        return [...orderedActive, ...done];
-    }
-
+    
     async function loadQueue() {
         try {
-            const res = await fetch('/api/queue'); const data = await res.json();
-            let queue = data.queue || [];
+            const res = await fetch('/api/queue'); 
+            const data = await res.json();
             
-            currentGlobalQueue = queue; // Update globalen Cache für Validierung
+            const queue = data.queue || [];
+            const hallOfFame = data.hallOfFame || [];
             
-            // NEU: Sortierung der Warteliste anwenden
-            queue = arrangeQueueInterleaved(queue);
-
             const activeList = document.getElementById('queue-list');
             const doneList = document.getElementById('done-list');
             const hitList = document.getElementById('hit-bestenliste');
+            const hofList = document.getElementById('hof-list');
             const submitBtn = document.getElementById('submitBtn');
+            const mainCard = document.getElementById('dynamic-main-card');
             
-            if (!data.submissionsOpen || data.remainingSecondsTotal <= 0) {
+            const activeSongs = queue.filter(item => !item.isDone);
+            const ticker = document.getElementById('live-ticker');
+            if (activeSongs.length > 0) {
+                ticker.innerText = `🔥 AKTUELL DRAN: ${activeSongs[0].artist.toUpperCase()} - ${activeSongs[0].title.toUpperCase()}`;
+            } else {
+                ticker.innerText = `🎵 MONDO MANDO STUDIO -- WARTE AUF TRACKS`;
+            }
+
+            if (!data.submissionsOpen && data.overtimeOpen) {
+                document.getElementById('time-left-pot').innerHTML = "<span style='color:var(--neon-pink)'>STANDARD VOLL! 🐸 Nutze Frosch!</span>";
+                submitBtn.disabled = false;
+                submitBtn.innerText = "SONG EINSENDEN (OVERTIME)";
+                submitBtn.style.opacity = "1";
+            } else if (!data.submissionsOpen && !data.overtimeOpen) {
                 document.getElementById('time-left-pot').innerText = "VOLL / GESPERRT";
                 document.getElementById('time-left-pot').className = "time-urgent";
                 submitBtn.disabled = true;
-                submitBtn.innerText = "90 MIN LIMIT ERREICHT! GESPERRT";
+                submitBtn.innerText = "LIMIT ERREICHT! GESPERRT 🔒";
                 submitBtn.style.opacity = "0.4";
                 submitBtn.style.background = "#444";
                 submitBtn.style.boxShadow = "none";
@@ -299,23 +255,39 @@
                 const secFormatted = data.remainingSeconds < 10 ? '0' + data.remainingSeconds : data.remainingSeconds;
                 document.getElementById('time-left-pot').innerText = `${data.remainingMinutes} Min. ${secFormatted} Sek.`;
                 document.getElementById('time-left-pot').className = "time-highlight";
-                // Falls kein anderes Limit greift, freigeben
-                if(!document.getElementById('genre-error').style.display === "block" && !checkArtistLimit()) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "SONG EINSENDEN";
-                }
+                submitBtn.disabled = false;
+                submitBtn.innerText = "SONG EINSENDEN";
+                submitBtn.style.opacity = "1";
+                submitBtn.style.background = "";
             }
             
             document.getElementById('estimated-wait').innerText = data.spentFormatted;
 
-            const activeSongs = queue.filter(item => !item.isDone);
+            if (data.votingActive) {
+                const hits = queue.filter(s => s.isHit);
+                let voteHtml = `<h2>🗳️ WÄHLE DEN HIT DES TAGES! 🗳️</h2><p style="font-family:sans-serif; font-size:14px; margin-bottom:15px;">Stimme jetzt live für deinen Favoriten ab:</p>`;
+                if(hits.length === 0) {
+                    voteHtml += `<p style="font-family:sans-serif; color:#8e8e9f; text-align:center;">Keine Playlist-Hits heute vorhanden.</p>`;
+                }
+                hits.forEach(h => {
+                    voteHtml += `
+                        <div class="queue-item is-playlist-hit" style="margin-bottom:10px;">
+                            <div style="font-family:sans-serif;"><b>${h.artist}</b> - ${h.title}</div>
+                            <button class="btn-vote" onclick="castVote(${h.id})">VOTE 🗳️</button>
+                        </div>`;
+                });
+                mainCard.innerHTML = voteHtml;
+            }
+
             const hitSongs = queue.filter(item => item.isHit);
             document.getElementById('queue-count').innerText = activeSongs.length;
             
             activeList.innerHTML = '';
             doneList.innerHTML = '';
             hitList.innerHTML = '';
+            hofList.innerHTML = '';
             
+            // RENDERT DIE AKTUELLEN SHOW HITS
             if(hitSongs.length === 0) {
                 hitList.innerHTML = '<div class="no-hits">Noch keine Playlist-Hits in dieser Show vergeben. Schnapp dir den Status! ⭐</div>';
             } else {
@@ -325,6 +297,21 @@
                             <div class="queue-info">
                                 <h4 style="color: var(--neon-gold); font-size: 16px;">⭐ ${item.artist} - ${item.title}</h4>
                                 <p style="font-size: 12px;">Genre: ${item.genre}</p>
+                            </div>
+                        </div>`;
+                });
+            }
+
+            // RENDERT DIE EWIGEN CHAMPIONS (HALL OF FAME)
+            if(hallOfFame.length === 0) {
+                hofList.innerHTML = '<div class="no-hits">Noch keine Hall of Fame Champions eingetragen.</div>';
+            } else {
+                hallOfFame.forEach(h => {
+                    hofList.innerHTML += `
+                        <div class="queue-item" style="border-left-color: #ffaa00; margin-bottom: 8px; padding: 10px 15px;">
+                            <div class="queue-info">
+                                <h4 style="color: #ffaa00; font-size: 16px;">👑 ${h.artist} - ${h.title}</h4>
+                                <p style="font-size: 11px; color:#aaa;">Gewonnen am: ${h.date} (${h.votes} Stimmen)</p>
                             </div>
                         </div>`;
                 });
@@ -365,53 +352,45 @@
             });
         } catch(e) { console.log(e); }
     }
-
+    
     async function addSongToServer(e) {
         e.preventDefault();
-        
-        // Letzter Check vor dem Absenden
-        if (checkArtistLimit()) return;
-
         const artist = document.getElementById('artistName').value;
         const title = document.getElementById('songTitle').value;
         const songLink = document.getElementById('songLink').value;
         const min = parseInt(document.getElementById('durationMin').value) || 0;
         const sec = parseInt(document.getElementById('durationSec').value) || 0;
         const genre = document.getElementById('genre').value;
+        const isVipJoker = document.getElementById('vipJoker') ? document.getElementById('vipJoker').checked : false;
         
         const res = await fetch('/api/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink })
+            body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink, isVipJoker })
         });
         const resData = await res.json();
         
         if (resData.error) {
             alert("Sperre: " + resData.error);
         } else {
+            alert("Erfolgreich im Mondo Mando Studio eingereicht! 🔥");
             document.getElementById('songForm').reset(); 
-            showThankYou(); // NEU: Aktiviert die stylische Dankesrede
             loadQueue();
         }
     }
 
-    // NEU: Funktionen für die Bestätigungs-Dankesrede
-    function showThankYou() {
-        document.getElementById('thankYouOverlay').classList.add('show');
+    async function castVote(id) {
+        await fetch(`/api/queue/${id}/vote`, { method: 'POST' });
+        alert("Danke für deine Stimme! 🗳️");
     }
-    function closeThankYou() {
-        document.getElementById('thankYouOverlay').classList.remove('show');
-    }
-
-    // Geändert: Zielzeit auf 18:00 Uhr angepasst
+    
     function updateCountdown() {
         const now = new Date(); const currentDay = now.getDay(); const currentHour = now.getHours(); const currentMin = now.getMinutes();
-        let target = new Date(); target.setHours(18, 0, 0, 0); let daysToAdd = (7 - currentDay) % 7;
+        let target = new Date(); target.setHours(19, 0, 0, 0); let daysToAdd = (7 - currentDay) % 7;
         if (currentDay === 0) {
-            // Zeigt "LIVE" von 18:00 Uhr bis ca. 20:10 Uhr an (entspricht Showdauer)
-            if (currentHour >= 18 && (currentHour < 20 || (currentHour === 20 && currentMin < 10))) {
+            if (currentHour >= 19 && (currentHour < 21 || (currentHour === 21 && currentMin < 10))) {
                 document.getElementById('live-badge').style.display = "inline-block"; document.getElementById('stream-status-title').innerText = " SHOW IS LIVE"; document.getElementById('countdown').innerText = "JETZT EINSCHALTEN!"; return;
-            } else if (currentHour >= 20) { daysToAdd = 7; }
+            } else if (currentHour >= 21) { daysToAdd = 7; }
         }
         target.setDate(now.getDate() + daysToAdd); const diff = target - now;
         const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
