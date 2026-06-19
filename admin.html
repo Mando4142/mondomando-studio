@@ -5,13 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mondo Mando Studio - Admin Schaltzentrale</title>
     <style>
-        :root { 
-            --neon-pink: #ff007f; 
-            --neon-cyan: #00f2fe; 
-            --neon-gold: #ffd700; 
-            --text-main: #ffffff; 
-            --form-bg: rgba(19, 19, 26, 0.9); 
-        }
+        :root { --neon-pink: #ff007f; --neon-cyan: #00f2fe; --neon-gold: #ffd700; --text-main: #ffffff; --form-bg: rgba(19, 19, 26, 0.9); }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Impact', 'Arial Black', sans-serif; color: var(--text-main); overflow: hidden; }
         .studio-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('studio_bg.jpg'); background-size: cover; background-position: center; filter: brightness(0.6); z-index: -1; }
         .overlay-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; overflow-y: auto; padding: 40px 0; box-sizing: border-box; }
@@ -19,70 +13,51 @@
         .card { background-color: var(--form-bg); border: 2px solid var(--neon-pink); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 25px rgba(255, 0, 127, 0.3); backdrop-filter: blur(5px); }
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--neon-cyan); padding-bottom: 10px; margin-bottom: 20px;}
         h1 { margin: 0; font-size: 32px; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-pink); }
+        .btn-reset { background-color: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-family: sans-serif; font-weight: bold; cursor: pointer; }
         
-        .btn-reset { background-color: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-family: sans-serif; font-weight: bold; cursor: pointer; transition: all 0.2s; }
-        .btn-reset:hover { background-color: #b91c1c; transform: scale(1.05); }
-        
-        /* ZEIT BOX & STATUS */
+        /* COIN INTERFACES */
+        .coin-box { display: flex; gap: 10px; background: rgba(5, 5, 7, 0.8); padding: 15px; border-radius: 8px; border: 1px solid var(--neon-gold); margin-bottom: 20px; font-family: sans-serif; align-items: center; }
+        .coin-input { padding: 10px; background: #000; border: 1px solid var(--neon-cyan); color: #fff; border-radius: 4px; font-size: 16px; font-weight: bold; flex: 1; }
+        .btn-coin-grant { background: var(--neon-gold); color: #000; border: none; padding: 10px 20px; font-family: 'Impact', sans-serif; font-size: 16px; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+        .btn-coin-grant:hover { filter: brightness(1.2); }
+
         .admin-time-box { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: rgba(5, 5, 7, 0.6); border: 1px dashed var(--neon-cyan); border-radius: 8px; font-family: sans-serif; font-size: 16px; font-weight: bold; }
         .time-value { color: var(--neon-cyan); text-shadow: 0 0 5px rgba(0, 242, 254, 0.5); }
-        .status-open { color: var(--neon-cyan); }
-        .status-closed { color: var(--neon-pink); text-shadow: 0 0 5px var(--neon-pink); }
-
-        /* [UPGRADE 8 & 9] MEILENSTEIN & SYSTEM BUTTONS COCKPIT */
-        .control-grid { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
-        .btn-control { flex: 1; min-width: 180px; padding: 15px; font-family: 'Impact', sans-serif; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border: 2px solid var(--neon-cyan); background: rgba(0, 242, 254, 0.1); color: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(0, 242, 254, 0.1); }
-        .btn-control:hover { background: var(--neon-cyan); color: black; box-shadow: 0 0 15px var(--neon-cyan); }
-        .btn-control.active-voting { border-color: var(--neon-gold); background: rgba(255, 215, 0, 0.15); box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
-        .btn-control.active-voting:hover { background: var(--neon-gold); color: black; box-shadow: 0 0 20px var(--neon-gold); }
-
-        /* QUEUE ITEMS */
+        
         .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: rgba(5, 5, 7, 0.85); border: 2px solid #2a2a35; border-radius: 8px; margin-bottom: 15px; font-family: sans-serif; }
         .admin-item.is-active-first { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
         .admin-item.is-hit { border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
-        .admin-item.is-done-admin { border-color: #22c55e; opacity: 0.4; box-shadow: none; }
+        .admin-item.is-done-admin { border-color: #22c55e; opacity: 0.4; }
 
         .song-details h3 { margin: 0 0 5px 0; font-size: 20px; color: #fff; }
         .song-details p { margin: 0; color: #8e8e9f; font-size: 14px; }
         .actions-flex { display: flex; gap: 10px; align-items: center; }
         
-        /* [UPGRADE 6] DYNAMISCHER DETEKTOR-LOOK */
-        .btn-listen { color: black; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; text-shadow: none; font-weight: bold; }
-        .platform-spotify { background: linear-gradient(45deg, #1db954, #128c3b) !important; color: white !important; box-shadow: 0 0 15px rgba(29, 185, 84, 0.4); }
-        .platform-youtube { background: linear-gradient(45deg, #ff0000, #b30000) !important; color: white !important; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
+        .btn-listen { color: black; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; font-weight: bold; }
+        .platform-spotify { background: linear-gradient(45deg, #1db954, #128c3b) !important; color: white !important; }
+        .platform-youtube { background: linear-gradient(45deg, #ff0000, #b30000) !important; color: white !important; }
         .platform-default { background: linear-gradient(45deg, #8e8e9f, #575766) !important; color: white !important; }
-        .btn-listen:hover { filter: brightness(1.2); transform: scale(1.05); }
         
-        .btn-hit-toggle { background: linear-gradient(45deg, var(--neon-gold), #ccac00); color: black; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; cursor: pointer; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-        .btn-hit-toggle:hover { filter: brightness(1.2); transform: scale(1.05); }
-
-        .btn-done { background: linear-gradient(45deg, #22c55e, #15803d); color: white; border: none; padding: 14px 24px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; cursor: pointer; box-shadow: 0 0 10px rgba(34, 197, 94, 0.3); }
-        .btn-done:hover { filter: brightness(1.2); transform: scale(1.05); }
-
-        /* [UPGRADE 4] DER REALE TRASH-BUTTON */
-        .btn-trash { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444; padding: 12px 15px; font-size: 16px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .btn-trash:hover { background: #ef4444; color: white; box-shadow: 0 0 15px #ef4444; }
-        
+        .btn-hit-toggle { background: linear-gradient(45deg, var(--neon-gold), #ccac00); color: black; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
+        .btn-done { background: linear-gradient(45deg, #22c55e, #15803d); color: white; border: none; padding: 14px 24px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
+        .btn-trash { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444; padding: 12px 15px; font-size: 16px; border-radius: 6px; cursor: pointer; }
+        .btn-trash:hover { background: #ef4444; color: white; }
         .btn-undo { background: #374151; color: #d1d5db; border: none; padding: 14px 20px; font-size: 16px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
-        .btn-undo:hover { background: #4b5563; }
 
         .section-title { font-size: 22px; letter-spacing: 1px; color: #ffffff; margin: 25px 0 15px 0; text-transform: uppercase; border-bottom: 2px dashed #3a3a45; padding-bottom: 5px; }
         .no-songs { text-align: center; font-family: sans-serif; color: #8e8e9f; padding: 20px 0; font-size: 16px; }
 
-        /* [UPGRADE 5] PASSWORD PROTECTION OVERLAY */
         #admin-lock-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:#0d0d11; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-        .login-card { background:var(--form-bg); border:2px solid var(--neon-pink); padding:40px; border-radius:16px; text-align:center; box-shadow:0 0 30px var(--neon-pink); max-width:400px; width:100%; }
+        .login-card { background:var(--form-bg); border:2px solid var(--neon-pink); padding:40px; border-radius:16px; text-align:center; max-width:400px; width:100%; }
         .login-input { width:100%; padding:15px; background:rgba(0,0,0,0.5); border:2px solid #2a2a35; border-radius:8px; color:white; font-size:18px; box-sizing:border-box; margin-bottom:20px; text-align:center; }
-        .login-input:focus { border-color:var(--neon-cyan); outline:none; }
     </style>
 </head>
 <body>
     <div id="admin-lock-screen">
         <div class="login-card">
             <h1 style="font-size:28px; margin-bottom:10px; color:white;">STUDIO ACCESS</h1>
-            <p style="font-family:sans-serif; color:var(--text-muted); margin-bottom:25px; font-size:14px;">Bitte Passwort eingeben, um das Cockpit zu entsperren.</p>
             <input type="password" id="adminPassField" class="login-input" placeholder="Passwort eingeben...">
-            <button onclick="checkAdminGate()" class="btn-submit" style="width:100%; padding:15px; background:linear-gradient(45deg, var(--neon-pink), #bc005b); border:none; border-radius:8px; color:white; font-family:'Impact', sans-serif; font-size:20px; cursor:pointer; letter-spacing:1px; box-shadow:0 0 15px var(--neon-pink);">COCKPIT ENTSPERREN 🔑</button>
+            <button onclick="checkAdminGate()" class="btn-done" style="width:100%; padding:15px; font-size:20px;">COCKPIT ENTSPERREN 🔑</button>
         </div>
     </div>
 
@@ -96,17 +71,26 @@
                 </div>
 
                 <div class="admin-time-box">
-                    <div>SHOW-ZEIT BELEGT (+2M FEEDBACK): <span id="admin-total-time" class="time-value">0 Min. 00 Sek.</span></div>
-                    <div id="admin-form-status" class="status-open">🟢 FORMULAR GEÖFFNET</div>
+                    <div>SHOW-ZEIT BELEGT: <span id="admin-total-time" class="time-value">0 Min. 00 Sek.</span></div>
+                    <div id="admin-form-status" style="color:var(--neon-cyan)">🟢 MONITOR AKTIV</div>
                 </div>
 
-                <div class="section-title" style="color: var(--neon-gold); border-color: var(--neon-gold);">Live-Aktionen & Meilensteine 🎮</div>
-                <div class="control-grid">
-                    <button class="btn-control" onclick="fireMilestone('places')">🎁 +5 Extra-Plätze</button>
-                    <button class="btn-control" onclick="fireMilestone('threesong')">🎧 3-Songs Erlauben</button>
-                    <button class="btn-control" onclick="triggerCoinAction('dj')">💎 DJ-Set (3 Min.)</button>
-                    <button class="btn-control" onclick="triggerCoinAction('frosch')">🐸 Frosch-Ticket</button>
-                    <button class="btn-control active-voting" id="vote-toggle-btn" onclick="toggleLiveVotingServer()">🗳️ Live-Voting Starten</button>
+                <div class="section-title" style="color: var(--neon-gold); border-color: var(--neon-gold);">Coin-Zahler Freischalten 💎</div>
+                
+                <div class="coin-box">
+                    <span>🐸 Frosch-Zahler (Platz 1):</span>
+                    <input type="text" id="froschUser" class="coin-input" placeholder="Künstlername eintippen...">
+                    <button class="btn-coin-grant" onclick="grantCoinPrivilege('frosch')">Freigeben</button>
+                </div>
+
+                <div class="coin-box" style="border-color: var(--neon-cyan)">
+                    <span>🎧 DJ-Set Zahler (3. Song):</span>
+                    <input type="text" id="djUser" class="coin-input" placeholder="Künstlername eintippen...">
+                    <button class="btn-coin-grant" style="background:var(--neon-cyan)" onclick="grantCoinPrivilege('dj')">Freigeben</button>
+                </div>
+
+                <div style="text-align:center; margin-bottom:25px;">
+                    <button class="btn-hit-toggle" style="width:100%; padding:15px;" id="vote-toggle-btn" onclick="toggleLiveVotingServer()">Anzeige am Ende: Live-Voting starten 🗳️</button>
                 </div>
 
                 <div class="section-title" style="color: var(--neon-cyan);">Offene Einsendungen 🔥</div>
@@ -122,32 +106,38 @@
     </div>
 
 <script>
-    // [UPGRADE 5] Lokaler Passwort-Check vor Rendern
+    const token = "MONDO_STUDIO_CHEF_2026";
+
     function checkAdminGate() {
         const pw = document.getElementById('adminPassField').value;
-        fetch('/api/admin/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ password: pw })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                document.getElementById('admin-lock-screen').style.display = 'none';
-                localStorage.setItem('studio_logged', 'true');
-                loadAdminQueue();
-                setInterval(loadAdminQueue, 4000);
-            } else {
-                alert("Falsches Passwort, Bro! Zugriff verweigert.");
-            }
-        });
+        if(pw === token) {
+            document.getElementById('admin-lock-screen').style.display = 'none';
+            localStorage.setItem('studio_logged', 'true');
+            loadAdminQueue();
+            setInterval(loadAdminQueue, 4000);
+        } else { alert("Falsches Passwort!"); }
     }
 
-    // Beim Laden prüfen, ob Session aktiv ist
     if(localStorage.getItem('studio_logged') === 'true') {
         document.getElementById('admin-lock-screen').style.display = 'none';
         loadAdminQueue();
         setInterval(loadAdminQueue, 4000);
+    }
+
+    // Funktion um den Spender namentlich freizuschalten
+    async function grantCoinPrivilege(type) {
+        const username = document.getElementById(type === 'frosch' ? 'froschUser' : 'djUser').value;
+        if(!username) return alert("Bitte Namen eingeben!");
+        
+        const res = await fetch('/api/admin/set-coin-user', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': token},
+            body: JSON.stringify({ type, username })
+        });
+        if(res.ok) {
+            alert(`Erfolgreich! ${username} ist für das ${type.toUpperCase()}-Feature freigeschaltet!`);
+            document.getElementById(type === 'frosch' ? 'froschUser' : 'djUser').value = "";
+        }
     }
 
     async function loadAdminQueue() {
@@ -163,123 +153,71 @@
             
             document.getElementById('admin-total-time').innerText = data.spentFormatted;
             
-            // Voting Button Text anpassen
             const voteBtn = document.getElementById('vote-toggle-btn');
             if(data.votingActive) {
                 voteBtn.innerText = "🛑 Voting Beenden & Sichern";
                 voteBtn.style.background = "var(--neon-pink)";
-                voteBtn.style.borderColor = "var(--neon-pink)";
             } else {
                 voteBtn.innerText = "🗳️ Live-Voting Starten";
                 voteBtn.style.background = "";
-                voteBtn.style.borderColor = "";
             }
 
-            const statusText = document.getElementById('admin-form-status');
-            if (data.submissionsOpen) {
-                statusText.innerText = "🟢 FORMULAR GEÖFFNET";
-                statusText.className = "status-open";
-            } else {
-                statusText.innerText = "🔴 LIMIT ERREICHT (GESPERRT)";
-                statusText.className = "status-closed";
-            }
-            
             const activeSongs = queue.filter(item => !item.isDone);
             const hitHistorySongs = queue.filter(item => item.status === 'hit');
             
-            activeList.innerHTML = '';
-            doneList.innerHTML = '';
-            helperList.innerHTML = '';
+            activeList.innerHTML = ''; doneList.innerHTML = ''; helperList.innerHTML = '';
             
-            if(activeSongs.length === 0) activeList.innerHTML = '<div class="no-songs">Keine offenen Songs in der Warteliste.</div>';
-            if(queue.length - activeSongs.length === 0) doneList.innerHTML = '<div class="no-songs">Noch keine Songs bewertet.</div>';
-            if(hitHistorySongs.length === 0) helperList.innerHTML = '<div class="no-songs">Noch keine Playlist-Hits heute vergeben.</div>';
+            if(activeSongs.length === 0) activeList.innerHTML = '<div class="no-songs">Keine offenen Songs.</div>';
+            if(hitHistorySongs.length === 0) helperList.innerHTML = '<div class="no-songs">Keine Hits vergeben.</div>';
 
-            // Playlist-Helfer Rendern
             hitHistorySongs.forEach(item => {
                 helperList.innerHTML += `
                     <div class="admin-item" style="border-color: var(--neon-gold); padding: 12px 20px; margin-bottom: 8px;">
-                        <div class="song-details">
-                            <h3 style="color: var(--neon-gold); font-size:16px;">🎵 ${item.artist} - ${item.title}</h3>
-                        </div>
-                        <a href="${item.songLink}" target="_blank" class="btn-listen platform-default" style="padding: 8px 15px; font-size:12px;">LINK ÖFFNEN 🔗</a>
+                        <h3 style="color: var(--neon-gold); font-size:16px; margin:0;">🎵 ${item.artist} - ${item.title}</h3>
+                        <a href="${item.songLink}" target="_blank" class="btn-listen platform-default" style="padding: 8px 15px; font-size:12px;">LINK 🔗</a>
                     </div>`;
             });
 
             queue.forEach((item) => {
                 const min = Math.floor(item.duration / 60); const sec = item.duration % 60;
-                const safeLink = item.songLink ? item.songLink : '#';
-                const listenButtonStyle = item.songLink ? '' : 'style="opacity: 0.3; pointer-events: none;"';
-
-                // [UPGRADE 6] Link-Detektor Farb-Zuweisung
                 let platformClass = 'platform-default';
                 if(item.songLink && item.songLink.includes('spotify.com')) platformClass = 'platform-spotify';
                 if(item.songLink && (item.songLink.includes('youtube.com') || item.songLink.includes('youtu.be'))) platformClass = 'platform-youtube';
 
                 if(!item.isDone) {
                     let activeIndex = activeSongs.indexOf(item);
-                    let titlePrefix = activeIndex === 0 ? '<span style="color:var(--neon-cyan); font-weight:bold;">[DRAN] </span>' : '';
+                    let titlePrefix = activeIndex === 0 ? '[DRAN] ' : '';
+                    if (item.status === 'hit') titlePrefix = '[⭐ HIT] ' + titlePrefix;
                     
-                    if (item.status === 'hit') titlePrefix = '<span style="color:var(--neon-gold); font-weight:bold;">[⭐ HIT] </span>' + titlePrefix;
-                    if (item.status === 'potenzial') titlePrefix = '<span style="color:#00ffcc; font-weight:bold;">[⚡ POTENZIAL] </span>' + titlePrefix;
-                    if (item.status === 'rewrite') titlePrefix = '<span style="color:var(--neon-pink); font-weight:bold;">[✍️ REWRITE] </span>' + titlePrefix;
-                    
-                    let itemStyleClass = item.status === 'hit' ? 'is-hit' : '';
-                    if (activeIndex === 0 && item.status !== 'hit') itemStyleClass = 'is-active-first';
-
-                    const totalSongTime = `${min + 2}:${sec < 10 ? '0' : ''}${sec} Min.`;
-
                     activeList.innerHTML += `
-                        <div class="admin-item ${itemStyleClass}">
+                        <div class="admin-item ${item.status === 'hit' ? 'is-hit' : (activeIndex === 0 ? 'is-active-first' : '')}">
                             <div class="song-details">
                                 <h3>${titlePrefix}${item.artist} - ${item.title}</h3>
-                                <p>Genre: ${item.genre} | Sendezeit: ⏱️ ${totalSongTime}</p>
+                                <p>Genre: ${item.genre} | Dauer: ${min}:${sec < 10 ? '0' : ''}${sec}</p>
                             </div>
                             <div class="actions-flex">
-                                <a href="${safeLink}" target="_blank" class="btn-listen ${platformClass}" ${listenButtonStyle}>ANHÖREN 🎧</a>
+                                <a href="${item.songLink}" target="_blank" class="btn-listen ${platformClass}">ANHÖREN</a>
                                 <button class="btn-hit-toggle" onclick="judgeSong(${item.id}, 'hit')">HIT ⭐</button>
-                                <button class="btn-hit-toggle" style="background:#00ffcc;" onclick="judgeSong(${item.id}, 'potenzial')">POTENZIAL ⚡</button>
-                                <button class="btn-hit-toggle" style="background:var(--neon-pink); color:white;" onclick="judgeSong(${item.id}, 'rewrite')">REWRITE ✍️</button>
                                 <button class="btn-done" onclick="markAsDone(${item.id})">ERLEDIGT ✓</button>
                                 <button class="btn-trash" onclick="killTrackFromDb(${item.id})">🗑️</button>
                             </div>
                         </div>`;
                 } else {
-                    let titlePrefix = item.status === 'hit' ? '<span style="color:var(--neon-gold); font-weight:bold;">[⭐ HIT] </span>' : '';
                     doneList.innerHTML += `
                         <div class="admin-item is-done-admin">
-                            <div class="song-details">
-                                <h3>${titlePrefix}${item.artist} - ${item.title}</h3>
-                                <p>Genre: ${item.genre} | Urteil: ${item.status ? item.status.toUpperCase() : 'KEINS'}</p>
-                            </div>
-                            <div class="actions-flex">
-                                <button class="btn-undo" onclick="markAsDone(${item.id})">↩ ZURÜCK</button>
-                            </div>
+                            <h3>${item.artist} - ${item.title}</h3>
+                            <button class="btn-undo" onclick="markAsDone(${item.id})">↩</button>
                         </div>`;
                 }
             });
         } catch(e) { console.log(e); }
     }
 
-    // API-Verknüpfungen zum Backend
-    async function judgeSong(id, status) { await fetch(`/api/queue/${id}/status`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status }) }); loadAdminQueue(); }
-    async function markAsDone(id) { await fetch(`/api/queue/${id}/done`, { method: 'POST' }); loadAdminQueue(); }
-    
-    // [UPGRADE 4] REAL TIME LÖSCHEN
-    async function killTrackFromDb(id) { if(confirm("Song komplett aus Datenbank löschen?")) { await fetch(`/api/queue/${id}`, { method: 'DELETE' }); loadAdminQueue(); } }
-    
-    // [UPGRADE 8 & 9] COCKPIT CONTROLS
-    async function fireMilestone(action) { await fetch('/api/admin/milestone', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ action }) }); alert("System-Meilenstein erfolgreich aktiviert! 🎯"); loadAdminQueue(); }
-    async function triggerCoinAction(type) { await fetch('/api/admin/allow-coin', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ type }) }); alert(`Coin-Aktion [${type.toUpperCase()}] freigegeben! 🔥`); loadAdminQueue(); }
-    
-    // [UPGRADE 11] VOTING SYSTEM SWITCHER
-    async function toggleLiveVotingServer() { await fetch('/api/admin/voting', { method: 'POST' }); loadAdminQueue(); }
-
-    async function resetQueue() {
-        if(confirm("Möchtest du wirklich ALLE Songs (auch die Historie) löschen?")) {
-            await fetch('/api/queue/reset', { method: 'POST' }); loadAdminQueue();
-        }
-    }
+    async function judgeSong(id, status) { await fetch(`/api/queue/${id}/status`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': token}, body: JSON.stringify({ status }) }); loadAdminQueue(); }
+    async function markAsDone(id) { await fetch(`/api/queue/${id}/done`, { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
+    async function killTrackFromDb(id) { if(confirm("Song permanent löschen?")) { await fetch(`/api/queue/${id}`, { method: 'DELETE', headers: {'Authorization': token} }); loadAdminQueue(); } }
+    async function toggleLiveVotingServer() { await fetch('/api/admin/voting', { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
+    async function resetQueue() { if(confirm("Ganze Liste resetten?")) { await fetch('/api/queue/reset', { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); } }
 </script>
 </body>
 </html>
