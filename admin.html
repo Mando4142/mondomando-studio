@@ -152,7 +152,6 @@
             
             activeList.innerHTML = ''; doneList.innerHTML = ''; hofList.innerHTML = ''; hitExportList.innerHTML = '';
 
-            // 1. Hall of Fame rendern
             if(hof.length === 0) { hofList.innerHTML = '<div style="color:#8e8e9f; font-family:sans-serif; text-align:center; padding: 10px;">Noch keine Champions in der Liste.</div>'; }
             hof.forEach((c, hIndex) => {
                 hofList.innerHTML += `
@@ -167,7 +166,6 @@
                     </div>`;
             });
 
-            // 2. NEU: Hit Export Liste rendern (Alle Songs der Session, die isHit === true haben)
             const hitSongs = queue.filter(item => item.isHit);
             if(hitSongs.length === 0) {
                 hitExportList.innerHTML = '<div style="color:#8e8e9f; font-family:sans-serif; text-align:center; padding: 10px;">Noch keine Tracks als Hit markiert.</div>';
@@ -189,7 +187,6 @@
                 });
             }
 
-            // 3. Aktive Songs & Historie rendern
             queue.forEach((item, index) => {
                 const min = Math.floor(item.duration / 60); const sec = item.duration % 60;
                 
@@ -216,7 +213,6 @@
                             </div>
                         </div>`;
                 } else {
-                    // WIEDERHERGESTELLT: Links auch in der Erledigt-Liste anzeigen
                     doneList.innerHTML += `
                         <div class="admin-item is-done-admin">
                             <div class="song-details">
