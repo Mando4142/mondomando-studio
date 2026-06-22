@@ -97,7 +97,6 @@
         .btn-vote { background: var(--neon-gold); color: black; border: none; padding: 8px 15px; font-family: 'Impact', sans-serif; border-radius: 4px; cursor: pointer; font-size: 14px; letter-spacing: 1px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
         .btn-vote:hover { transform: scale(1.05); filter: brightness(1.1); }
 
-        /* NEU: Styling für die direkte Server-Fehlermeldung (z.B. schon eingereicht) */
         #submit-error-box {
             color: #ffffff; 
             background-color: #ef4444; 
@@ -521,7 +520,6 @@
         const sec = parseInt(document.getElementById('durationSec').value) || 0;
         const genre = document.getElementById('genre').value;
         
-        // Direkte Sperre für Link-Klauer auf der Seite
         const isSpotify = /spotify\.com/i.test(songLink);
         const isYouTube = /youtube\.com|youtu\.be/i.test(songLink);
         const errBox = document.getElementById('submit-error-box');
@@ -542,7 +540,6 @@
         const resData = await res.json();
         
         if (resData.error) {
-            // HIER WIRD DIE ROTE FEHLERMELDUNG ANGEZEIGT (z.B. "Du hast schon eingereicht!")
             errBox.innerText = "🚫 " + resData.error;
             errBox.style.display = "block";
             errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
