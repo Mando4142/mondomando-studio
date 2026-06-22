@@ -19,8 +19,11 @@ let dbData = {
     hallOfFame: [],
     historicalHits: {}, 
     systemOnline: true,
-    extensionActive: false
+    extensionActive: false,
+    votingEndsAt: null
 };
+
+let votingTimeout = null;
 
 function generateVoteCode() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -71,6 +74,31 @@ function getSwissDateString(d) {
     return `${day}.${month}.${year}`;
 }
 
+// AUTOMATISCHE VOTING-AUSWERTUNG
+function processVotingResult() {
+    const hits = dbData.songQueue.filter(s => s.isHit);
+    if (hits.length === 0) {
+        dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; dbData.votingEndsAt = null; saveToDB();
+        return;
+    }
+
+    let maxVotes = -1; let tiedSongs = [];
+    hits.forEach(song => {
+        const v = dbData.votes[song.id] || 0;
+        if (v > maxVotes) { maxVotes = v; tiedSongs = [song]; } else if (v === maxVotes) { tiedSongs.push(song); }
+    });
+
+    if (tiedSongs.length > 1) {
+        dbData.votingPhase = 'tiebreak'; dbData.tiedSongs = tiedSongs.map(s => s.id);
+    } else if (tiedSongs.length === 1) {
+        finalizeWinner(tiedSongs[0].id); return; 
+    } else {
+        dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = [];
+    }
+    dbData.votingEndsAt = null;
+    saveToDB();
+}
+
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('/regeln', (req, res) => res.sendFile(path.join(__dirname, 'regeln.html')));
@@ -96,6 +124,11 @@ app.get('/api/queue', (req, res) => {
     const minSpent = Math.floor(totalSeconds / 60);
     const secSpent = totalSeconds % 60;
     const spentFormatted = `${minSpent} Min. ${secSpent < 10 ? '0'+secSpent : secSpent} Sek.`;
+    
+    let votingRemainingSeconds = 0;
+    if (dbData.votingPhase === 'active' && dbData.votingEndsAt) {
+        votingRemainingSeconds = Math.max(0, Math.floor((dbData.votingEndsAt - Date.now()) / 1000));
+    }
     
     const processedQueue = dbData.songQueue.map(song => {
         let platform = 'other';
@@ -123,6 +156,7 @@ app.get('/api/queue', (req, res) => {
         phase: phase,
         extensionActive: dbData.extensionActive === true,
         votingPhase: dbData.votingPhase,
+        votingRemainingSeconds: votingRemainingSeconds,
         votes: dbData.votes,
         tiedSongs: tiedSongsDetails,
         hallOfFame: dbData.hallOfFame,
@@ -174,7 +208,6 @@ app.post('/api/vote', (req, res) => {
     if (dbData.votingPhase !== 'active') return res.status(400).json({ error: "Voting ist aktuell geschlossen!" });
     
     const { voteCode, vote1, vote2 } = req.body;
-    
     if (!voteCode || !vote1 || !vote2) return res.status(400).json({ error: "Fehlende Daten. Du brauchst 2 Stimmen und deinen Code!" });
     if (vote1 === vote2) return res.status(400).json({ error: "Du darfst nicht zweimal für denselben Song abstimmen!" });
 
@@ -199,27 +232,44 @@ app.post('/api/vote', (req, res) => {
 });
 
 app.post('/api/admin/voting/start', checkAdminAuth, (req, res) => {
-    dbData.votingPhase = 'active'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; saveToDB(); res.json({ success: true });
+    dbData.votingPhase = 'active'; 
+    dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = [];
+    dbData.votingEndsAt = Date.now() + 4 * 60 * 1000; // 4 Minuten ab jetzt
+    
+    if(votingTimeout) clearTimeout(votingTimeout);
+    votingTimeout = setTimeout(() => {
+        if (dbData.votingPhase === 'active') processVotingResult();
+    }, 4 * 60 * 1000);
+
+    saveToDB(); res.json({ success: true });
 });
 
 app.post('/api/admin/voting/resolve', checkAdminAuth, (req, res) => {
+    if(votingTimeout) { clearTimeout(votingTimeout); votingTimeout = null; }
+    
     const { forceWinnerId } = req.body;
     if (forceWinnerId) { finalizeWinner(forceWinnerId); return res.json({ success: true }); }
 
-    const hits = dbData.songQueue.filter(s => s.isHit);
-    if (hits.length === 0) return res.status(400).json({ error: "Keine Hits für Auswertung!" });
+    processVotingResult();
+    
+    if (dbData.votingPhase === 'tiebreak') {
+        res.json({ tiebreak: true });
+    } else {
+        res.json({ success: true });
+    }
+});
 
-    let maxVotes = -1; let tiedSongs = [];
-    hits.forEach(song => {
-        const v = dbData.votes[song.id] || 0;
-        if (v > maxVotes) { maxVotes = v; tiedSongs = [song]; } else if (v === maxVotes) { tiedSongs.push(song); }
-    });
-
-    if (tiedSongs.length > 1) {
-        dbData.votingPhase = 'tiebreak'; dbData.tiedSongs = tiedSongs.map(s => s.id); saveToDB(); return res.json({ tiebreak: true });
-    } else if (tiedSongs.length === 1) {
-        finalizeWinner(tiedSongs[0].id); return res.json({ success: true });
-    } else { return res.status(400).json({ error: "Fehler bei der Auswertung." }); }
+app.post('/api/admin/voting/reset-timer', checkAdminAuth, (req, res) => {
+    if (dbData.votingPhase !== 'active') return res.status(400).json({error: "Voting nicht aktiv"});
+    
+    dbData.votingEndsAt = Date.now() + 4 * 60 * 1000;
+    if(votingTimeout) clearTimeout(votingTimeout);
+    votingTimeout = setTimeout(() => {
+        if (dbData.votingPhase === 'active') processVotingResult();
+    }, 4 * 60 * 1000);
+    
+    saveToDB();
+    res.json({ success: true });
 });
 
 function finalizeWinner(songId) {
@@ -228,7 +278,8 @@ function finalizeWinner(songId) {
         const votes = dbData.votes[songId] || 0;
         dbData.hallOfFame.push({ artist: winner.artist, title: winner.title, votes: votes, date: getSwissDateString(new Date()) });
     }
-    dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; saveToDB();
+    dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; dbData.votingEndsAt = null;
+    saveToDB();
 }
 
 app.post('/api/admin/auth', (req, res) => {
@@ -294,7 +345,8 @@ app.delete('/api/admin/halloffame/:index', checkAdminAuth, (req, res) => {
 });
 
 app.post('/api/queue/reset', checkAdminAuth, (req, res) => {
-    dbData.songQueue = []; dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; dbData.extensionActive = false; dbData.extraTimeMinutes = 0;
+    dbData.songQueue = []; dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; dbData.extensionActive = false; dbData.extraTimeMinutes = 0; dbData.votingEndsAt = null;
+    if(votingTimeout) { clearTimeout(votingTimeout); votingTimeout = null; }
     saveToDB(); res.json({ success: true });
 });
 
