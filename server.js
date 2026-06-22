@@ -98,6 +98,13 @@ app.post('/api/submit', (req, res) => {
 
     const { artist, title, duration, genre, songLink } = req.body;
     
+    // LINK SPERRE: Nur Spotify und YouTube
+    const isSpotify = /spotify\.com/i.test(songLink);
+    const isYouTube = /youtube\.com|youtu\.be/i.test(songLink);
+    if (!isSpotify && !isYouTube) {
+        return res.status(400).json({ error: "Es sind nur Links von Spotify oder YouTube erlaubt!" });
+    }
+
     if (["Schlager", "Hardstyle", "Hardcore", "Metal"].includes(genre)) {
         return res.status(400).json({ error: "Dieses Genre verletzt Mondos Ohren!" });
     }
@@ -174,7 +181,7 @@ app.delete('/api/queue/:index', checkAdminAuth, (req, res) => {
         saveToDB();
         res.json({ success: true });
     } else res.status(400).json({ error: "Index Fehler" });
-});https://github.com/Mando4142/MondoMando-records/blob/main/server.js
+});
 
 app.post('/api/admin/overtime', checkAdminAuth, (req, res) => {
     const { minutes } = req.body;
