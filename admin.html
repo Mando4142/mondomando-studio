@@ -99,11 +99,32 @@
     </div>
 <script>
     let token = ""; let sortableInstance = null;
+    let adminTimerInterval = null;
+    let adminRemainingSeconds = 0;
 
     function tryLogin() {
         const pass = document.getElementById('adminPassInput').value;
         fetch('/api/admin/auth', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ password: pass }) })
         .then(res => { if (res.ok) { token = pass; document.getElementById('login-overlay').style.display = 'none'; loadAdminQueue(); setInterval(loadAdminQueue, 4000); } else { alert("Falsches Passwort!"); } })
+    }
+
+    function startAdminTimer(seconds) {
+        if (adminTimerInterval) clearInterval(adminTimerInterval);
+        adminRemainingSeconds = seconds; updateAdminTimerVisuals();
+        adminTimerInterval = setInterval(() => {
+            adminRemainingSeconds--;
+            if (adminRemainingSeconds <= 0) { adminRemainingSeconds = 0; clearInterval(adminTimerInterval); }
+            updateAdminTimerVisuals();
+        }, 1000);
+    }
+
+    function updateAdminTimerVisuals() {
+        const textEl = document.getElementById('admin-timer-text');
+        if (!textEl) return;
+        const m = Math.floor(adminRemainingSeconds / 60); const s = adminRemainingSeconds % 60;
+        textEl.innerText = `0${m}:${s < 10 ? '0' : ''}${s}`;
+        textEl.style.color = adminRemainingSeconds > 120 ? '#22c55e' : (adminRemainingSeconds > 60 ? '#ffd700' : '#ef4444');
+        textEl.style.textShadow = `0 0 10px ${textEl.style.color}`;
     }
 
     async function loadAdminQueue() {
@@ -126,7 +147,6 @@
             } else {
                 btnOnline.style.background = "#22c55e"; btnOnline.style.opacity = "1"; btnOnline.style.boxShadow = "0 0 15px rgba(34, 197, 94, 0.6)";
                 btnOffline.style.background = "#374151"; btnOffline.style.opacity = "0.4"; btnOffline.style.boxShadow = "none";
-                
                 if (data.phase === 'base') statusText.innerText = "🟢 HAUPTZEIT GEÖFFNET";
                 else if (data.phase === 'base_full') statusText.innerText = "🔒 90 MIN VOLL (WARTET)";
                 else if (data.phase === 'extension') statusText.innerText = "🔥 VERLÄNGERUNG LÄUFT";
@@ -141,18 +161,35 @@
 
             const vBox = document.getElementById('admin-voting-controls');
             if (data.votingPhase === 'inactive') {
-                vBox.innerHTML = `<button class="btn-voting-action" onclick="startVoting()">🔴 VOTING STARTEN (CODES FREISCHALTEN)</button>`;
+                if (!document.getElementById('start-voting-btn')) {
+                    vBox.innerHTML = `<button id="start-voting-btn" class="btn-voting-action" onclick="startVoting()">🔴 VOTING STARTEN (4 MIN)</button>`;
+                }
+                if(adminTimerInterval) { clearInterval(adminTimerInterval); adminTimerInterval = null; }
             } else if (data.votingPhase === 'active') {
-                vBox.innerHTML = `<button class="btn-voting-action" style="background:#22c55e; box-shadow:0 0 15px #22c55e;" onclick="resolveVoting()">✅ VOTING BEENDEN & GEWINNER ERMITTELN</button>`;
+                if (!document.getElementById('admin-timer-text')) {
+                    vBox.innerHTML = `
+                        <div id="admin-timer-text" style="font-size:48px; text-align:center; margin-bottom:15px; font-family:'Impact', sans-serif;">04:00</div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-voting-action" style="background:#22c55e; box-shadow:0 0 15px #22c55e; flex:2;" onclick="resolveVoting()">✅ MANUELL BEENDEN</button>
+                            <button class="btn-voting-action" style="background:#3b82f6; box-shadow:0 0 15px #3b82f6; flex:1;" onclick="resetVotingTimer()">🔄 +4 MIN</button>
+                        </div>
+                    `;
+                }
+                if (!adminTimerInterval || Math.abs(adminRemainingSeconds - data.votingRemainingSeconds) > 2) {
+                    startAdminTimer(data.votingRemainingSeconds);
+                }
             } else if (data.votingPhase === 'tiebreak') {
-                let tbHtml = `<div style="background:#ef4444; color:white; padding:10px; border-radius:6px; margin-bottom:10px;">⚠️ GLEICHSTAND! Wähle den Gewinner:</div>`;
-                data.tiedSongs.forEach(s => {
-                    tbHtml += `<div style="display:flex; justify-content:space-between; background:#000; padding:10px; margin-bottom:5px;">
-                        <span>${s.artist} - ${s.title}</span>
-                        <button class="btn-control" style="background:var(--neon-gold); color:black;" onclick="forceWinner('${s.id}')">👑 DIESEN WÄHLEN</button>
-                    </div>`;
-                });
-                vBox.innerHTML = tbHtml;
+                if (!document.getElementById('tiebreak-container')) {
+                    let tbHtml = `<div id="tiebreak-container" style="background:#ef4444; color:white; padding:10px; border-radius:6px; margin-bottom:10px;">⚠️ GLEICHSTAND! Wähle den Gewinner:</div>`;
+                    data.tiedSongs.forEach(s => {
+                        tbHtml += `<div style="display:flex; justify-content:space-between; background:#000; padding:10px; margin-bottom:5px;">
+                            <span>${s.artist} - ${s.title}</span>
+                            <button class="btn-control" style="background:var(--neon-gold); color:black;" onclick="forceWinner('${s.id}')">👑 DIESEN WÄHLEN</button>
+                        </div>`;
+                    });
+                    vBox.innerHTML = tbHtml;
+                }
+                if(adminTimerInterval) { clearInterval(adminTimerInterval); adminTimerInterval = null; }
             }
 
             const activeList = document.getElementById('admin-active-list');
@@ -257,8 +294,13 @@
 
     async function startVoting() { 
         await fetch('/api/admin/voting/start', { method: 'POST', headers: {'Authorization': token} }); 
-        alert("🔥 VOTING GESTARTET! Die Zuschauer können jetzt ihre Codes einlösen.");
+        alert("🔥 VOTING GESTARTET! 4 Minuten laufen jetzt ab.");
         loadAdminQueue(); 
+    }
+
+    async function resetVotingTimer() {
+        await fetch('/api/admin/voting/reset-timer', { method: 'POST', headers: {'Authorization': token} });
+        loadAdminQueue();
     }
     
     async function resolveVoting() { 
