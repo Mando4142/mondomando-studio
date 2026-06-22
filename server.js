@@ -13,7 +13,7 @@ let dbData = {
     songQueue: [],
     extraTimeMinutes: 0,
     votingActive: false,
-    votes: {}, // Struktur: { "songIndex": ["id1", "id2"] }
+    votes: {}, 
     hallOfFame: [],
     historicalHits: {}, 
     systemOnline: true,
@@ -35,7 +35,7 @@ function saveToDB() {
 const BASE_LIMIT_MINUTES = 90;
 const EXTENSION_LIMIT_MINUTES = 30;
 const FEEDBACK_BUFFER_SECONDS = 120;
-const ADMIN_PASSWORD = "Sutter1998!";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Sutter1998!";
 
 function getTotalTimeSeconds() {
     let total = 0;
@@ -48,10 +48,6 @@ function getTotalTimeSeconds() {
 function checkAdminAuth(req, res, next) {
     if (req.headers['authorization'] === ADMIN_PASSWORD) next();
     else res.status(401).json({ error: "Unbefugter Zugriff!" });
-}
-
-function getSwissDateString(d) {
-    return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
 }
 
 // API Endpoints
@@ -82,36 +78,95 @@ app.get('/api/queue', (req, res) => {
     });
 });
 
-// VOTING LOGIK MIT STIMMENBEGRENZUNG
 app.post('/api/vote', (req, res) => {
     if (!dbData.votingActive) return res.status(400).json({ error: "Voting geschlossen!" });
     
     const { songIndex, voterId } = req.body;
     if (!voterId) return res.status(400).json({ error: "Keine Identifikation möglich!" });
-
     if (!dbData.votes[songIndex]) dbData.votes[songIndex] = [];
 
-    // 1. Check: Schon für diesen Song gestimmt?
-    if (dbData.votes[songIndex].includes(voterId)) {
+    if (dbData.votes[songIndex].includes(voterId)) 
         return res.status(400).json({ error: "Du hast für diesen Song bereits abgestimmt!" });
-    }
 
-    // 2. Check: Max 2 Stimmen insgesamt
     let totalVotesByUser = 0;
-    Object.values(dbData.votes).forEach(list => {
-        if (list.includes(voterId)) totalVotesByUser++;
-    });
+    Object.values(dbData.votes).forEach(list => { if (list.includes(voterId)) totalVotesByUser++; });
 
-    if (totalVotesByUser >= 2) {
+    if (totalVotesByUser >= 2) 
         return res.status(400).json({ error: "Du hast dein Maximum von 2 Stimmen erreicht!" });
-    }
 
     dbData.votes[songIndex].push(voterId);
     saveToDB();
     res.json({ success: true, count: dbData.votes[songIndex].length });
 });
 
-// ... hier folgen alle deine anderen app.post / app.delete Routen aus dem Original ...
-// (Kopiere sie hier einfach aus deinem ursprünglichen Code hinein)
+app.post('/api/submit', (req, res) => {
+    if (!dbData.systemOnline) return res.status(400).json({ error: "System ist offline!" });
+    dbData.songQueue.push({ ...req.body, isDone: false, isHit: false });
+    saveToDB();
+    res.json({ success: true });
+});
+
+app.post('/api/admin/auth', (req, res) => {
+    if (req.body.password === ADMIN_PASSWORD) res.json({ success: true });
+    else res.status(401).json({ error: "Falsches Passwort!" });
+});
+
+app.post('/api/admin/reorder-active', checkAdminAuth, (req, res) => {
+    const { oldIndex, newIndex } = req.body;
+    const element = dbData.songQueue.splice(oldIndex, 1)[0];
+    dbData.songQueue.splice(newIndex, 0, element);
+    saveToDB();
+    res.json({ success: true });
+});
+
+app.post('/api/admin/toggle-extension', checkAdminAuth, (req, res) => {
+    dbData.extensionActive = !dbData.extensionActive;
+    saveToDB();
+    res.json({ extensionActive: dbData.extensionActive });
+});
+
+app.post('/api/admin/set-system-status', checkAdminAuth, (req, res) => {
+    dbData.systemOnline = req.body.online;
+    saveToDB();
+    res.json({ success: true });
+});
+
+app.post('/api/admin/overtime', checkAdminAuth, (req, res) => {
+    dbData.extraTimeMinutes += (req.body.minutes || 0);
+    saveToDB();
+    res.json({ success: true });
+});
+
+app.post('/api/admin/toggle-voting', checkAdminAuth, (req, res) => {
+    dbData.votingActive = !dbData.votingActive;
+    if (!dbData.votingActive) dbData.votes = {}; 
+    saveToDB();
+    res.json({ success: true });
+});
+
+app.post('/api/queue/:index/hit', checkAdminAuth, (req, res) => {
+    dbData.songQueue[req.params.index].isHit = !dbData.songQueue[req.params.index].isHit;
+    saveToDB();
+    res.json({ success: true });
+});
+
+app.post('/api/queue/:index/done', checkAdminAuth, (req, res) => {
+    dbData.songQueue[req.params.index].isDone = !dbData.songQueue[req.params.index].isDone;
+    saveToDB();
+    res.json({ success: true });
+});
+
+app.delete('/api/queue/:index', checkAdminAuth, (req, res) => {
+    dbData.songQueue.splice(req.params.index, 1);
+    saveToDB();
+    res.json({ success: true });
+});
+
+app.post('/api/queue/reset', checkAdminAuth, (req, res) => {
+    dbData.songQueue = [];
+    dbData.votes = {};
+    saveToDB();
+    res.json({ success: true });
+});
 
 app.listen(PORT, () => { console.log(`🚀 MONDO MANDO RECORDS RUNNING ON PORT ${PORT}`); });
