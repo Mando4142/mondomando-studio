@@ -10,7 +10,7 @@
             --neon-cyan: #00f2fe;
             --neon-gold: #ffd700;
             --neon-green: #22c55e;
-            --neon-orange: #ff5500;
+            --neon-orange: #ff5500; /* NEU: Leuchtendes Verlängerungs-Orange */
             --text-main: #ffffff;
             --text-muted: #8e8e9f;
             --form-bg: rgba(19, 19, 26, 0.85);
@@ -204,7 +204,7 @@
             </div>
 
             <div class="card gold-glow" style="border-color: #ffaa00; box-shadow: 0 0 15px rgba(255, 170, 0, 0.2);">
-                <h2 style="text-shadow: 0 0 8px #ffaa00; border-bottom-color: #ffaa00; color: #ffaa00;">🏆 EWIGE Künstler/Song Hall OF FAME 🏆</h2>
+                <h2 style="text-shadow: 0 0 8px #ffaa00; border-bottom-color: #ffaa00; color: #ffaa00;">🏆 EWIGE HALL OF FAME LEGENDE 🏆</h2>
                 <div id="hof-list"></div>
             </div>
 
@@ -217,35 +217,11 @@
 
 <script>
     const FEEDBACK_BUFFER_SEC = 120;
-    
     let calDate = new Date(); let serverHistoricalHits = {}; let selectedArchiveDate = null;
     
     function getSwissDateString(d) {
         const day = String(d.getDate()).padStart(2, '0'); const month = String(d.getMonth() + 1).padStart(2, '0'); const year = d.getFullYear();
         return `${day}.${month}.${year}`;
-    }
-
-    // --- VOTING LOGIK ---
-    async function castVote(songIndex) {
-        let voterId = localStorage.getItem('mando_voter_id');
-        if (!voterId) {
-            voterId = 'user_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('mando_voter_id', voterId);
-        }
-
-        const res = await fetch('/api/vote', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ songIndex: songIndex, voterId: voterId }) 
-        });
-        
-        const result = await res.json();
-        if (res.ok) {
-            alert("✅ Deine Stimme wurde gezählt!");
-            loadQueue();
-        } else {
-            alert("❌ " + result.error);
-        }
     }
 
     function renderCalendar() {
@@ -295,29 +271,21 @@
             const submitBtn = document.getElementById('submitBtn'); const timeLeftPot = document.getElementById('time-left-pot');
             const activeSongs = queue.filter(item => !item.isDone);
 
+            // ZWEI PHASEN UND OFF-LOGIK KONTROLLIEREN
             if (data.systemOnline === false) {
                 formContainer.style.display = 'none'; votingContainer.style.display = 'none'; offlineMsg.style.display = 'block';
                 mainTitle.innerText = "SYSTEM GESPERRT"; offlineMsg.innerHTML = `<div style="font-size: 40px; margin-bottom: 15px;">🚫</div>Das Einreicheformular ist aktuell offline!`;
                 timeLeftPot.innerText = "SYSTEM OFFLINE"; timeLeftPot.className = "time-urgent";
             } else if (data.votingActive) {
                 formContainer.style.display = 'none'; offlineMsg.style.display = 'none'; votingContainer.style.display = 'block'; mainTitle.style.display = 'none';
-                
-                let voteHtml = `<h2>🗳️ VOTE FÜR DEN HIT!</h2>`;
-                queue.forEach((s, index) => { 
-                    if(s.isHit) {
-                        const stimmen = (data.votes && data.votes[index]) ? data.votes[index].length : 0;
-                        voteHtml += `
-                            <div class="queue-item is-playlist-hit">
-                                <div><b>${s.artist}</b> - ${s.title}<br>
-                                <small style="color:var(--text-muted)">Stimmen: ${stimmen}</small></div>
-                                <button class="btn-vote" onclick="castVote(${index})">VOTE 🗳️</button>
-                            </div>`;
-                    }
-                });
+                const hits = []; queue.forEach((s, index) => { if(s.isHit) hits.push({ ...s, originalIndex: index }); });
+                let voteHtml = `<h2>🗳️ WÄHLE DEN HIT DES TAGES! 🗳️</h2>`;
+                hits.forEach(h => { voteHtml += `<div class="queue-item is-playlist-hit"><div><b>${h.artist}</b> - ${h.title}</div><button class="btn-vote" onclick="castVote(${h.originalIndex})">VOTE 🗳 Mini</button></div>`; });
                 votingContainer.innerHTML = voteHtml;
             } else {
                 votingContainer.style.display = 'none';
                 
+                // AUSWERTUNG DER PHASEN (90 Min vs 30 Min Verlängerung)
                 if (data.phase === 'base') {
                     formContainer.style.display = 'block'; offlineMsg.style.display = 'none';
                     mainCard.style.borderColor = "var(--neon-cyan)"; mainCard.style.boxShadow = "0 0 15px rgba(0, 242, 254, 0.2)";
@@ -335,6 +303,7 @@
                 } 
                 else if (data.phase === 'extension') {
                     formContainer.style.display = 'block'; offlineMsg.style.display = 'none';
+                    // FARBWECHSEL AUF ORANGE FÜR DIE VERLÄNGERUNG!
                     mainCard.style.borderColor = "var(--neon-orange)"; mainCard.style.boxShadow = "0 0 25px var(--neon-orange), inset 0 0 15px rgba(255, 85, 0, 0.1)";
                     mainTitle.innerText = "🔥 STREAM ZEIT VERLÄNGERUNG (30 MIN) 🔥"; mainTitle.style.color = "var(--neon-orange)"; mainTitle.style.textShadow = "0 0 10px var(--neon-orange)";
                     const secFormatted = data.remainingSeconds < 10 ? '0' + data.remainingSeconds : data.remainingSeconds;
@@ -408,10 +377,13 @@
             errBox.style.display = "none"; const thankYouOverlay = document.createElement('div');
             thankYouOverlay.style = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 13, 17, 0.95); z-index: 10000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px);";
             thankYouOverlay.innerHTML = `<div style="background: #14141f; border: 2px solid var(--neon-gold); padding: 40px; border-radius: 16px; text-align: center; max-width: 500px; width: 90%;"><h1 style="font-family: 'Impact', sans-serif; color: var(--neon-gold); font-size: 28px;">TRACK ERFOLGREICH EINGEREICHT!</h1><div style="font-size: 50px; margin-bottom: 20px;">🔥🎙️🚀</div><p style="color: #fff; font-size: 16px; font-weight: bold;">"Stark, dass du am Start bist! Dein Song wurde sauber in die Datenbank von MondoMando Records geballert."</p><button id="closeThankYouBtn" style="background: linear-gradient(45deg, var(--neon-pink), #bc005b); border: none; padding: 15px 30px; font-family: 'Impact', sans-serif; font-size: 18px; color: white; border-radius: 8px; cursor: pointer; width: 100%;">ZURÜCK ZUR LIVE-LISTE 👊🏼</button></div>`;
+            document.body.appendChild(thankYouOverlay);
             document.getElementById('closeThankYouBtn').onclick = function() { thankYouOverlay.remove(); };
             document.getElementById('songForm').reset(); loadQueue();
         }
     }
+
+    async function castVote(id) { await fetch('/api/vote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ songIndex: id }) }); alert("Stimme gezählt! 🗳️"); }
     
     function updateCountdown() {
         const now = new Date(); const currentDay = now.getDay(); const currentHour = now.getHours(); const currentMin = now.getMinutes();
