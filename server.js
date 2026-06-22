@@ -16,7 +16,8 @@ let dbData = {
     votes: {},
     hallOfFame: [],
     historicalHits: {}, 
-    systemOnline: true
+    systemOnline: true,
+    extensionActive: false // Master-Flag für die 30 Min Verlängerung
 };
 
 if (fs.existsSync(DB_FILE)) {
@@ -32,6 +33,7 @@ function saveToDB() {
 }
 
 const BASE_LIMIT_MINUTES = 90;
+const EXTENSION_LIMIT_MINUTES = 30;
 const FEEDBACK_BUFFER_SECONDS = 120;
 const ADMIN_PASSWORD = "MONDO_STUDIO_CHEF_2026";
 
@@ -65,9 +67,36 @@ app.get('/regeln', (req, res) => res.sendFile(path.join(__dirname, 'regeln.html'
 
 app.get('/api/queue', (req, res) => {
     const totalSeconds = getTotalTimeSeconds();
-    const allowedMinutes = BASE_LIMIT_MINUTES + dbData.extraTimeMinutes;
-    const maxSeconds = allowedMinutes * 60;
-    const remainingSecondsTotal = Math.max(0, maxSeconds - totalSeconds);
+    const baseMaxSeconds = BASE_LIMIT_MINUTES * 60;
+    const extensionMaxSeconds = (BASE_LIMIT_MINUTES + EXTENSION_LIMIT_MINUTES) * 60;
+    
+    let phase = 'base';
+    let submissionsOpen = false;
+    let currentMaxSeconds = baseMaxSeconds;
+
+    if (!dbData.extensionActive) {
+        if (totalSeconds < baseMaxSeconds) {
+            phase = 'base';
+            submissionsOpen = true;
+            currentMaxSeconds = baseMaxSeconds;
+        } else {
+            phase = 'base_full';
+            submissionsOpen = false;
+            currentMaxSeconds = baseMaxSeconds;
+        }
+    } else {
+        if (totalSeconds < extensionMaxSeconds) {
+            phase = 'extension';
+            submissionsOpen = true;
+            currentMaxSeconds = extensionMaxSeconds;
+        } else {
+            phase = 'extension_full';
+            submissionsOpen = false;
+            currentMaxSeconds = extensionMaxSeconds;
+        }
+    }
+
+    const remainingSecondsTotal = Math.max(0, currentMaxSeconds - totalSeconds);
     
     const processedQueue = dbData.songQueue.map(song => {
         let platform = 'other';
@@ -81,8 +110,9 @@ app.get('/api/queue', (req, res) => {
         remainingMinutes: Math.floor(remainingSecondsTotal / 60),
         remainingSeconds: remainingSecondsTotal % 60,
         remainingSecondsTotal: remainingSecondsTotal,
-        submissionsOpen: totalSeconds < maxSeconds,
-        maxMinutesAllowed: allowedMinutes,
+        submissionsOpen: submissionsOpen,
+        phase: phase,
+        extensionActive: dbData.extensionActive === true,
         votingActive: dbData.votingActive,
         votes: dbData.votes,
         hallOfFame: dbData.hallOfFame,
@@ -124,11 +154,18 @@ app.post('/api/submit', (req, res) => {
     }
 
     const totalSeconds = getTotalTimeSeconds();
-    const allowedMinutes = BASE_LIMIT_MINUTES + dbData.extraTimeMinutes;
-    const maxSeconds = allowedMinutes * 60;
+    const baseMaxSeconds = BASE_LIMIT_MINUTES * 60;
+    const extensionMaxSeconds = (BASE_LIMIT_MINUTES + EXTENSION_LIMIT_MINUTES) * 60;
 
-    if (totalSeconds >= maxSeconds) {
-        return res.status(400).json({ error: "Das Sendezeit-Limit dieser Show ist komplett erreicht!" });
+    // KNALLHARTE PRÜFUNG DER ZWEI PHASEN
+    if (!dbData.extensionActive) {
+        if (totalSeconds >= baseMaxSeconds) {
+            return res.status(400).json({ error: "Die 90 Minuten Hauptzeit sind voll! Wartet auf die Verlängerung." });
+        }
+    } else {
+        if (totalSeconds >= extensionMaxSeconds) {
+            return res.status(400).json({ error: "Die 30 Minuten Verlängerung sind komplett voll! Keine Einsendungen mehr möglich." });
+        }
     }
 
     const newSong = {
@@ -154,28 +191,43 @@ app.post('/api/admin/set-system-status', checkAdminAuth, (req, res) => {
     res.json({ success: true, systemOnline: dbData.systemOnline });
 });
 
+// NEU: Route zum Steuern der Verlängerungs-Phase
+app.post('/api/admin/toggle-extension', checkAdminAuth, (req, res) => {
+    dbData.extensionActive = !dbData.extensionActive;
+    saveToDB();
+    res.json({ success: true, extensionActive: dbData.extensionActive });
+});
+
+app.post('/api/admin/reorder-active', checkAdminAuth, (req, res) => {
+    const { oldIndex, newIndex } = req.body;
+    let activeSongs = []; let doneSongs = [];
+    dbData.songQueue.forEach(song => {
+        if (song.isDone) doneSongs.push(song); else activeSongs.push(song);
+    });
+    if (oldIndex >= 0 && oldIndex < activeSongs.length && newIndex >= 0 && newIndex < activeSongs.length) {
+        const [movedSong] = activeSongs.splice(oldIndex, 1);
+        activeSongs.splice(newIndex, 0, movedSong);
+        dbData.songQueue = [...doneSongs, ...activeSongs];
+        saveToDB(); res.json({ success: true });
+    } else { res.status(400).json({ error: "Ungültige Verschiebung" }); }
+});
+
 app.post('/api/queue/:index/hit', checkAdminAuth, (req, res) => {
     const index = parseInt(req.params.index);
     if (dbData.songQueue[index]) {
         const song = dbData.songQueue[index];
         song.isHit = !song.isHit;
-        
         const dateStr = getSwissDateString(new Date());
         if (!dbData.historicalHits) dbData.historicalHits = {};
         if (!dbData.historicalHits[dateStr]) dbData.historicalHits[dateStr] = [];
-        
         if (song.isHit) {
             const exists = dbData.historicalHits[dateStr].find(s => s.artist === song.artist && s.title === song.title);
-            if (!exists) {
-                dbData.historicalHits[dateStr].push({ artist: song.artist, title: song.title, genre: song.genre });
-            }
+            if (!exists) dbData.historicalHits[dateStr].push({ artist: song.artist, title: song.title, genre: song.genre });
         } else {
             dbData.historicalHits[dateStr] = dbData.historicalHits[dateStr].filter(s => !(s.artist === song.artist && s.title === song.title));
             if (dbData.historicalHits[dateStr].length === 0) delete dbData.historicalHits[dateStr];
         }
-
-        saveToDB();
-        res.json({ success: true });
+        saveToDB(); res.json({ success: true });
     } else res.status(400).json({ error: "Index Fehler" });
 });
 
@@ -183,8 +235,7 @@ app.post('/api/queue/:index/done', checkAdminAuth, (req, res) => {
     const index = parseInt(req.params.index);
     if (dbData.songQueue[index]) {
         dbData.songQueue[index].isDone = !dbData.songQueue[index].isDone;
-        saveToDB();
-        res.json({ success: true });
+        saveToDB(); res.json({ success: true });
     } else res.status(400).json({ error: "Index Fehler" });
 });
 
@@ -192,48 +243,39 @@ app.delete('/api/queue/:index', checkAdminAuth, (req, res) => {
     const index = parseInt(req.params.index);
     if (dbData.songQueue[index]) {
         dbData.songQueue.splice(index, 1);
-        saveToDB();
-        res.json({ success: true });
+        saveToDB(); res.json({ success: true });
     } else res.status(400).json({ error: "Index Fehler" });
 });
 
 app.post('/api/admin/overtime', checkAdminAuth, (req, res) => {
     const { minutes } = req.body;
     dbData.extraTimeMinutes = (dbData.extraTimeMinutes || 0) + (parseFloat(minutes) || 0);
-    saveToDB();
-    res.json({ success: true, maxMinutesAllowed: BASE_LIMIT_MINUTES + dbData.extraTimeMinutes });
+    saveToDB(); res.json({ success: true, maxMinutesAllowed: BASE_LIMIT_MINUTES + dbData.extraTimeMinutes });
 });
 
 app.post('/api/admin/toggle-voting', checkAdminAuth, (req, res) => {
     dbData.votingActive = !dbData.votingActive;
     if (dbData.votingActive) dbData.votes = {};
-    saveToDB();
-    res.json({ success: true, votingActive: dbData.votingActive });
+    saveToDB(); res.json({ success: true, votingActive: dbData.votingActive });
 });
 
 app.post('/api/vote', (req, res) => {
     if (!dbData.votingActive) return res.status(400).json({ error: "Voting geschlossen!" });
     const { songIndex } = req.body;
     dbData.votes[songIndex] = (dbData.votes[songIndex] || 0) + 1;
-    saveToDB();
-    res.json({ success: true });
+    saveToDB(); res.json({ success: true });
 });
 
 app.delete('/api/admin/halloffame/:index', checkAdminAuth, (req, res) => {
     const index = parseInt(req.params.index);
     if (dbData.hallOfFame && dbData.hallOfFame[index]) {
-        dbData.hallOfFame.splice(index, 1);
-        saveToDB();
-        res.json({ success: true, hallOfFame: dbData.hallOfFame });
-    } else {
-        res.status(400).json({ error: "Champion Index nicht gefunden" });
-    }
+        dbData.hallOfFame.splice(index, 1); saveToDB(); res.json({ success: true, hallOfFame: dbData.hallOfFame });
+    } else { res.status(400).json({ error: "Champion Index nicht gefunden" }); }
 });
 
 app.post('/api/queue/reset', checkAdminAuth, (req, res) => {
-    dbData.songQueue = []; dbData.votes = {}; dbData.votingActive = false;
-    saveToDB();
-    res.json({ success: true });
+    dbData.songQueue = []; dbData.votes = {}; dbData.votingActive = false; dbData.extensionActive = false;
+    saveToDB(); res.json({ success: true });
 });
 
 app.listen(PORT, () => { console.log(`🚀 MONDO MANDO RECORDS RUNNING ON PORT ${PORT}`); });
