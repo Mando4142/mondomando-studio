@@ -32,15 +32,21 @@
         }
         .interface-content { width: 100%; max-width: 650px; pointer-events: auto; }
         
-        .stream-time-box-fixed { background: rgba(0, 242, 254, 0.05); border: 2px solid var(--neon-cyan); padding: 15px; text-align: center; border-radius: 12px; font-size: 22px; font-weight: bold; margin-bottom: 25px; color: #fff; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.15); backdrop-filter: blur(5px); }
-
         .card { background-color: var(--form-bg); border: 2px solid var(--neon-cyan); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.1); backdrop-filter: blur(5px); }
         .card.pink-glow { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 127, 0.2), inset 0 0 15px rgba(255, 0, 127, 0.1); }
         .card.gold-glow { border-color: var(--neon-gold); box-shadow: 0 0 25px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1); }
         h2 { text-transform: uppercase; margin-top: 0; font-size: 24px; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 8px var(--neon-cyan); border-bottom: 3px solid var(--neon-pink); padding-bottom: 8px; margin-bottom: 20px; }
         
-        .live-ticker-banner { background: black; border: 2px solid var(--neon-pink); border-radius: 8px; padding: 15px; text-align: center; font-size: 20px; letter-spacing: 1px; color: #fff; text-shadow: 0 0 8px var(--neon-pink); animation: neonPulse 1.5s infinite alternate; margin-bottom: 15px; }
-        @keyframes neonPulse { from { box-shadow: 0 0 10px var(--neon-pink); } to { box-shadow: 0 0 25px var(--neon-pink), inset 0 0 10px var(--neon-pink); } }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .calendar-header button { background: rgba(0,242,254,0.1); border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 5px 15px; color: var(--neon-cyan); font-size: 18px; cursor: pointer; transition: all 0.2s; }
+        .calendar-header button:hover { background: var(--neon-cyan); color: black; box-shadow: 0 0 10px var(--neon-cyan); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .cal-day-header { font-family: sans-serif; font-size: 13px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
+        .cal-day { padding: 10px 5px; background: rgba(5,5,7,0.8); border: 1px solid #2a2a35; border-radius: 6px; font-family: sans-serif; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .cal-day.is-sunday { border-color: var(--neon-pink); color: var(--neon-pink); background: rgba(255,0,127,0.1); }
+        .cal-day.has-hits { background: rgba(255, 215, 0, 0.15); border-color: var(--neon-gold); color: var(--neon-gold); box-shadow: 0 0 8px rgba(255,215,0,0.4); }
+        .cal-day.is-selected { background: var(--neon-gold); color: black; border-color: white; box-shadow: 0 0 15px white; transform: scale(1.1); z-index: 2; }
+        .cal-day:hover:not(.is-selected) { transform: scale(1.1); filter: brightness(1.3); }
 
         .info-link-container { display: flex; justify-content: center; margin-bottom: 25px; }
         .btn-info-page { background: rgba(34, 197, 94, 0.1); border: 2px solid var(--neon-green); color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 30px; font-size: 15px; font-family: sans-serif; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 0 5px var(--neon-green); box-shadow: 0 0 10px rgba(34, 197, 94, 0.3); animation: greenPulse 2s infinite alternate; transition: all 0.2s ease; }
@@ -70,6 +76,7 @@
         
         .btn-submit { width: 100%; padding: 20px; font-size: 24px; text-transform: uppercase; color: #ffffff; border: none; border-radius: 8px; cursor: pointer; letter-spacing: 3px; font-family: 'Impact', sans-serif; text-shadow: 0 2px 4px rgba(0,0,0,0.8); box-shadow: 0 0 20px var(--neon-pink); margin-top: 20px; transition: all 0.2s ease; background: linear-gradient(45deg, var(--neon-pink) 25%, #bc005b 25%, #bc005b 50%, var(--neon-pink) 50%, var(--neon-pink) 75%, #bc005b 75%, #bc005b); background-size: 50px 50px; animation: move-stripes 1.5s linear infinite; }
         .btn-submit:hover { transform: scale(1.02); box-shadow: 0 0 35px var(--neon-pink); filter: brightness(1.1); }
+        .btn-submit:disabled { background: #444; color: #888; box-shadow: none; animation: none; cursor: not-allowed; transform: none; }
         @keyframes move-stripes { 0% { background-position: 0 0; } 100% { background-position: 50px 0; } }
         
         .queue-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: rgba(5, 5, 7, 0.8); border: 1px solid #2a2a35; border-left: 5px solid var(--neon-cyan); border-radius: 6px; margin-bottom: 12px; font-family: sans-serif; transition: all 0.3s ease; }
@@ -96,12 +103,16 @@
     <div class="overlay-container">
         <div class="interface-content">
             
-            <div class="stream-time-box-fixed">
-                ⏰ JEDEN SONNTAG AB <span style="color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold), 0 0 20px var(--neon-gold);">19:00 UHR</span> LIVE!
-            </div>
-
-            <div class="live-ticker-banner" id="live-ticker">
-                🎵 WAITING FOR TRACK...
+            <div class="card" style="padding: 20px;">
+                <div class="calendar-header">
+                    <button onclick="changeMonth(-1)">◀</button>
+                    <h3 id="cal-month-year" style="margin: 0; color: var(--neon-cyan); font-size: 20px; letter-spacing: 2px;">MONAT JAHR</h3>
+                    <button onclick="changeMonth(1)">▶</button>
+                </div>
+                <div id="calendar-grid-content" class="calendar-grid"></div>
+                <button id="btn-live-view" style="display:none; width: 100%; margin-top: 15px; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 6px; font-family: 'Impact', sans-serif; cursor: pointer; font-size: 16px; letter-spacing: 1px;" onclick="resetToLiveView()">
+                    🔴 ZURÜCK ZUR LIVE-SHOW
+                </button>
             </div>
 
             <div class="info-link-container">
@@ -124,7 +135,7 @@
             </div>
 
             <div id="dynamic-main-card" class="card pink-glow">
-                <h2>SONG EINREICHEN</h2>
+                <h2 id="main-card-title">SONG EINREICHEN</h2>
                 
                 <div id="offline-message" style="display:none; text-align:center; padding: 40px 20px; font-size: 20px; color: var(--neon-pink); border: 2px dashed var(--neon-pink); border-radius: 12px; background: rgba(0,0,0,0.6); text-shadow: 0 0 10px rgba(255,0,127,0.5);">
                     <div style="font-size: 40px; margin-bottom: 15px;">🚫</div>
@@ -132,61 +143,61 @@
                     <span style="font-family: sans-serif; font-size: 16px; color: white; text-shadow: none;">Bitte warte auf den offiziellen Start des Streams!</span>
                 </div>
 
-                <form id="songForm" onsubmit="addSongToServer(event)">
-                    <div class="form-group">
-                        <label for="artistName">Künstlername</label>
-                        <input type="text" id="artistName" required placeholder="z.B. Mando">
-                    </div>
-                    <div class="form-group">
-                        <label for="songTitle">Song Titel</label>
-                        <input type="text" id="songTitle" required placeholder="Titel deines Tracks">
-                    </div>
-                    <div class="form-group">
-                        <label for="songLink">Song Link (Suno, YouTube, Spotify, SoundCloud)</label>
-                        <input type="url" id="songLink" required placeholder="http://spotify.com/... / https://youtube.com/... etc.">
-                    </div>
-                    <div class="form-group">
-                        <label>Genaue Song-Dauer</label>
-                        <div class="duration-inputs">
-                            <input type="number" id="durationMin" required placeholder="MIN" min="0">
-                            <input type="number" id="durationSec" required placeholder="SEK" min="0" max="59">
+                <div id="form-container">
+                    <form id="songForm" onsubmit="addSongToServer(event)">
+                        <div class="form-group">
+                            <label for="artistName">Künstlername</label>
+                            <input type="text" id="artistName" required placeholder="z.B. Mando">
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="genre">Genre</label>
-                        <div class="genre-warning-text">⚠️ VERBOTEN: Schlager, Hardstyle, Hardcore, Metal</div>
-                        <select id="genre" required onchange="checkGenreSafety()">
-                            <option value="" disabled selected>Wähle deine Musikrichtung</option>
-                            <option value="Pop / Modern Hit">1. Pop / Modern Hit</option>
-                            <option value="Hip Hop / Rap / Trap">2. Hip Hop / Rap / Trap</option>
-                            <option value="Rock / Alternative">3. Rock / Alternative</option>
-                            <option value="R&B / Soul / Funk">4. R&B / Soul / Funk</option>
-                            <option value="EDM / House / Dance">5. EDM / House / Dance</option>
-                            <option value="Reggae / Dancehall / Afrobeats">6. Reggae / Dancehall / Afrobeats</option>
-                            <option value="Latin / Reggaeton">7. Latin / Reggaeton</option>
-                            <option value="Jazz / Blues">8. Jazz / Blues</option>
-                            <option value="Lofi / Acoustic">9. Lofi / Acoustic / Chill</option>
-                            <option value="Anderes Genre">10. Anderes passendes Genre</option>
-                            <option value="Schlager" style="color: #ef4444; background-color: #221111;">[GESPERRT] Schlager</option>
-                            <option value="Hardstyle" style="color: #ef4444; background-color: #221111;">[GESPERRT] Hardstyle</option>
-                            <option value="Hardcore" style="color: #ef4444; background-color: #221111;">[GESPERRT] Hardcore</option>
-                            <option value="Metal" style="color: #ef4444; background-color: #221111;">[GESPERRT] Metal / Heavy Metal</option>
-                        </select>
-                        <div id="genre-error" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 12px; border-radius: 8px; margin-top: 10px; font-weight: bold; display: none; text-transform: uppercase; font-size: 14px;">🚫 Dieses Genre verletzt Mondos Ohren! Einreichung blockiert.</div>
-                    </div>
-                    <div class="form-group">
-                        <label style="color: var(--neon-cyan); text-shadow: 0 0 5px rgba(0,242,254,0.3);">Rechte & Richtlinien</label>
-                        <label class="checkbox-group">
-                            <input type="checkbox" required>
-                            <span class="checkbox-label"><strong>BESTÄTIGEN:</strong> Ich besitze alle Rechte an diesem Song, verwende keine fremden/geschützten Samples und der Track entspricht vollständig den TikTok-Musikrichtlinien.</span>
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <input type="checkbox" id="vipJoker" style="width:auto; transform:scale(1.3); accent-color:var(--neon-gold);">
-                        <label for="vipJoker" style="margin:0; display:inline; padding-left:10px; color:var(--neon-gold); cursor:pointer;">💎 1x im Monat Stammzuschauer-VIP-Joker einlösen?</label>
-                    </div>
-                    <button type="submit" id="submitBtn" class="btn-submit">SONG EINSENDEN</button>
-                </form>
+                        <div class="form-group">
+                            <label for="songTitle">Song Titel</label>
+                            <input type="text" id="songTitle" required placeholder="Titel deines Tracks">
+                        </div>
+                        <div class="form-group">
+                            <label for="songLink">Song Link (Suno, YouTube, Spotify, SoundCloud)</label>
+                            <input type="url" id="songLink" required placeholder="http://spotify.com/... / https://youtube.com/... etc.">
+                        </div>
+                        <div class="form-group">
+                            <label>Genaue Song-Dauer</label>
+                            <div class="duration-inputs">
+                                <input type="number" id="durationMin" required placeholder="MIN" min="0">
+                                <input type="number" id="durationSec" required placeholder="SEK" min="0" max="59">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="genre">Genre</label>
+                            <div class="genre-warning-text">⚠️ VERBOTEN: Schlager, Hardstyle, Hardcore, Metal</div>
+                            <select id="genre" required onchange="checkGenreSafety()">
+                                <option value="" disabled selected>Wähle deine Musikrichtung</option>
+                                <option value="Pop / Modern Hit">1. Pop / Modern Hit</option>
+                                <option value="Hip Hop / Rap / Trap">2. Hip Hop / Rap / Trap</option>
+                                <option value="Rock / Alternative">3. Rock / Alternative</option>
+                                <option value="R&B / Soul / Funk">4. R&B / Soul / Funk</option>
+                                <option value="EDM / House / Dance">5. EDM / House / Dance</option>
+                                <option value="Reggae / Dancehall / Afrobeats">6. Reggae / Dancehall / Afrobeats</option>
+                                <option value="Latin / Reggaeton">7. Latin / Reggaeton</option>
+                                <option value="Jazz / Blues">8. Jazz / Blues</option>
+                                <option value="Lofi / Acoustic">9. Lofi / Acoustic / Chill</option>
+                                <option value="Anderes Genre">10. Anderes passendes Genre</option>
+                                <option value="Schlager" style="color: #ef4444; background-color: #221111;">[GESPERRT] Schlager</option>
+                                <option value="Hardstyle" style="color: #ef4444; background-color: #221111;">[GESPERRT] Hardstyle</option>
+                                <option value="Hardcore" style="color: #ef4444; background-color: #221111;">[GESPERRT] Hardcore</option>
+                                <option value="Metal" style="color: #ef4444; background-color: #221111;">[GESPERRT] Metal / Heavy Metal</option>
+                            </select>
+                            <div id="genre-error" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 12px; border-radius: 8px; margin-top: 10px; font-weight: bold; display: none; text-transform: uppercase; font-size: 14px;">🚫 Dieses Genre verletzt Mondos Ohren! Einreichung blockiert.</div>
+                        </div>
+                        <div class="form-group">
+                            <label style="color: var(--neon-cyan); text-shadow: 0 0 5px rgba(0,242,254,0.3);">Rechte & Richtlinien</label>
+                            <label class="checkbox-group">
+                                <input type="checkbox" required>
+                                <span class="checkbox-label"><strong>BESTÄTIGEN:</strong> Ich besitze alle Rechte an diesem Song, verwende keine fremden/geschützten Samples und der Track entspricht vollständig den TikTok-Musikrichtlinien.</span>
+                            </label>
+                        </div>
+                        <button type="submit" id="submitBtn" class="btn-submit">SONG EINSENDEN</button>
+                    </form>
+                </div>
+
+                <div id="voting-container" style="display:none;"></div>
             </div>
             
             <div class="card pink-glow">
@@ -195,7 +206,7 @@
             </div>
 
             <div class="card gold-glow">
-                <h2 style="text-shadow: 0 0 8px var(--neon-gold); border-bottom-color: var(--neon-gold); color: var(--neon-gold);">⭐ STUDIO PLAYLIST HITS ⭐</h2>
+                <h2 id="hit-playlist-title" style="text-shadow: 0 0 8px var(--neon-gold); border-bottom-color: var(--neon-gold); color: var(--neon-gold);">⭐ HIT PLAYLIST (LIVE) ⭐</h2>
                 <div id="hit-bestenliste"></div>
             </div>
 
@@ -214,6 +225,81 @@
 <script>
     const FEEDBACK_BUFFER_SEC = 120;
     
+    let calDate = new Date();
+    let serverHistoricalHits = {};
+    let selectedArchiveDate = null;
+    
+    function getSwissDateString(d) {
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}.${month}.${year}`;
+    }
+
+    function renderCalendar() {
+        const year = calDate.getFullYear();
+        const month = calDate.getMonth();
+        document.getElementById('cal-month-year').innerText = new Date(year, month).toLocaleString('de-CH', { month: 'long', year: 'numeric' }).toUpperCase();
+
+        const firstDay = new Date(year, month, 1).getDay(); 
+        const emptySlots = firstDay === 0 ? 6 : firstDay - 1;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        let gridHtml = '';
+        const daysOfWeek = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+        daysOfWeek.forEach(d => gridHtml += `<div class="cal-day-header">${d}</div>`);
+
+        for(let i = 0; i < emptySlots; i++) gridHtml += `<div></div>`;
+
+        for(let i = 1; i <= daysInMonth; i++) {
+            const currentDayDate = new Date(year, month, i);
+            const isSunday = currentDayDate.getDay() === 0;
+            const dateStr = getSwissDateString(currentDayDate);
+            
+            let extraClass = '';
+            let onClickAction = `onclick="selectArchiveDate('${dateStr}')"`;
+            
+            if (isSunday) extraClass += ' is-sunday';
+            
+            if (serverHistoricalHits[dateStr] && serverHistoricalHits[dateStr].length > 0) {
+                extraClass += ' has-hits';
+            }
+            
+            if (selectedArchiveDate === dateStr) {
+                extraClass += ' is-selected';
+            }
+
+            gridHtml += `<div class="cal-day${extraClass}" ${onClickAction}>${i}</div>`;
+        }
+        
+        document.getElementById('calendar-grid-content').innerHTML = gridHtml;
+        
+        if (selectedArchiveDate) {
+            document.getElementById('btn-live-view').style.display = 'block';
+        } else {
+            document.getElementById('btn-live-view').style.display = 'none';
+        }
+    }
+
+    function changeMonth(dir) {
+        calDate.setMonth(calDate.getMonth() + dir);
+        renderCalendar();
+    }
+
+    function selectArchiveDate(dateStr) {
+        if (!serverHistoricalHits[dateStr] || serverHistoricalHits[dateStr].length === 0) {
+            alert("An diesem Datum gibt es keine gespeicherte Hit Playlist.");
+            return;
+        }
+        selectedArchiveDate = dateStr;
+        loadQueue(); 
+    }
+
+    function resetToLiveView() {
+        selectedArchiveDate = null;
+        loadQueue();
+    }
+
     function checkGenreSafety() {
         const genre = document.getElementById('genre').value;
         const errorBox = document.getElementById('genre-error');
@@ -232,42 +318,62 @@
             
             const queue = data.queue || [];
             const hallOfFame = data.hallOfFame || [];
+            serverHistoricalHits = data.historicalHits || {};
+            
+            renderCalendar(); 
             
             const activeList = document.getElementById('queue-list');
             const doneList = document.getElementById('done-list');
             const hitList = document.getElementById('hit-bestenliste');
             const hofList = document.getElementById('hof-list');
-            const submitBtn = document.getElementById('submitBtn');
-            const mainCard = document.getElementById('dynamic-main-card');
+            const hitTitle = document.getElementById('hit-playlist-title');
+            
+            const formContainer = document.getElementById('form-container');
+            const offlineMsg = document.getElementById('offline-message');
+            const votingContainer = document.getElementById('voting-container');
+            const mainTitle = document.getElementById('main-card-title');
             
             const activeSongs = queue.filter(item => !item.isDone);
-            const ticker = document.getElementById('live-ticker');
-            if (activeSongs.length > 0) {
-                ticker.innerText = `🔥 AKTUELL DRAN: ${activeSongs[0].artist.toUpperCase()} - ${activeSongs[0].title.toUpperCase()}`;
-            } else {
-                ticker.innerText = `🎵 MONDO MANDO RECORDS -- WARTE AUF TRACKS`;
-            }
-
-            // NEU: Steuerung des Offline-Modus Formulars
-            const formEl = document.getElementById('songForm');
-            const offlineMsg = document.getElementById('offline-message');
 
             if (data.systemOnline === false) {
-                formEl.style.display = 'none';
+                formContainer.style.display = 'none';
+                votingContainer.style.display = 'none';
                 offlineMsg.style.display = 'block';
+                mainTitle.innerText = "SYSTEM GESPERRT";
+                mainTitle.style.display = 'block';
+                
                 document.getElementById('time-left-pot').innerText = "SYSTEM OFFLINE";
                 document.getElementById('time-left-pot').className = "time-urgent";
-            } else {
-                formEl.style.display = 'block';
+            } else if (data.votingActive) {
+                formContainer.style.display = 'none';
                 offlineMsg.style.display = 'none';
-
-                if (!data.submissionsOpen && data.overtimeOpen) {
-                    document.getElementById('time-left-pot').innerHTML = "<span style='color:var(--neon-pink)'>STANDARD VOLL! 🐸 Nutze Frosch!</span>";
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "SONG EINSENDEN (OVERTIME)";
-                    submitBtn.style.opacity = "1";
-                    submitBtn.style.background = "";
-                } else if (!data.submissionsOpen && !data.overtimeOpen) {
+                votingContainer.style.display = 'block';
+                mainTitle.style.display = 'none';
+                
+                const hits = [];
+                queue.forEach((s, index) => { if(s.isHit) hits.push({ ...s, originalIndex: index }); });
+                
+                let voteHtml = `<h2>🗳️ WÄHLE DEN HIT DES TAGES! 🗳️</h2><p style="font-family:sans-serif; font-size:14px; margin-bottom:15px;">Stimme jetzt live für deinen Favoriten ab:</p>`;
+                if(hits.length === 0) {
+                    voteHtml += `<p style="font-family:sans-serif; color:#8e8e9f; text-align:center;">Keine Playlist-Hits heute vorhanden.</p>`;
+                }
+                hits.forEach(h => {
+                    voteHtml += `
+                        <div class="queue-item is-playlist-hit" style="margin-bottom:10px;">
+                            <div style="font-family:sans-serif;"><b>${h.artist}</b> - ${h.title}</div>
+                            <button class="btn-vote" onclick="castVote(${h.originalIndex})">VOTE 🗳️</button>
+                        </div>`;
+                });
+                votingContainer.innerHTML = voteHtml;
+            } else {
+                formContainer.style.display = 'block';
+                votingContainer.style.display = 'none';
+                offlineMsg.style.display = 'none';
+                mainTitle.innerText = "SONG EINREICHEN";
+                mainTitle.style.display = 'block';
+                
+                const submitBtn = document.getElementById('submitBtn');
+                if (!data.submissionsOpen) {
                     document.getElementById('time-left-pot').innerText = "VOLL / GESPERRT";
                     document.getElementById('time-left-pot').className = "time-urgent";
                     submitBtn.disabled = true;
@@ -289,39 +395,12 @@
             
             document.getElementById('estimated-wait').innerText = data.spentFormatted;
 
-            if (data.votingActive && data.systemOnline !== false) {
-                const hits = queue.filter(s => s.isHit);
-                let voteHtml = `<h2>🗳️ WÄHLE DEN HIT DES TAGES! 🗳️</h2><p style="font-family:sans-serif; font-size:14px; margin-bottom:15px;">Stimme jetzt live für deinen Favoriten ab:</p>`;
-                if(hits.length === 0) {
-                    voteHtml += `<p style="font-family:sans-serif; color:#8e8e9f; text-align:center;">Keine Playlist-Hits heute vorhanden.</p>`;
-                }
-                hits.forEach(h => {
-                    voteHtml += `
-                        <div class="queue-item is-playlist-hit" style="margin-bottom:10px;">
-                            <div style="font-family:sans-serif;"><b>${h.artist}</b> - ${h.title}</div>
-                            <button class="btn-vote" onclick="castVote(${h.id})">VOTE 🗳️</button>
-                        </div>`;
-                });
-                mainCard.innerHTML = voteHtml;
-            } else if (data.systemOnline !== false && formEl.style.display === 'none' && !data.votingActive) {
-                // Stellt sicher, dass das Formular nach dem Voting wieder auftaucht
-                mainCard.innerHTML = `<h2>SONG EINREICHEN</h2>`;
-                mainCard.appendChild(offlineMsg);
-                mainCard.appendChild(formEl);
-            }
-
-            const hitSongs = queue.filter(item => item.isHit);
-            document.getElementById('queue-count').innerText = activeSongs.length;
-            
-            activeList.innerHTML = '';
-            doneList.innerHTML = '';
             hitList.innerHTML = '';
-            hofList.innerHTML = '';
             
-            if(hitSongs.length === 0) {
-                hitList.innerHTML = '<div class="no-hits">Noch keine Playlist-Hits in dieser Show vergeben. Schnapp dir den Status! ⭐</div>';
-            } else {
-                hitSongs.forEach(item => {
+            if (selectedArchiveDate) {
+                hitTitle.innerHTML = `⭐ HIT PLAYLIST VOM ${selectedArchiveDate} ⭐`;
+                const archivedHits = serverHistoricalHits[selectedArchiveDate] || [];
+                archivedHits.forEach(item => {
                     hitList.innerHTML += `
                         <div class="queue-item is-playlist-hit" style="margin-bottom: 8px; padding: 10px 15px;">
                             <div class="queue-info">
@@ -330,7 +409,29 @@
                             </div>
                         </div>`;
                 });
+            } else {
+                hitTitle.innerHTML = `⭐ HIT PLAYLIST (LIVE) ⭐`;
+                const hitSongs = queue.filter(item => item.isHit);
+                if(hitSongs.length === 0) {
+                    hitList.innerHTML = '<div class="no-hits">Noch keine Playlist-Hits in dieser Show vergeben. Schnapp dir den Status! ⭐</div>';
+                } else {
+                    hitSongs.forEach(item => {
+                        hitList.innerHTML += `
+                            <div class="queue-item is-playlist-hit" style="margin-bottom: 8px; padding: 10px 15px;">
+                                <div class="queue-info">
+                                    <h4 style="color: var(--neon-gold); font-size: 16px;">⭐ ${item.artist} - ${item.title}</h4>
+                                    <p style="font-size: 12px;">Genre: ${item.genre}</p>
+                                </div>
+                            </div>`;
+                    });
+                }
             }
+
+            document.getElementById('queue-count').innerText = activeSongs.length;
+            
+            activeList.innerHTML = '';
+            doneList.innerHTML = '';
+            hofList.innerHTML = '';
 
             if(hallOfFame.length === 0) {
                 hofList.innerHTML = '<div class="no-hits">Noch keine Hall of Fame Champions eingetragen.</div>';
@@ -362,7 +463,7 @@
                         <div class="queue-item ${hitClass}">
                             <div class="queue-info">
                                 ${hitBadge}
-                                <h4>${item.isJoker ? '💎 ' : ''}${item.artist} - ${item.title}</h4>
+                                <h4>${item.artist} - ${item.title}</h4>
                                 <p>Genre: ${item.genre} | Dauer: ${min}:${sec < 10 ? '0':''}${sec}</p>
                             </div>
                             <div class="queue-time">${timeText}</div>
@@ -390,12 +491,11 @@
         const min = parseInt(document.getElementById('durationMin').value) || 0;
         const sec = parseInt(document.getElementById('durationSec').value) || 0;
         const genre = document.getElementById('genre').value;
-        const isJoker = document.getElementById('vipJoker') ? document.getElementById('vipJoker').checked : false;
         
         const res = await fetch('/api/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink, isJoker })
+            body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink })
         });
         const resData = await res.json();
         
@@ -433,7 +533,11 @@
     }
 
     async function castVote(id) {
-        await fetch(`/api/queue/${id}/vote`, { method: 'POST' });
+        await fetch('/api/vote', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ songIndex: id }) 
+        });
         alert("Danke für deine Stimme! 🗳️");
     }
     
