@@ -96,6 +96,32 @@
         
         .btn-vote { background: var(--neon-gold); color: black; border: none; padding: 8px 15px; font-family: 'Impact', sans-serif; border-radius: 4px; cursor: pointer; font-size: 14px; letter-spacing: 1px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
         .btn-vote:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+        /* NEU: Styling für die direkte Server-Fehlermeldung (z.B. schon eingereicht) */
+        #submit-error-box {
+            color: #ffffff; 
+            background-color: #ef4444; 
+            border: 2px solid #b91c1c; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 15px; 
+            margin-bottom: 10px;
+            font-family: sans-serif;
+            font-weight: bold; 
+            display: none; 
+            text-align: center; 
+            text-transform: uppercase; 
+            font-size: 16px; 
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
     </style>
 </head>
 <body>
@@ -193,6 +219,9 @@
                                 <span class="checkbox-label"><strong>BESTÄTIGEN:</strong> Ich besitze alle Rechte an diesem Song, verwende keine fremden/geschützten Samples und der Track entspricht vollständig den TikTok-Musikrichtlinien.</span>
                             </label>
                         </div>
+                        
+                        <div id="submit-error-box"></div>
+
                         <button type="submit" id="submitBtn" class="btn-submit">SONG EINSENDEN</button>
                     </form>
                 </div>
@@ -492,12 +521,16 @@
         const sec = parseInt(document.getElementById('durationSec').value) || 0;
         const genre = document.getElementById('genre').value;
         
-        // NEU: Sofortige Browser-Sperre, falls Link nicht passt
+        // Direkte Sperre für Link-Klauer auf der Seite
         const isSpotify = /spotify\.com/i.test(songLink);
         const isYouTube = /youtube\.com|youtu\.be/i.test(songLink);
+        const errBox = document.getElementById('submit-error-box');
         
         if (!isSpotify && !isYouTube) {
-            alert("🚫 STOP! Es werden nur Links von Spotify oder YouTube akzeptiert. Andere Plattformen (Suno, SoundCloud etc.) sind blockiert.");
+            errBox.innerText = "🚫 STOP! Es sind nur Links von Spotify oder YouTube erlaubt.";
+            errBox.style.display = "block";
+            errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => { errBox.style.display = 'none'; }, 6000);
             return;
         }
 
@@ -509,8 +542,13 @@
         const resData = await res.json();
         
         if (resData.error) {
-            alert("Sperre: " + resData.error);
+            // HIER WIRD DIE ROTE FEHLERMELDUNG ANGEZEIGT (z.B. "Du hast schon eingereicht!")
+            errBox.innerText = "🚫 " + resData.error;
+            errBox.style.display = "block";
+            errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => { errBox.style.display = 'none'; }, 6000);
         } else {
+            errBox.style.display = "none";
             const thankYouOverlay = document.createElement('div');
             thankYouOverlay.style = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 13, 17, 0.95); z-index: 10000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); animation: fadeIn 0.3s ease-out;";
             
