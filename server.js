@@ -19,7 +19,6 @@ let dbData = {
     votingActive: false,
     votes: {},
     hallOfFame: [],
-    // NEU: Personalisierte Freigaben für Coin-Zahler
     allowedFroschUser: "",
     allowedDjUser: ""
 };
@@ -35,7 +34,9 @@ function saveToDB() {
 const BASE_LIMIT_MINUTES = 90;
 const MAX_OVERTIME_MINUTES = 30;
 const FEEDBACK_BUFFER_SECONDS = 120;
-const ADMIN_PASSWORD = "MONDO_STUDIO_CHEF_2026";
+
+// NEUES PASSWORT HIER HINTERLEGT
+const ADMIN_PASSWORD = "Sutter1998!";
 
 function getTotalTimeSeconds() {
     let total = 0;
@@ -80,7 +81,6 @@ app.get('/api/queue', (req, res) => {
     });
 });
 
-// API: Einsenden mit personalisierter Coin-Zahler-Prüfung
 app.post('/api/submit', (req, res) => {
     const { artist, title, duration, genre, songLink, isVipJoker } = req.body;
     const cleanArtist = artist.trim().toLowerCase();
@@ -89,10 +89,8 @@ app.post('/api/submit', (req, res) => {
         return res.status(400).json({ error: "Dieses Genre verletzt Mondos Ohren!" });
     }
 
-    // Song-Zähler für diesen spezifischen Künstler ermitteln
     const existingSongsCount = dbData.songQueue.filter(s => s.artist.trim().toLowerCase() === cleanArtist && !s.isDone).length;
 
-    // 1. CHECK: DJ-SET PRÜFUNG (Maximal 3 Songs für den erlaubten User, sonst 2)
     let hasDjPermission = (dbData.allowedDjUser !== "" && dbData.allowedDjUser.toLowerCase() === cleanArtist);
     let maxAllowedSongsForUser = hasDjPermission ? 3 : 2;
 
@@ -104,14 +102,12 @@ app.post('/api/submit', (req, res) => {
     const allowedMinutes = BASE_LIMIT_MINUTES + dbData.extraTimeMinutes;
     const maxSeconds = allowedMinutes * 60;
 
-    // 2. CHECK: FROSCH / OVERTIME PRÜFUNG (Geht durch wenn Liste offen, oder wenn Frosch-Zahler)
     let hasFroschPermission = (dbData.allowedFroschUser !== "" && dbData.allowedFroschUser.toLowerCase() === cleanArtist);
     
     if (totalSeconds >= maxSeconds && !isVipJoker && !hasFroschPermission) {
         return res.status(400).json({ error: "Die Show ist voll! Nur noch freigegebene Frosch-Tickets kommen rein." });
     }
 
-    // Joker-Validierung (Stammzuschauer)
     let jokerApplied = false;
     if (isVipJoker) {
         if (dbData.usedJokers.includes(cleanArtist)) {
@@ -126,7 +122,6 @@ app.post('/api/submit', (req, res) => {
         status: '', isHit: false, isDone: false, isJoker: jokerApplied, timestamp: Date.now()
     };
 
-    // Wenn Frosch-Zahler oder Stammzuschauer-Joker -> Direkt nach vorne auf Platz 1 schieben!
     if (jokerApplied || hasFroschPermission) {
         const currentActiveIndex = dbData.songQueue.findIndex(s => !s.isDone);
         if (currentActiveIndex === -1) {
@@ -134,13 +129,11 @@ app.post('/api/submit', (req, res) => {
         } else {
             dbData.songQueue.splice(currentActiveIndex + 1, 0, newSong);
         }
-        // Frosch-Freigabe nach erfolgreicher Nutzung direkt wieder schließen!
         if (hasFroschPermission) dbData.allowedFroschUser = ""; 
     } else {
         dbData.songQueue.push(newSong);
     }
 
-    // DJ-Set Freigabe nach dem 3. Song wieder schließen
     if (hasDjPermission && (existingSongsCount + 1) === 3) {
         dbData.allowedDjUser = "";
     }
@@ -155,7 +148,6 @@ app.post('/api/admin/login', (req, res) => {
     if (password === ADMIN_PASSWORD) res.json({ success: true }); else res.status(401).json({ error: "Falsches Passwort!" });
 });
 
-// NEU: Freigabe-Zuweisung aus dem Cockpit für Frosch oder DJ-Set
 app.post('/api/admin/set-coin-user', checkAdminAuth, (req, res) => {
     const { type, username } = req.body;
     const cleanName = username.trim();
@@ -199,6 +191,17 @@ app.delete('/api/queue/:index', checkAdminAuth, (req, res) => {
         saveToDB();
         res.json({ success: true });
     } else res.status(400).json({ error: "Index Fehler" });
+});
+
+app.delete('/api/admin/hof/:index', checkAdminAuth, (req, res) => {
+    const index = parseInt(req.params.index);
+    if (dbData.hallOfFame && dbData.hallOfFame[index]) {
+        dbData.hallOfFame.splice(index, 1);
+        saveToDB();
+        res.json({ success: true });
+    } else {
+        res.status(400).json({ error: "Hall of Fame Index Fehler" });
+    }
 });
 
 app.post('/api/admin/voting', checkAdminAuth, (req, res) => {
