@@ -104,11 +104,17 @@ app.post('/api/submit', (req, res) => {
         return res.status(400).json({ error: "Es sind nur Links von Spotify oder YouTube erlaubt!" });
     }
 
+    // SPERRE FÜR DOPPELTE LINKS
+    const hasDuplicateLink = dbData.songQueue.some(song => song.songLink.trim().toLowerCase() === songLink.trim().toLowerCase());
+    if (hasDuplicateLink) {
+        return res.status(400).json({ error: "Dieser Song-Link befindet sich bereits in der Warteliste oder wurde schon bewertet!" });
+    }
+
     if (["Schlager", "Hardstyle", "Hardcore", "Metal"].includes(genre)) {
         return res.status(400).json({ error: "Dieses Genre verletzt Mondos Ohren!" });
     }
 
-    // NEU: 1 SONG PRO KÜNSTLER SPERRE (Ausnahme: Mondo Mando & Mondo)
+    // 1 SONG PRO KÜNSTLER SPERRE (Ausnahme: Mondo Mando & Mondo)
     const cleanArtist = artist.trim().toLowerCase();
     if (cleanArtist !== "mondo mando" && cleanArtist !== "mondo") {
         const hasSubmitted = dbData.songQueue.some(song => song.artist.trim().toLowerCase() === cleanArtist);
