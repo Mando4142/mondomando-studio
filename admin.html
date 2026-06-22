@@ -32,7 +32,6 @@
         .icon-text { background: #444; color: white; font-size: 12px; }
 
         .btn-trash { background: #ef4444; color: white; border: none; padding: 14px; border-radius: 6px; cursor: pointer; font-size: 16px; }
-        .btn-listen { background: linear-gradient(45deg, var(--neon-cyan), #008fa3); color: black; border: none; padding: 14px 20px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; text-decoration: none; }
         .btn-hit-toggle { background: linear-gradient(45deg, var(--neon-gold), #ccac00); color: black; border: none; padding: 14px 20px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
         .btn-delete { background: linear-gradient(45deg, #22c55e, #15803d); color: white; border: none; padding: 14px 24px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
         
@@ -59,13 +58,18 @@
                 </div>
 
                 <div class="admin-time-box" style="flex-direction:column; gap:10px;">
-                    <div style="display:flex; justify-content:space-between;">
+                    <div style="display:flex; justify-content:space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
                         <span>SHOW-ZEIT BELEBT: <span id="admin-total-time" class="time-value">0 Min. 00 Sek.</span></span>
                         <span id="admin-form-status">🟢 LÄDT STATUS...</span>
                     </div>
+                    
+                    <div style="display:flex; gap:10px; margin-top:5px; margin-bottom: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px;">
+                        <span style="display: flex; align-items: center; margin-right: 10px;">SYSTEM STATUS:</span>
+                        <button id="btn-system-online" class="btn-control" style="flex-grow: 1;" onclick="setSystemStatus(true)">🟢 ONLINE (GEÖFFNET)</button>
+                        <button id="btn-system-offline" class="btn-control" style="flex-grow: 1;" onclick="setSystemStatus(false)">🔴 OFFLINE (GESPERRT)</button>
+                    </div>
+
                     <div style="display:flex; gap:10px; margin-top:5px; flex-wrap: wrap;">
-                        <button id="btn-system-toggle" class="btn-control" onclick="toggleSystem()">🔄 LÄDT...</button>
-                        
                         <button class="btn-control" style="background: var(--neon-cyan); color: black;" onclick="addExactSlots(2)">⚡ 50K LIKES: +2 PLÄTZE</button>
                         <button class="btn-control" onclick="setOvertime(15)">🐸 FROSCH OVERTIME (+15 MIN)</button>
                         <button class="btn-control" style="background:var(--neon-gold); color:black;" onclick="toggleVoting()">🏆 LIVE-VOTING START/STOP</button>
@@ -112,19 +116,32 @@
             
             document.getElementById('admin-total-time').innerText = data.spentFormatted;
             
-            // NEU: Logik für den Master-Schalter und Status-Text
-            const btnSystem = document.getElementById('btn-system-toggle');
+            // Logik für die Anzeige der beiden System-Buttons
+            const btnOnline = document.getElementById('btn-system-online');
+            const btnOffline = document.getElementById('btn-system-offline');
             const statusText = document.getElementById('admin-form-status');
             
             if (data.systemOnline === false) {
-                btnSystem.innerText = "🟢 SYSTEM ONLINE SCHALTEN";
-                btnSystem.style.background = "#22c55e"; // Grün
-                btnSystem.style.color = "white";
+                // System ist Offline: Mache Offline-Button knallrot, Online-Button grau
+                btnOnline.style.background = "#374151";
+                btnOnline.style.opacity = "0.4";
+                btnOnline.style.boxShadow = "none";
+                
+                btnOffline.style.background = "#ef4444";
+                btnOffline.style.opacity = "1";
+                btnOffline.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.6)";
+                
                 statusText.innerText = "🔴 SYSTEM OFFLINE GESPERRT";
             } else {
-                btnSystem.innerText = "🔴 SYSTEM OFFLINE SCHALTEN";
-                btnSystem.style.background = "#ef4444"; // Rot
-                btnSystem.style.color = "white";
+                // System ist Online: Mache Online-Button knallgrün, Offline-Button grau
+                btnOnline.style.background = "#22c55e";
+                btnOnline.style.opacity = "1";
+                btnOnline.style.boxShadow = "0 0 15px rgba(34, 197, 94, 0.6)";
+                
+                btnOffline.style.background = "#374151";
+                btnOffline.style.opacity = "0.4";
+                btnOffline.style.boxShadow = "none";
+                
                 statusText.innerText = data.submissionsOpen ? "🟢 FORMULAR GEÖFFNET" : "🔴 LIMIT ERREICHT (GESPERRT)";
             }
             
@@ -189,10 +206,21 @@
         } catch(e) { console.log(e); }
     }
 
-    // NEU: Master-Schalter Funktion
-    async function toggleSystem() {
-        await fetch('/api/admin/toggle-system', { method: 'POST', headers: {'Authorization': token} });
+    // NEU: Setzt gezielt den Status mit Bestätigung
+    async function setSystemStatus(isOnline) {
+        await fetch('/api/admin/set-system-status', { 
+            method: 'POST', 
+            headers: {'Authorization': token, 'Content-Type': 'application/json'},
+            body: JSON.stringify({ online: isOnline })
+        });
         loadAdminQueue();
+        
+        // Die Benachrichtigung an den Admin
+        if (isOnline) {
+            alert("✅ ERFOLG: Das System ist jetzt ONLINE! Das Einreicheformular ist für die Zuschauer geöffnet.");
+        } else {
+            alert("🚫 ERFOLG: Das System ist jetzt OFFLINE! Die Zuschauer sehen die Sperr-Meldung.");
+        }
     }
 
     async function addExactSlots(slots) {
