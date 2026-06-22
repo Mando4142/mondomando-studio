@@ -98,7 +98,6 @@ app.post('/api/submit', (req, res) => {
 
     const { artist, title, duration, genre, songLink } = req.body;
     
-    // LINK SPERRE: Nur Spotify und YouTube
     const isSpotify = /spotify\.com/i.test(songLink);
     const isYouTube = /youtube\.com|youtu\.be/i.test(songLink);
     if (!isSpotify && !isYouTube) {
@@ -107,6 +106,15 @@ app.post('/api/submit', (req, res) => {
 
     if (["Schlager", "Hardstyle", "Hardcore", "Metal"].includes(genre)) {
         return res.status(400).json({ error: "Dieses Genre verletzt Mondos Ohren!" });
+    }
+
+    // NEU: 1 SONG PRO KÜNSTLER SPERRE (Ausnahme: Mondo Mando & Mondo)
+    const cleanArtist = artist.trim().toLowerCase();
+    if (cleanArtist !== "mondo mando" && cleanArtist !== "mondo") {
+        const hasSubmitted = dbData.songQueue.some(song => song.artist.trim().toLowerCase() === cleanArtist);
+        if (hasSubmitted) {
+            return res.status(400).json({ error: "Du hast schon eingereicht! Es ist nur 1 Song pro Künstler erlaubt." });
+        }
     }
 
     const totalSeconds = getTotalTimeSeconds();
