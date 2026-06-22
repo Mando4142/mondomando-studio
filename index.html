@@ -10,7 +10,7 @@
             --neon-cyan: #00f2fe;
             --neon-gold: #ffd700;
             --neon-green: #22c55e;
-            --neon-orange: #ff5500; /* NEU: Leuchtendes Verlängerungs-Orange */
+            --neon-orange: #ff5500;
             --text-main: #ffffff;
             --text-muted: #8e8e9f;
             --form-bg: rgba(19, 19, 26, 0.85);
@@ -204,7 +204,7 @@
             </div>
 
             <div class="card gold-glow" style="border-color: #ffaa00; box-shadow: 0 0 15px rgba(255, 170, 0, 0.2);">
-                <h2 style="text-shadow: 0 0 8px #ffaa00; border-bottom-color: #ffaa00; color: #ffaa00;">🏆 EWIGE HALL OF FAME LEGENDE 🏆</h2>
+                <h2 style="text-shadow: 0 0 8px #ffaa00; border-bottom-color: #ffaa00; color: #ffaa00;">🏆 EWIGE Künstler/Song Hall OF FAME LEGENDEn 🏆</h2>
                 <div id="hof-list"></div>
             </div>
 
@@ -271,7 +271,6 @@
             const submitBtn = document.getElementById('submitBtn'); const timeLeftPot = document.getElementById('time-left-pot');
             const activeSongs = queue.filter(item => !item.isDone);
 
-            // ZWEI PHASEN UND OFF-LOGIK KONTROLLIEREN
             if (data.systemOnline === false) {
                 formContainer.style.display = 'none'; votingContainer.style.display = 'none'; offlineMsg.style.display = 'block';
                 mainTitle.innerText = "SYSTEM GESPERRT"; offlineMsg.innerHTML = `<div style="font-size: 40px; margin-bottom: 15px;">🚫</div>Das Einreicheformular ist aktuell offline!`;
@@ -285,7 +284,6 @@
             } else {
                 votingContainer.style.display = 'none';
                 
-                // AUSWERTUNG DER PHASEN (90 Min vs 30 Min Verlängerung)
                 if (data.phase === 'base') {
                     formContainer.style.display = 'block'; offlineMsg.style.display = 'none';
                     mainCard.style.borderColor = "var(--neon-cyan)"; mainCard.style.boxShadow = "0 0 15px rgba(0, 242, 254, 0.2)";
@@ -303,7 +301,6 @@
                 } 
                 else if (data.phase === 'extension') {
                     formContainer.style.display = 'block'; offlineMsg.style.display = 'none';
-                    // FARBWECHSEL AUF ORANGE FÜR DIE VERLÄNGERUNG!
                     mainCard.style.borderColor = "var(--neon-orange)"; mainCard.style.boxShadow = "0 0 25px var(--neon-orange), inset 0 0 15px rgba(255, 85, 0, 0.1)";
                     mainTitle.innerText = "🔥 STREAM ZEIT VERLÄNGERUNG (30 MIN) 🔥"; mainTitle.style.color = "var(--neon-orange)"; mainTitle.style.textShadow = "0 0 10px var(--neon-orange)";
                     const secFormatted = data.remainingSeconds < 10 ? '0' + data.remainingSeconds : data.remainingSeconds;
