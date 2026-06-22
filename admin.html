@@ -3,132 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mondo Mando - Admin Schaltzentrale (Records)</title>
+    <title>Mondo Mando - Admin Schaltzentrale</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
-        :root { --neon-pink: #ff007f; --neon-cyan: #00f2fe; --neon-gold: #ffd700; --text-main: #ffffff; --form-bg: rgba(19, 19, 26, 0.9); }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Impact', 'Arial Black', sans-serif; color: var(--text-main); overflow: hidden; }
-        .studio-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('studio_bg.jpg'); background-size: cover; background-position: center; filter: brightness(0.6); z-index: -1; }
-        .overlay-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; overflow-y: auto; padding: 40px 0; box-sizing: border-box; }
-        .interface-content { width: 100%; max-width: 800px; }
-        .card { background-color: var(--form-bg); border: 2px solid var(--neon-pink); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 25px rgba(255, 0, 127, 0.3); backdrop-filter: blur(5px); }
-        .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--neon-cyan); padding-bottom: 10px; margin-bottom: 20px;}
-        h1 { margin: 0; font-size: 32px; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-pink); }
-        
-        .admin-time-box { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: rgba(5, 5, 7, 0.6); border: 1px dashed var(--neon-cyan); border-radius: 8px; font-family: sans-serif; font-size: 16px; font-weight: bold; }
-        .time-value { color: var(--neon-cyan); }
-        
-        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: rgba(5, 5, 7, 0.85); border: 2px solid #2a2a35; border-radius: 8px; margin-bottom: 15px; font-family: sans-serif; }
-        .admin-item.is-active-first { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
-        .admin-item.is-hit { border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
-        .admin-item.is-done-admin { border-color: #22c55e; opacity: 0.4; }
-        
-        .drag-handle { cursor: grab; font-size: 26px; padding-right: 15px; color: var(--neon-cyan); }
-
-        .actions-flex { display: flex; gap: 10px; align-items: center; }
-        .btn-control { background: #374151; color: white; border: none; padding: 10px 15px; font-family: sans-serif; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .btn-control:hover { background: #4b5563; transform: scale(1.02); }
-        
-        .link-icon { font-size: 20px; text-decoration: none; margin-right: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-        .icon-spotify { background: #1DB954; color: black; }
-        .icon-youtube { background: #FF0000; color: white; }
-
-        .btn-trash { background: #ef4444; color: white; border: none; padding: 14px; border-radius: 6px; cursor: pointer; font-size: 16px; }
-        .btn-hit-toggle { background: linear-gradient(45deg, var(--neon-gold), #ccac00); color: black; border: none; padding: 14px 20px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
-        .btn-delete { background: linear-gradient(45deg, #22c55e, #15803d); color: white; border: none; padding: 14px 24px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
-        
-        .section-title { font-size: 22px; color: #ffffff; margin: 25px 0 15px 0; text-transform: uppercase; }
-        #login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#0b0b12; z-index:9999; display:flex; justify-content:center; align-items:center; }
+        :root { --neon-pink: #ff007f; --neon-cyan: #00f2fe; --neon-gold: #ffd700; --neon-orange: #ff5500; }
+        body { background: #0b0b12; color: white; font-family: 'Impact', sans-serif; padding: 20px; }
+        .card { background: #14141f; padding: 20px; border-radius: 12px; border: 2px solid var(--neon-pink); margin-bottom: 20px; }
+        .btn { padding: 12px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; margin: 5px; color: white; }
+        .status-box { padding: 10px; border-radius: 6px; text-align: center; font-family: sans-serif; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div id="login-overlay">
-        <div style="background:#14141f; padding:40px; border-radius:12px; border:2px solid var(--neon-pink); text-align:center;">
-            <h2 style="color:var(--neon-pink);">🔒 MONDO RECORDS SCHALTZENTRALE LOCK</h2>
-            <input type="password" id="adminPassInput" placeholder="STUDIO PASSWORT" style="padding:14px; width:250px; text-align:center; font-size:16px;"><br><br>
-            <button class="btn-control" style="background:var(--neon-cyan); color:black;" onclick="tryLogin()">PROCEED</button>
-        </div>
+    <div class="card">
+        <h1>ADMIN ZENTRALE</h1>
+        <div id="status-display" class="status-box" style="background:#333;">Status: Lade...</div>
+        
+        <button class="btn" style="background:#22c55e;" onclick="setSystemStatus(true)">SHOW ONLINE</button>
+        <button class="btn" style="background:#ef4444;" onclick="setSystemStatus(false)">SHOW OFFLINE</button>
+        
+        <button id="btn-ext-status" class="btn" style="background:var(--neon-orange);" onclick="toggleExtension()">⏳ VERLÄNGERUNG: LADEN...</button>
+        
+        <button class="btn" style="background:var(--neon-cyan); color:black;" onclick="addExtensionSlots(2)">⚡ +2 PLÄTZE VERLÄNGERUNG</button>
+        
+        <button class="btn" style="background:var(--neon-gold); color:black;" onclick="toggleVoting()">🏆 VOTE</button>
     </div>
 
-    <div class="studio-background"></div>
-    <div class="overlay-container">
-        <div class="interface-content">
-            <div class="card">
-                <div class="header-flex">
-                    <h1>MONDO MANDO RECORDS LIVE-BOARD</h1>
-                    <button class="btn-control" style="background:#ef4444;" onclick="resetQueue()">LISTE RESETTEN</button>
-                </div>
-
-                <div class="admin-time-box" style="flex-direction:column; gap:10px;">
-                    <div style="display:flex; justify-content:space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                        <span>SHOW-ZEIT BELEBT: <span id="admin-total-time" class="time-value">0 Min.</span></span>
-                        <span id="admin-form-status">🟢 LÄDT STATUS...</span>
-                    </div>
-                    
-                    <div style="display:flex; gap:10px; margin-top:5px; margin-bottom: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px;">
-                        <span style="display: flex; align-items: center; margin-right: 10px;">SYSTEM STATUS:</span>
-                        <button id="btn-system-online" class="btn-control" onclick="setSystemStatus(true)">🟢 ONLINE</button>
-                        <button id="btn-system-offline" class="btn-control" onclick="setSystemStatus(false)">🔴 OFFLINE</button>
-                        <button id="btn-extension-toggle" class="btn-control" onclick="toggleExtension()">⏳ VERLÄNGERUNG</button>
-                        <button class="btn-control" style="background:var(--neon-gold); color:black;" onclick="toggleVoting()">🏆 VOTE</button>
-                    </div>
-                </div>
-
-                <div class="section-title" style="color: var(--neon-gold);">🏆 EWIGE Künstler/Song Hall OF FAME 🏆</div>
-                <div id="admin-hof-list" style="margin-bottom: 20px;"></div>
-
-                <div class="section-title" style="color: var(--neon-gold);">⭐ Heutige Hits (Für Spotify/YouTube Export)</div>
-                <div id="admin-hit-export-list" style="margin-bottom: 20px;"></div>
-
-                <div class="section-title" style="color: var(--neon-cyan);">Offene Einsendungen 🔥</div>
-                <div id="admin-active-list"></div>
-
-                <div class="section-title" style="color: #22c55e;">Bereits bewertet (Historie) ✓</div>
-                <div id="admin-done-list"></div>
-            </div>
-        </div>
+    <div class="card">
+        <h2>🔥 EINSENDUNGEN</h2>
+        <div id="admin-active-list"></div>
     </div>
-<script>
-    let token = ""; let sortableInstance = null;
 
-    function tryLogin() {
-        token = document.getElementById('adminPassInput').value;
-        document.getElementById('login-overlay').style.display = 'none';
-        loadAdminQueue(); setInterval(loadAdminQueue, 4000);
-    }
-
-    async function loadAdminQueue() {
-        if(!token) return;
-        const res = await fetch('/api/queue'); const data = await res.json();
-        const activeList = document.getElementById('admin-active-list');
-        const hofList = document.getElementById('admin-hof-list');
-        const hitExportList = document.getElementById('admin-hit-export-list');
-        const doneList = document.getElementById('admin-done-list');
+    <script>
+        let token = prompt("Passwort:");
         
-        activeList.innerHTML = ''; doneList.innerHTML = ''; hofList.innerHTML = ''; hitExportList.innerHTML = '';
-        
-        data.queue.forEach((s, i) => {
-            const row = `<div class="admin-item ${s.isDone?'is-done-admin':''}"><div style="display:flex;"><span class="drag-handle">☰</span><div>${s.artist} - ${s.title}</div></div><div class="actions-flex"><button class="btn-hit-toggle" onclick="toggleHit(${i})">HIT</button><button class="btn-delete" onclick="toggleDone(${i})">✓</button><button class="btn-trash" onclick="trashSong(${i})">🗑️</button></div></div>`;
-            if(s.isDone) doneList.innerHTML += row; else activeList.innerHTML += row;
-        });
-        data.hallOfFame.forEach((c, i) => hofList.innerHTML += `<div class="admin-item"><div>${c.artist}</div><button class="btn-trash" onclick="deleteChampion(${i})">🗑️</button></div>`);
-        data.queue.filter(s=>s.isHit).forEach(s => hitExportList.innerHTML += `<div>${s.artist} - ${s.title}</div>`);
+        async function load() {
+            const res = await fetch('/api/queue'); const data = await res.json();
+            const statusBox = document.getElementById('status-display');
+            const extBtn = document.getElementById('btn-extension-toggle');
+            
+            statusBox.innerText = data.systemOnline ? "✅ SYSTEM IST ONLINE" : "❌ SYSTEM IST OFFLINE";
+            statusBox.style.background = data.systemOnline ? "#22c55e" : "#ef4444";
+            
+            document.getElementById('btn-ext-status').innerText = data.extensionActive ? "✅ VERLÄNGERUNG AKTIV" : "❌ VERLÄNGERUNG INAKTIV";
+            document.getElementById('btn-ext-status').style.background = data.extensionActive ? "#22c55e" : "#ff5500";
+            
+            const active = document.getElementById('admin-active-list'); active.innerHTML = '';
+            data.queue.filter(s=>!s.isDone).forEach((s, i) => {
+                active.innerHTML += `<div class="admin-item">${s.artist} - ${s.title} <button onclick="trashSong(${i})">🗑️</button></div>`;
+            });
+        }
 
-        if (sortableInstance) sortableInstance.destroy();
-        sortableInstance = new Sortable(activeList, { handle: '.drag-handle', onEnd: async (e) => {
-            await fetch('/api/admin/reorder-active', { method:'POST', headers:{'Authorization':token, 'Content-Type':'application/json'}, body: JSON.stringify({oldIndex:e.oldIndex, newIndex:e.newIndex})});
-            loadAdminQueue();
-        }});
-    }
-    
-    async function setSystemStatus(on) { await fetch('/api/admin/set-system-status', { method:'POST', headers:{'Authorization':token, 'Content-Type':'application/json'}, body: JSON.stringify({online:on}) }); loadAdminQueue(); }
-    async function toggleExtension() { await fetch('/api/admin/toggle-extension', { method:'POST', headers:{'Authorization':token} }); loadAdminQueue(); }
-    async function toggleHit(i) { await fetch(`/api/queue/${i}/hit`, { method:'POST', headers:{'Authorization':token} }); loadAdminQueue(); }
-    async function toggleDone(i) { await fetch(`/api/queue/${i}/done`, { method:'POST', headers:{'Authorization':token} }); loadAdminQueue(); }
-    async function trashSong(i) { if(confirm("Löschen?")) { await fetch(`/api/queue/${i}`, { method:'DELETE', headers:{'Authorization':token} }); loadAdminQueue(); } }
-    async function toggleVoting() { await fetch('/api/admin/toggle-voting', { method:'POST', headers:{'Authorization':token} }); alert("Voting geändert!"); }
-    async function deleteChampion(i) { await fetch(`/api/admin/halloffame/${i}`, { method:'DELETE', headers:{'Authorization':token} }); loadAdminQueue(); }
-    async function resetQueue() { if(confirm("Reset?")) { await fetch('/api/queue/reset', { method:'POST', headers:{'Authorization':token} }); loadAdminQueue(); } }
-</script>
+        async function setSystemStatus(on) {
+            const res = await fetch('/api/admin/set-system-status', { method:'POST', headers:{'Authorization':token, 'Content-Type':'application/json'}, body: JSON.stringify({online:on}) });
+            if(res.ok) alert(on ? "System ist jetzt Online!" : "System ist jetzt Offline!");
+            load();
+        }
+
+        async function toggleExtension() {
+            const res = await fetch('/api/admin/toggle-extension', { method:'POST', headers:{'Authorization':token} });
+            const data = await res.json();
+            alert(data.extensionActive ? "Verlängerung wurde aktiviert!" : "Verlängerung wurde deaktiviert!");
+            load();
+        }
+
+        async function addExtensionSlots(slots) {
+            // Hier nutzen wir die Overtime-Funktion für die +2 Plätze
+            const res = await fetch('/api/admin/overtime', { method:'POST', headers:{'Authorization':token, 'Content-Type':'application/json'}, body: JSON.stringify({minutes: slots * 6}) });
+            if(res.ok) alert("Verlängerungs-Slots hinzugefügt!");
+            load();
+        }
+
+        async function trashSong(i) { await fetch(`/api/queue/${i}`, { method:'DELETE', headers:{'Authorization':token} }); load(); }
+        load();
+    </script>
 </body>
 </html>
