@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mondo Mando Studio - Song Einsenden & Infos</title>
+    <title>Mondo Mando Records - Song Einsenden & Infos</title>
     <style>
         :root {
             --neon-pink: #ff007f;
@@ -31,12 +31,6 @@
             box-sizing: border-box; 
         }
         .interface-content { width: 100%; max-width: 650px; pointer-events: auto; }
-        
-        .logo-container { 
-            text-align: center; 
-            margin-bottom: 25px; 
-        }
-        .logo-container img { max-width: 100%; height: auto; border-radius: 12px; border: 2px solid var(--neon-pink); box-shadow: 0 0 20px rgba(255, 0, 127, 0.4); }
         
         .stream-time-box-fixed { background: rgba(0, 242, 254, 0.05); border: 2px solid var(--neon-cyan); padding: 15px; text-align: center; border-radius: 12px; font-size: 22px; font-weight: bold; margin-bottom: 25px; color: #fff; letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.15); backdrop-filter: blur(5px); }
 
@@ -101,8 +95,6 @@
     <div class="studio-background"></div>
     <div class="overlay-container">
         <div class="interface-content">
-            <div class="logo-container"><img src="logo.png" alt="Mondo Mando Studio" onerror="this.style.display='none';"></div>
-            
             <div class="stream-time-box-fixed">
                 ⏰ JEDEN SONNTAG AB <span style="color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold), 0 0 20px var(--neon-gold);">19:00 UHR</span> LIVE!
             </div>
@@ -181,9 +173,9 @@
                             <span class="checkbox-label"><strong>BESTÄTIGEN:</strong> Ich besitze alle Rechte an diesem Song, verwende keine fremden/geschützten Samples und der Track entspricht vollständig den TikTok-Musikrichtlinien.</span>
                         </label>
                     </div>
-                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                    <div class="form-group">
                         <input type="checkbox" id="vipJoker" style="width:auto; transform:scale(1.3); accent-color:var(--neon-gold);">
-                        <label for="vipJoker" style="margin:0; color:var(--neon-gold); cursor:pointer;">💎 1x im Monat Stammzuschauer-VIP-Joker einlösen?</label>
+                        <label for="vipJoker" style="margin:0; display:inline; padding-left:10px; color:var(--neon-gold); cursor:pointer;">💎 1x im Monat Stammzuschauer-VIP-Joker einlösen?</label>
                     </div>
                     <button type="submit" id="submitBtn" class="btn-submit">SONG EINSENDEN</button>
                 </form>
@@ -245,7 +237,7 @@
             if (activeSongs.length > 0) {
                 ticker.innerText = `🔥 AKTUELL DRAN: ${activeSongs[0].artist.toUpperCase()} - ${activeSongs[0].title.toUpperCase()}`;
             } else {
-                ticker.innerText = `🎵 MONDO MANDO STUDIO -- WARTE AUF TRACKS`;
+                ticker.innerText = `🎵 MONDO MANDO RECORDS -- WARTE AUF TRACKS`;
             }
 
             if (!data.submissionsOpen && data.overtimeOpen) {
@@ -253,6 +245,7 @@
                 submitBtn.disabled = false;
                 submitBtn.innerText = "SONG EINSENDEN (OVERTIME)";
                 submitBtn.style.opacity = "1";
+                submitBtn.style.background = "";
             } else if (!data.submissionsOpen && !data.overtimeOpen) {
                 document.getElementById('time-left-pot').innerText = "VOLL / GESPERRT";
                 document.getElementById('time-left-pot').className = "time-urgent";
@@ -342,7 +335,7 @@
                         <div class="queue-item ${hitClass}">
                             <div class="queue-info">
                                 ${hitBadge}
-                                <h4>${item.artist} - ${item.title}</h4>
+                                <h4>${item.isJoker ? '💎 ' : ''}${item.artist} - ${item.title}</h4>
                                 <p>Genre: ${item.genre} | Dauer: ${min}:${sec < 10 ? '0':''}${sec}</p>
                             </div>
                             <div class="queue-time">${timeText}</div>
@@ -370,19 +363,18 @@
         const min = parseInt(document.getElementById('durationMin').value) || 0;
         const sec = parseInt(document.getElementById('durationSec').value) || 0;
         const genre = document.getElementById('genre').value;
-        const isVipJoker = document.getElementById('vipJoker') ? document.getElementById('vipJoker').checked : false;
+        const isJoker = document.getElementById('vipJoker') ? document.getElementById('vipJoker').checked : false;
         
         const res = await fetch('/api/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink, isVipJoker })
+            body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink, isJoker })
         });
         const resData = await res.json();
         
         if (resData.error) {
             alert("Sperre: " + resData.error);
         } else {
-            // HIER SITZT JETZT DAS SÄUBERLICH VERSTECKTE UND GENERIERTE DANKE-OVERLAY
             const thankYouOverlay = document.createElement('div');
             thankYouOverlay.style = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 13, 17, 0.95); z-index: 10000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); animation: fadeIn 0.3s ease-out;";
             
@@ -391,7 +383,7 @@
                     <h1 style="font-family: 'Impact', sans-serif; color: var(--neon-gold); font-size: 28px; letter-spacing: 2px; margin: 0 0 10px 0; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);">TRACK ERFOLGREICH EINGEREICHT!</h1>
                     <div style="font-size: 50px; margin-bottom: 20px;">🔥🎙️🚀</div>
                     <p style="color: #fff; font-size: 16px; font-weight: bold; margin-bottom: 15px; line-height: 1.4;">
-                        "Stark, dass du am Start bist! Dein Song wurde sauber in die Datenbank des Mondo Mando Studios geballert."
+                        "Stark, dass du am Start bist! Dein Song wurde sauber in die Datenbank von MondoMando Records geballert."
                     </p>
                     <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-bottom: 25px; font-style: italic;">
                         Mach dich bereit, bleib im Stream aktiv und supporte die anderen Künstler im Chat. Wenn dein Name auf der Liste ganz oben steht, wird dein Track live rasiert! Viel Erfolg!
