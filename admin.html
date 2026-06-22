@@ -24,19 +24,11 @@
         .admin-item.is-done-admin { border-color: #22c55e; opacity: 0.4; }
         
         .drag-handle { cursor: grab; font-size: 26px; padding-right: 15px; color: var(--neon-cyan); }
-
         .actions-flex { display: flex; gap: 10px; align-items: center; }
         .btn-control { background: #374151; color: white; border: none; padding: 10px 15px; font-family: sans-serif; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .btn-control:hover { background: #4b5563; transform: scale(1.02); }
-        
-        .link-icon { font-size: 20px; text-decoration: none; margin-right: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-        .icon-spotify { background: #1DB954; color: black; }
-        .icon-youtube { background: #FF0000; color: white; }
-
         .btn-trash { background: #ef4444; color: white; border: none; padding: 14px; border-radius: 6px; cursor: pointer; font-size: 16px; }
         .btn-hit-toggle { background: linear-gradient(45deg, var(--neon-gold), #ccac00); color: black; border: none; padding: 14px 20px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
         .btn-delete { background: linear-gradient(45deg, #22c55e, #15803d); color: white; border: none; padding: 14px 24px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
-        
         .section-title { font-size: 22px; color: #ffffff; margin: 25px 0 15px 0; text-transform: uppercase; }
         #login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#0b0b12; z-index:9999; display:flex; justify-content:center; align-items:center; }
     </style>
@@ -58,217 +50,52 @@
                     <h1>MONDO MANDO RECORDS LIVE-BOARD</h1>
                     <button class="btn-control" style="background:#ef4444;" onclick="resetQueue()">LISTE RESETTEN</button>
                 </div>
-
                 <div class="admin-time-box" style="flex-direction:column; gap:10px;">
                     <div style="display:flex; justify-content:space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                        <span>SHOW-ZEIT BELEBT: <span id="admin-total-time" class="time-value">0 Min. 00 Sek.</span></span>
+                        <span>SHOW-ZEIT: <span id="admin-total-time" class="time-value">0 Min.</span></span>
                         <span id="admin-form-status">🟢 LÄDT STATUS...</span>
                     </div>
-                    
-                    <div style="display:flex; gap:10px; margin-top:5px; margin-bottom: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px;">
-                        <span style="display: flex; align-items: center; margin-right: 10px;">SYSTEM STATUS:</span>
-                        <button id="btn-system-online" class="btn-control" style="flex-grow: 1;" onclick="setSystemStatus(true)">🟢 ONLINE</button>
-                        <button id="btn-system-offline" class="btn-control" style="flex-grow: 1;" onclick="setSystemStatus(false)">🔴 OFFLINE</button>
-                    </div>
-
-                    <div style="display:flex; gap:10px; margin-top:5px; flex-wrap: wrap;">
-                        <button class="btn-control" style="background: var(--neon-cyan); color: black;" onclick="addExactSlots(2)">⚡ 50K LIKES: +2 PLÄTZE</button>
-                        
-                        <button id="btn-extension-toggle" class="btn-control" onclick="toggleExtension()">⏳ LÄDT VERLÄNGERUNG...</button>
-                        
-                        <button class="btn-control" style="background:var(--neon-gold); color:black;" onclick="toggleVoting()">🏆 LIVE-VOTING START/STOP</button>
+                    <div style="display:flex; gap:10px; margin-top:5px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px;">
+                        <button id="btn-system-online" class="btn-control" onclick="setSystemStatus(true)">ONLINE</button>
+                        <button id="btn-system-offline" class="btn-control" onclick="setSystemStatus(false)">OFFLINE</button>
+                        <button id="btn-extension-toggle" class="btn-control" onclick="toggleExtension()">⏳ VERLÄNGERUNG</button>
+                        <button class="btn-control" style="background:var(--neon-gold); color:black;" onclick="toggleVoting()">🏆 VOTE</button>
                     </div>
                 </div>
 
-                <div class="section-title" style="color: var(--neon-gold);">🏆 Live-Voting Champions (Hall of Fame)</div>
-                <div id="admin-hof-list" style="margin-bottom: 20px;"></div>
-
-                <div class="section-title" style="color: var(--neon-gold);">⭐ Heutige Hits (Für Spotify/YouTube Export)</div>
-                <div id="admin-hit-export-list" style="margin-bottom: 20px;"></div>
-
-                <div class="section-title" style="color: var(--neon-cyan);">Offene Einsendungen 🔥 <span style="font-size: 14px; text-transform:none; color:#888;">(Am ☰ Icon greifen und ziehen)</span></div>
+                <div class="section-title">Offene Einsendungen 🔥</div>
                 <div id="admin-active-list"></div>
-
-                <div class="section-title" style="color: #22c55e;">Bereits bewertet (Historie) ✓</div>
+                <div class="section-title">Bereits bewertet ✓</div>
                 <div id="admin-done-list"></div>
             </div>
         </div>
     </div>
 <script>
-    let token = "";
-    let sortableInstance = null;
-
+    let token = "", sortableInstance = null;
     function tryLogin() {
-        const pass = document.getElementById('adminPassInput').value;
-        fetch('/api/admin/auth', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ password: pass })
-        }).then(res => {
-            if (res.ok) {
-                token = pass;
-                document.getElementById('login-overlay').style.display = 'none';
-                loadAdminQueue();
-                setInterval(loadAdminQueue, 4000);
-            } else { alert("Falsches Passwort!"); }
-        });
+        token = document.getElementById('adminPassInput').value;
+        document.getElementById('login-overlay').style.display = 'none';
+        loadAdminQueue(); setInterval(loadAdminQueue, 4000);
     }
-
     async function loadAdminQueue() {
-        if(!token) return;
-        try {
-            const res = await fetch('/api/queue'); const data = await res.json();
-            const queue = data.queue || []; const hof = data.hallOfFame || [];
-            
-            document.getElementById('admin-total-time').innerText = data.spentFormatted;
-            
-            const btnOnline = document.getElementById('btn-system-online');
-            const btnOffline = document.getElementById('btn-system-offline');
-            const statusText = document.getElementById('admin-form-status');
-            const btnExt = document.getElementById('btn-extension-toggle');
-            
-            // System Online/Offline Buttons färben
-            if (data.systemOnline === false) {
-                btnOnline.style.background = "#374151"; btnOnline.style.opacity = "0.4"; btnOnline.style.boxShadow = "none";
-                btnOffline.style.background = "#ef4444"; btnOffline.style.opacity = "1"; btnOffline.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.6)";
-                statusText.innerText = "🔴 SYSTEM OFFLINE GESPERRT";
-            } else {
-                btnOnline.style.background = "#22c55e"; btnOnline.style.opacity = "1"; btnOnline.style.boxShadow = "0 0 15px rgba(34, 197, 94, 0.6)";
-                btnOffline.style.background = "#374151"; btnOffline.style.opacity = "0.4"; btnOffline.style.boxShadow = "none";
-                
-                if (data.phase === 'base') statusText.innerText = "🟢 HAUPTZEIT GEÖFFNET";
-                else if (data.phase === 'base_full') statusText.innerText = "🔒 90 MIN VOLL (WARTET)";
-                else if (data.phase === 'extension') statusText.innerText = "🔥 VERLÄNGERUNG LÄUFT";
-                else if (data.phase === 'extension_full') statusText.innerText = "🚫 ABSOLUT VOLL (STOPP)";
-            }
-            
-            // Steuerung des neuen Verlängerungs-Buttons
-            if (data.extensionActive) {
-                btnExt.innerText = "🚫 VERLÄNGERUNG BEENDEN";
-                btnExt.style.background = "#ef4444"; btnExt.style.boxShadow = "0 0 10px #ef4444"; btnExt.style.color = "white";
-            } else {
-                btnExt.innerText = "⏳ 30 MIN. VERLÄNGERUNG FREIGEBEN";
-                btnExt.style.background = "linear-gradient(45deg, #ff5500, #cc3300)"; btnExt.style.boxShadow = "0 0 15px #ff5500"; btnExt.style.color = "white";
-            }
-            
-            const activeList = document.getElementById('admin-active-list');
-            const doneList = document.getElementById('admin-done-list');
-            const hofList = document.getElementById('admin-hof-list');
-            const hitExportList = document.getElementById('admin-hit-export-list');
-            const activeSongs = queue.filter(item => !item.isDone);
-            
-            activeList.innerHTML = ''; doneList.innerHTML = ''; hofList.innerHTML = ''; hitExportList.innerHTML = '';
-
-            if(hof.length === 0) { hofList.innerHTML = '<div style="color:#8e8e9f; font-family:sans-serif; text-align:center; padding: 10px;">Noch keine Champions in der Liste.</div>'; }
-            hof.forEach((c, hIndex) => {
-                hofList.innerHTML += `
-                    <div class="admin-item" style="border-color: var(--neon-gold); padding: 12px 20px;">
-                        <div class="song-details">
-                            <h3 style="color: var(--neon-gold);">⭐ ${c.artist} - ${c.title}</h3>
-                            <p style="color: #bbb;">${c.votes} Votes | Show vom ${c.date}</p>
-                        </div>
-                        <div class="actions-flex"><button class="btn-trash" onclick="deleteChampion(${hIndex})">🗑️</button></div>
-                    </div>`;
-            });
-
-            const hitSongs = queue.filter(item => item.isHit);
-            if(hitSongs.length === 0) {
-                hitExportList.innerHTML = '<div style="color:#8e8e9f; font-family:sans-serif; text-align:center; padding: 10px;">Noch keine Tracks als Hit markiert.</div>';
-            } else {
-                hitSongs.forEach(item => {
-                    let iconHtml = `<span class="link-icon icon-text">LINK</span>`;
-                    if(item.platform === 'spotify') iconHtml = `<span class="link-icon icon-spotify">🟢 SPOTIFY</span>`;
-                    if(item.platform === 'youtube') iconHtml = `<span class="link-icon icon-youtube">🔴 YOUTUBE</span>`;
-                    hitExportList.innerHTML += `
-                        <div class="admin-item" style="border-color: var(--neon-gold); padding: 12px 20px;">
-                            <div class="song-details"><h3 style="color: var(--neon-gold);">⭐ ${item.artist} - ${item.title}</h3></div>
-                            <div class="actions-flex"><a href="${item.songLink}" target="_blank">${iconHtml}</a></div>
-                        </div>`;
-                });
-            }
-
-            queue.forEach((item, index) => {
-                const min = Math.floor(item.duration / 60); const sec = item.duration % 60;
-                let iconHtml = `<span class="link-icon icon-text">LINK</span>`;
-                if(item.platform === 'spotify') iconHtml = `<span class="link-icon icon-spotify">🟢 SPOTIFY</span>`;
-                if(item.platform === 'youtube') iconHtml = `<span class="link-icon icon-youtube">🔴 YOUTUBE</span>`;
-
-                if(!item.isDone) {
-                    let activeIndex = activeSongs.indexOf(item);
-                    let titlePrefix = activeIndex === 0 ? '[DRAN] ' : '';
-                    let itemStyleClass = item.isHit ? 'is-hit' : (activeIndex === 0 ? 'is-active-first' : '');
-
-                    activeList.innerHTML += `
-                        <div class="admin-item ${itemStyleClass}">
-                            <div style="display:flex; align-items:center;">
-                                <div class="drag-handle">☰</div>
-                                <div class="song-details">
-                                    <h3>${titlePrefix}${item.artist} - ${item.title}</h3>
-                                    <p>Genre: ${item.genre} | ⏱️ ${min+2}:${sec < 10 ? '0':''}${sec} Min</p>
-                                </div>
-                            </div>
-                            <div class="actions-flex">
-                                <a href="${item.songLink}" target="_blank">${iconHtml}</a>
-                                <button class="btn-hit-toggle" onclick="toggleHit(${index})">HIT ⭐</button>
-                                <button class="btn-delete" onclick="toggleDone(${index})">✓</button>
-                                <button class="btn-trash" onclick="trashSong(${index})">🗑️</button>
-                            </div>
-                        </div>`;
-                } else {
-                    doneList.innerHTML += `
-                        <div class="admin-item is-done-admin">
-                            <div class="song-details"><h3>${item.artist} - ${item.title}</h3></div>
-                            <div class="actions-flex">
-                                <a href="${item.songLink}" target="_blank">${iconHtml}</a>
-                                <button class="btn-control" onclick="toggleDone(${index})">↩</button>
-                            </div>
-                        </div>`;
-                }
-            });
-
-            if (sortableInstance) sortableInstance.destroy();
-            sortableInstance = new Sortable(document.getElementById('admin-active-list'), {
-                animation: 150, handle: '.drag-handle',
-                onEnd: async function (evt) {
-                    if(evt.oldIndex === evt.newIndex) return;
-                    await fetch('/api/admin/reorder-active', {
-                        method: 'POST', headers: { 'Authorization': token, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ oldIndex: evt.oldIndex, newIndex: evt.newIndex })
-                    });
-                    loadAdminQueue();
-                }
-            });
-        } catch(e) { console.log(e); }
+        const res = await fetch('/api/queue'); const data = await res.json();
+        const activeList = document.getElementById('admin-active-list');
+        activeList.innerHTML = '';
+        data.queue.filter(s=>!s.isDone).forEach((s, i) => {
+            activeList.innerHTML += `<div class="admin-item"><div style="display:flex;"><span class="drag-handle">☰</span><div>${s.artist} - ${s.title}</div></div><div class="actions-flex"><button class="btn-hit-toggle" onclick="toggleHit(${i})">HIT</button><button class="btn-delete" onclick="toggleDone(${i})">✓</button><button class="btn-trash" onclick="trashSong(${i})">🗑️</button></div></div>`;
+        });
+        if (sortableInstance) sortableInstance.destroy();
+        sortableInstance = new Sortable(activeList, { handle: '.drag-handle', onEnd: async (e) => {
+            await fetch('/api/admin/reorder-active', { method:'POST', headers:{'Authorization':token, 'Content-Type':'application/json'}, body: JSON.stringify({oldIndex:e.oldIndex, newIndex:e.newIndex})});
+            loadAdminQueue();
+        }});
     }
-
-    async function toggleExtension() {
-        const res = await fetch('/api/admin/toggle-extension', { method: 'POST', headers: {'Authorization': token} });
-        const resData = await res.json();
-        loadAdminQueue();
-        if (resData.extensionActive) {
-            alert("🔥 ORANGE PHASE AKTIV: Die 30 Minuten Verlängerung wurden für die Zuschauer geöffnet!");
-        } else {
-            alert("🚫 Verlängerung geschlossen. Das System läuft wieder im regulären Modus.");
-        }
-    }
-
-    async function setSystemStatus(isOnline) {
-        await fetch('/api/admin/set-system-status', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ online: isOnline }) });
-        loadAdminQueue();
-        if (isOnline) alert("✅ System ONLINE!"); else alert("🚫 System OFFLINE!");
-    }
-
-    async function addExactSlots(slots) {
-        const minutesToAdd = slots * 6; 
-        await fetch('/api/admin/overtime', { method: 'POST', headers: {'Authorization': token, 'Content-Type':'application/json'}, body: JSON.stringify({ minutes: minutesToAdd }) }); 
-        loadAdminQueue(); alert(`⚡ +${minutesToAdd} Min. Limit freigeschaltet!`);
-    }
-    async function deleteChampion(hIndex) { if(confirm("Löschen?")) { await fetch(`/api/admin/halloffame/${hIndex}`, { method: 'DELETE', headers: {'Authorization': token} }); loadAdminQueue(); } }
-    async function toggleHit(index) { await fetch(`/api/queue/${index}/hit`, { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
-    async function toggleDone(index) { await fetch(`/api/queue/${index}/done`, { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
-    async function trashSong(index) { if(confirm("Löschen?")) { await fetch(`/api/queue/${index}`, { method: 'DELETE', headers: {'Authorization': token} }); loadAdminQueue(); } }
-    async function toggleVoting() { await fetch('/api/admin/toggle-voting', { method: 'POST', headers: {'Authorization': token} }); alert("Voting geändert!"); }
-    async function resetQueue() { if(confirm("Reset?")) { await fetch('/api/queue/reset', { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); } }
+    async function setSystemStatus(on) { await fetch('/api/admin/set-system-status', { method:'POST', headers:{'Authorization':token, 'Content-Type':'application/json'}, body: JSON.stringify({online:on}) }); loadAdminQueue(); }
+    async function toggleExtension() { await fetch('/api/admin/toggle-extension', { method:'POST', headers:{'Authorization':token} }); loadAdminQueue(); }
+    async function toggleHit(i) { await fetch(`/api/queue/${i}/hit`, { method:'POST', headers:{'Authorization':token} }); loadAdminQueue(); }
+    async function toggleDone(i) { await fetch(`/api/queue/${i}/done`, { method:'POST', headers:{'Authorization':token} }); loadAdminQueue(); }
+    async function trashSong(i) { if(confirm("Löschen?")) { await fetch(`/api/queue/${i}`, { method:'DELETE', headers:{'Authorization':token} }); loadAdminQueue(); } }
+    async function resetQueue() { if(confirm("Reset?")) { await fetch('/api/queue/reset', { method:'POST', headers:{'Authorization':token} }); loadAdminQueue(); } }
 </script>
 </body>
 </html>
