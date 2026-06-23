@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mondo Mando Records - Dashboard</title>
+    <!-- LemonSqueezy Script für Checkout Popups -->
     <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
     <style>
         :root {
@@ -36,16 +37,14 @@
         .calendar-header button { background: rgba(0,242,254,0.1); border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 5px 15px; color: var(--neon-cyan); font-size: 18px; cursor: pointer; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .cal-day-header { font-family: sans-serif; font-size: 13px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
-        .cal-day { padding: 10px 5px; background: rgba(5,5,7,0.8); border: 1px solid #2a2a35; border-radius: 6px; font-family: sans-serif; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .cal-day:hover { background: rgba(255,255,255,0.1); }
+        .cal-day { padding: 10px 5px; background: rgba(5,5,7,0.8); border: 1px solid #2a2a35; border-radius: 6px; font-family: sans-serif; font-weight: bold; cursor: pointer; }
         .cal-day.is-sunday { border-color: var(--neon-pink); color: var(--neon-pink); background: rgba(255,0,127,0.1); }
         .cal-day.has-hits { background: rgba(255, 215, 0, 0.15); border-color: var(--neon-gold); color: var(--neon-gold); }
         .cal-day.is-selected { background: var(--neon-gold); color: black; border-color: white; transform: scale(1.1); z-index: 2; }
 
-        /* Form & Title Styles */
+        /* Form Styles & Neon Green Button */
         h2 { text-transform: uppercase; margin-top: 0; font-size: 24px; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 8px var(--neon-cyan); border-bottom: 3px solid var(--neon-pink); padding-bottom: 8px; margin-bottom: 20px; }
         
-        /* NEON GRÜNER REGEL-BUTTON */
         .btn-rules-small { 
             position: absolute; top: 15px; right: 20px; 
             background: rgba(0, 0, 0, 0.5); 
@@ -80,7 +79,6 @@
             background-size: 56px 56px; animation: move-stripes 1s linear infinite; 
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
-        .btn-submit:disabled { filter: grayscale(0.8); cursor: not-allowed; animation: none; }
         @keyframes move-stripes { 0% { background-position: 0 0; } 100% { background-position: 56px 0; } }
 
         .queue-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: rgba(5, 5, 7, 0.8); border: 1px solid #2a2a35; border-left: 5px solid var(--neon-cyan); border-radius: 6px; margin-bottom: 12px; font-family: sans-serif; }
@@ -113,7 +111,7 @@
                         <button onclick="changeMonth(1)">▶</button>
                     </div>
                     <div id="calendar-grid-content" class="calendar-grid"></div>
-                    <button id="btn-live-view" style="display:none; width: 100%; margin-top: 15px; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 6px; font-family: 'Impact', sans-serif; cursor: pointer; font-size: 16px; box-shadow: 0 0 10px #ef4444;" onclick="resetToLiveView()">🔴 ZURÜCK ZUR LIVE-SHOW</button>
+                    <button id="btn-live-view" style="display:none; width: 100%; margin-top: 15px; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 6px; font-family: 'Impact', sans-serif; cursor: pointer; font-size: 16px;" onclick="resetToLiveView()">🔴 ZURÜCK ZUR LIVE-SHOW</button>
                 </div>
             </div>
 
@@ -122,6 +120,7 @@
                 <h2 id="main-card-title">SONG EINREICHEN</h2>
                 <div id="offline-message" style="display:none; text-align:center; padding: 40px 20px; font-size: 24px; color: var(--neon-pink); border: 2px dashed var(--neon-pink); border-radius: 12px; background: rgba(0,0,0,0.6); text-transform: uppercase;">STREAM IST OFFLINE</div>
 
+                <!-- EINREICHE-FORMULAR -->
                 <div id="form-container">
                     <form id="songForm" onsubmit="addSongToServer(event)">
                         <div class="form-group">
@@ -143,6 +142,8 @@
                                 <input type="number" id="durationSec" required placeholder="SEK" min="0" max="59">
                             </div>
                         </div>
+                        
+                        <!-- ORIGINAL GENRES WIEDERHERGESTELLT -->
                         <div class="form-group">
                             <label for="genre">Genre</label>
                             <select id="genre" required onchange="checkGenreSafety()">
@@ -155,12 +156,13 @@
                                 <option value="Hardstyle">[GESPERRT] Hardstyle</option>
                                 <option value="Metal">[GESPERRT] Metal</option>
                             </select>
-                            <div id="genre-error" style="color: #ffffff; background: #ef4444; border: 2px solid #b91c1c; padding: 12px; border-radius: 8px; margin-top: 10px; display: none; font-size: 15px; font-weight:bold; text-align:center;">🚫 Dieses Genre ist blockiert!</div>
+                            <div id="genre-error" style="color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 12px; border-radius: 8px; margin-top: 10px; display: none; font-size: 14px;">🚫 Dieses Genre ist blockiert!</div>
                         </div>
                         
                         <div class="form-group">
                             <label style="color: var(--neon-cyan);">Bestätigung</label>
                             
+                            <!-- CHECKBOX 1: Rechte & Samples -->
                             <label class="checkbox-group" style="cursor: pointer; align-items: center;">
                                 <input type="checkbox" required style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
                                 <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -169,6 +171,7 @@
                                 </div>
                             </label>
                             
+                            <!-- CHECKBOX 2: Permabann Warnung -->
                             <label class="checkbox-group rule-pulse-box" style="background-color: rgba(239, 68, 68, 0.08); cursor: pointer; align-items: center; margin-top: 15px;">
                                 <input type="checkbox" required style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
                                 <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -183,31 +186,35 @@
                     </form>
                 </div>
                 
-                <div id="voting-container" style="display:none;"></div>
+                <!-- LIVE VOTING FORMULAR -->
+                <div id="voting-container" style="display:none;">
+                    <!-- Wird von JS gefüllt, wenn das Voting gestartet wird -->
+                </div>
             </div>
             
-            <div id="waitlist-card" class="card pink-glow">
+            <div class="card pink-glow">
                 <h2>WARTELISTE (<span id="queue-count">0</span>)</h2>
                 <div id="queue-list"></div>
             </div>
 
-            <div id="hit-card" class="card gold-glow">
+            <div class="card gold-glow">
                 <h2 style="color: var(--neon-gold); border-bottom-color: var(--neon-gold);">⭐ HIT PLAYLIST (LIVE) ⭐</h2>
                 <div id="hit-bestenliste"></div>
             </div>
             
-            <div id="done-card" class="card" style="border-color: #22c55e;">
+            <div class="card" style="border-color: #22c55e;">
                 <h2 style="border-bottom-color: #22c55e;">BEREITS BEWERTET 🔥</h2>
                 <div id="done-list"></div>
             </div>
 
-            <div id="hof-card" class="card gold-glow" style="border-color: #ffaa00;">
+            <div class="card gold-glow" style="border-color: #ffaa00;">
                 <h2 style="color: #ffaa00; font-size:26px; text-align:center;">👑 EWIGE HALL OF FAME 👑</h2>
                 <div id="hof-list"></div>
             </div>
         </div>
     </div>
 
+    <!-- REGELN-POPUP (MIT VOLLSTÄNDIGEN BESCHREIBUNGEN) -->
     <div id="rulesPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 14, 0.95); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(8px); overflow-y: auto; padding: 20px; box-sizing: border-box;">
         <div style="background: var(--form-bg); border: 3px solid var(--neon-green); padding: 40px; border-radius: 16px; max-width: 650px; width: 100%; color: white; position: relative; box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);">
             <span onclick="document.getElementById('rulesPopup').style.display='none'" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 36px; color: var(--neon-green); font-family: sans-serif;">&times;</span>
@@ -215,16 +222,19 @@
             
             <div style="font-family: sans-serif; font-size: 16px; line-height: 1.6; color: #ccc; text-align: left;">
                 <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">⏱️ 1. Sendezeit & Ablauf</h3>
-                <p style="margin-top: 0; margin-bottom: 15px;">Der Stream hat einen festen Topf von <strong>90 Minuten</strong>. Ist die Zeit voll, schließt die Liste. Einreichungen werden live im Stream angehört und bewertet.</p>
+                <p style="margin-top: 0; margin-bottom: 15px;">Der Stream hat einen festen Topf von <strong>90 Minuten</strong>. Ist die Zeit voll, schließt die Liste. Eingereichte Songs werden live im Stream angehört und bewertet.</p>
                 
-                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🏆 2. Das Voting-System</h3>
-                <p style="margin-top: 0; margin-bottom: 15px;">Nachdem alle Songs gehört wurden, startet das <strong>Live-Voting</strong>! Ihr entscheidet mit eurem Voting-Code, welcher Track der „Hit des Tages“ wird und in die ewige Hall of Fame einzieht.</p>
+                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🏆 2. Das Live-Voting</h3>
+                <p style="margin-top: 0; margin-bottom: 15px;">Nachdem alle Songs gehört wurden, startet das <strong>Voting (4 Minuten)</strong>! Mit dem Voting-Code, den du bei der Einreichung erhältst, kannst du zwei Stimmen (2 Punkte & 1 Punkt) für deine absoluten Favoriten abgeben.</p>
 
-                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🚀 3. Premium Features</h3>
-                <p style="margin-top: 0; margin-bottom: 15px;">Nach dem Einsenden erhältst du deinen Voting-Code. Damit kannst du dir im Shop Vorteile sichern: <strong>Platz 1 Boost</strong> (dein Song läuft direkt als Nächstes), den <strong>After Hours Pass</strong> (dein Song wird auch nach Ablauf der 90 Min. noch gespielt) oder den <strong>Songwürfel</strong>.</p>
+                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🚀 3. Premium Features (Shop)</h3>
+                <p style="margin-top: 0; margin-bottom: 15px;">Nach dem Einsenden kannst du dir Vorteile sichern:<br>
+                - <strong>Platz 1 Boost:</strong> Dein Song überspringt die Liste und ist als Nächstes dran.<br>
+                - <strong>After Hours Pass:</strong> Dein Song wird garantiert gespielt, auch wenn die 90 Min. vorbei sind.<br>
+                - <strong>Songwürfel:</strong> Lass den Zufall entscheiden und erhalte einen coolen Bonus für deinen Track.</p>
 
                 <h3 style="color: var(--neon-pink); margin-bottom: 5px;">🚫 4. Verbote & Fair Play</h3>
-                <p style="margin-top: 0; margin-bottom: 15px;"><strong>Gesperrte Genres:</strong> Schlager, Hardstyle, Hardcore & Metal sind strikt verboten.<br><strong>Fake-Accounts:</strong> Wer sich unfaire Vorteile durch Fake-Namen verschafft, kassiert einen <strong>Permabann</strong> für alle Mondo Mando Formate!</p>
+                <p style="margin-top: 0; margin-bottom: 15px;"><strong>Gesperrte Genres:</strong> Schlager, Hardstyle & Metal sind strikt verboten.<br><strong>Fake-Accounts:</strong> Wer sich unfaire Vorteile verschafft, kassiert ohne Vorwarnung einen <strong>Permabann</strong>!</p>
             </div>
             
             <button type="button" onclick="document.getElementById('rulesPopup').style.display='none'" style="width: 100%; padding: 18px; background: var(--neon-green); border: none; color: black; font-family: 'Impact', sans-serif; font-size: 22px; letter-spacing: 2px; border-radius: 8px; cursor: pointer; margin-top: 20px; text-transform: uppercase; box-shadow: 0 0 15px var(--neon-green);">ICH HABE VERSTANDEN</button>
@@ -234,7 +244,6 @@
 <script>
     const FEEDBACK_BUFFER_SEC = 120;
     let calDate = new Date(); let serverHistoricalHits = {}; let selectedArchiveDate = null;
-    let localTimerInterval = null; let localRemainingSeconds = 0;
     
     function getSwissDateString(d) {
         return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
@@ -275,71 +284,58 @@
             errBox.style.display = "none"; btn.disabled = false; 
         } 
     }
-
-    // AUTOMATISCHE VOTING-FORMULAR GENERIERUNG
+    
+    // DIE NEUE VOTING-FUNKTION (Wird aufgerufen wenn Voting aktiv ist)
     function renderVotingForm(data) {
         const container = document.getElementById('voting-container');
-        const isTiebreak = data.votingPhase === 'tiebreak';
-        const hits = isTiebreak ? (data.tiedSongs || []) : data.queue.filter(s => s.isHit);
+        const hits = data.queue.filter(s => s.isHit);
         
-        if (!container.innerHTML.includes('voteCodeInput') || (isTiebreak && !container.innerHTML.includes('STECHEN'))) {
+        if (!container.innerHTML.includes('voteCodeInput')) {
             let optionsHtml = '<option value="" disabled selected>Deinen Favoriten wählen...</option>';
-            hits.forEach(hit => { optionsHtml += `<option value="${hit.id}">${hit.artist} - ${hit.title}</option>`; });
-
-            const titleColor = isTiebreak ? 'var(--neon-pink)' : 'var(--neon-cyan)';
-            const titleText = isTiebreak ? '🚨 UNENTSCHIEDEN! STECHEN! 🚨' : 'VOTING ENDET IN';
+            hits.forEach(hit => {
+                optionsHtml += `<option value="${hit.id}">${hit.artist} - ${hit.title}</option>`;
+            });
 
             container.innerHTML = `
-                <div style="text-align:center; margin-bottom:20px; padding: 15px; background: rgba(0,242,254,0.1); border: 2px dashed ${titleColor}; border-radius: 10px;">
-                    <div style="font-size:20px; color:${titleColor}; margin-bottom:5px; font-family: 'Impact', sans-serif; letter-spacing: 2px;">${titleText}</div>
-                    ${isTiebreak ? '<div style="font-size:14px; color:#fff; font-family:sans-serif;">Die Favoriten stehen unentschieden. Deine finale Wahl!</div>' : ''}
+                <div style="text-align:center; margin-bottom:20px; padding: 15px; background: rgba(0,242,254,0.1); border: 2px dashed var(--neon-cyan); border-radius: 10px;">
+                    <div style="font-size:20px; color:var(--neon-cyan); margin-bottom:5px; font-family: sans-serif; text-transform: uppercase;">VOTING ENDET IN</div>
                     <div id="voting-timer" style="font-size:45px; font-family:'Impact'; color:var(--neon-pink); letter-spacing:3px; text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);">--:--</div>
                 </div>
                 <form id="voteForm" onsubmit="submitVote(event)">
                     <div class="form-group">
                         <label>Dein Voting-Code</label>
-                        <input type="text" id="voteCodeInput" required placeholder="z.B. A1B2C3" style="text-transform:uppercase; text-align:center; font-size:24px; letter-spacing:5px;">
+                        <input type="text" id="voteCodeInput" required placeholder="CODE EINGEBEN" style="text-transform:uppercase; text-align:center; font-size:24px; letter-spacing:5px;">
                     </div>
                     <div class="form-group">
                         <label>Deine 1. Stimme (2 Punkte)</label>
                         <select id="vote1Input" required>${optionsHtml}</select>
                     </div>
-                    <div class="form-group" style="${isTiebreak ? 'display:none;' : ''}">
+                    <div class="form-group">
                         <label>Deine 2. Stimme (1 Punkt)</label>
-                        <select id="vote2Input" ${isTiebreak ? '' : 'required'}>${optionsHtml}</select>
+                        <select id="vote2Input" required>${optionsHtml}</select>
                     </div>
                     <div id="vote-error-box" style="color: #ffffff; background-color: #ef4444; border: 2px solid #b91c1c; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; font-family: sans-serif; font-weight: bold;"></div>
                     <div id="vote-success-box" style="color: #ffffff; background-color: var(--neon-green); border: 2px solid #16a34a; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; font-family: sans-serif; font-weight: bold;">✅ Deine Stimmen wurden erfolgreich gezählt!</div>
-                    <button type="submit" class="btn-submit" style="background: ${isTiebreak ? 'var(--neon-pink)' : 'var(--neon-cyan)'}; color: black; animation: none;">${isTiebreak ? 'FINAL ABSTIMMEN' : 'ABSTIMMEN'}</button>
+                    <button type="submit" class="btn-submit" style="background: var(--neon-cyan); color: black; text-shadow: none; box-shadow: 0 0 15px var(--neon-cyan); animation: none;">VOTING ABSCHICKEN</button>
                 </form>
             `;
         }
 
-        // Live Countdown für das Voting
-        localRemainingSeconds = data.votingRemainingSeconds || 0;
-        if (!localTimerInterval) {
-            localTimerInterval = setInterval(() => {
-                if (localRemainingSeconds > 0) {
-                    localRemainingSeconds--;
-                    const m = Math.floor(localRemainingSeconds / 60);
-                    const s = localRemainingSeconds % 60;
-                    const timerEl = document.getElementById('voting-timer');
-                    if (timerEl) timerEl.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
-                } else {
-                    const timerEl = document.getElementById('voting-timer');
-                    if (timerEl) timerEl.innerText = "BEENDET";
-                }
-            }, 1000);
+        const timerEl = document.getElementById('voting-timer');
+        if (timerEl) {
+            const sec = data.votingRemainingSeconds || 0;
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            timerEl.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
         }
     }
 
+    // VOTING AN DEN SERVER SENDEN
     async function submitVote(e) {
         e.preventDefault();
         const voteCode = document.getElementById('voteCodeInput').value;
         const vote1 = document.getElementById('vote1Input').value;
-        const vote2Input = document.getElementById('vote2Input');
-        const vote2 = vote2Input.style.display !== 'none' && vote2Input.value ? vote2Input.value : vote1; // Bei Tiebreak senden wir einfach denselben Song
-        
+        const vote2 = document.getElementById('vote2Input').value;
         const errBox = document.getElementById('vote-error-box');
         const succBox = document.getElementById('vote-success-box');
 
@@ -349,11 +345,13 @@
         });
         const resData = await res.json();
         
-        if (resData.error && resData.error !== "Du darfst nicht zweimal für denselben Song abstimmen!") {
+        if (resData.error) {
             errBox.innerText = "🚫 " + resData.error;
-            errBox.style.display = "block"; succBox.style.display = "none";
+            errBox.style.display = "block";
+            succBox.style.display = "none";
         } else {
-            errBox.style.display = "none"; succBox.style.display = "block";
+            errBox.style.display = "none";
+            succBox.style.display = "block";
             document.getElementById('voteForm').reset();
         }
     }
@@ -364,60 +362,45 @@
             const queue = data.queue || []; const hallOfFame = data.hallOfFame || [];
             serverHistoricalHits = data.historicalHits || {}; renderCalendar(); 
             
-            // ================== ARCHIV-ANSICHT ==================
-            if (selectedArchiveDate) {
-                document.getElementById('dynamic-main-card').style.display = 'none';
-                document.getElementById('waitlist-card').style.display = 'none';
-                document.getElementById('hit-card').style.display = 'none';
-                document.getElementById('done-card').style.display = 'none';
-                
-                let archiveHtml = `<div style="text-align:center; margin-bottom:20px;"><h3 style="color:var(--neon-cyan); font-size:24px; text-transform:uppercase; border-bottom: 2px solid var(--neon-cyan); display:inline-block; padding-bottom:5px;">Rückblick: ${selectedArchiveDate}</h3></div>`;
-                if (serverHistoricalHits[selectedArchiveDate] && serverHistoricalHits[selectedArchiveDate].length > 0) {
-                    serverHistoricalHits[selectedArchiveDate].forEach(hit => {
-                        archiveHtml += `<div class="queue-item is-playlist-hit" style="background:rgba(255,215,0,0.1); border-color:var(--neon-gold);">
-                            <div><h4 style="margin:0; color:var(--neon-gold);">⭐ ${hit.artist} - ${hit.title}</h4>
-                            <p style="margin:5px 0 0 0; font-size:14px; color:#ccc;">Genre: ${hit.genre || 'Unbekannt'}</p></div>
-                        </div>`;
-                    });
-                } else {
-                    archiveHtml += `<div style="text-align:center; color:#ccc; font-size:18px; padding:20px; font-family:sans-serif;">An diesem Datum gibt es leider keine gespeicherten Hits.</div>`;
-                }
-                document.getElementById('hof-list').innerHTML = archiveHtml;
-                return; // Beendet loadQueue hier, damit die Live-Listen nicht neu gerendert werden
-            } else {
-                document.getElementById('dynamic-main-card').style.display = 'block';
-                document.getElementById('waitlist-card').style.display = 'block';
-                document.getElementById('hit-card').style.display = 'block';
-                document.getElementById('done-card').style.display = 'block';
-            }
-
-            // ================== LIVE-ANSICHT ==================
             document.getElementById('estimated-wait').innerText = data.spentFormatted;
             const timeLeftPot = document.getElementById('time-left-pot');
+            
             const formContainer = document.getElementById('form-container');
             const votingContainer = document.getElementById('voting-container');
             const offlineMessage = document.getElementById('offline-message');
             const mainCardTitle = document.getElementById('main-card-title');
             
+            // SYSTEM OFFLINE ODER VOTING-SWITCH LOGIK
             if (data.systemOnline === false) {
                 timeLeftPot.innerText = "OFFLINE"; timeLeftPot.className = "time-urgent";
-                formContainer.style.display = 'none'; votingContainer.style.display = 'none'; offlineMessage.style.display = 'block';
+                formContainer.style.display = 'none';
+                votingContainer.style.display = 'none';
+                offlineMessage.style.display = 'block';
                 mainCardTitle.innerText = "SYSTEM OFFLINE";
             } else {
                 const secFormatted = data.remainingSeconds < 10 ? '0' + data.remainingSeconds : data.remainingSeconds;
                 timeLeftPot.innerText = `${data.remainingMinutes} Min. ${secFormatted} Sek.`;
                 timeLeftPot.className = data.phase.includes('full') ? "time-urgent" : "time-highlight";
                 
-                // === UMSCHALTUNG AUF LIVE VOTING WENN AKTIV ===
-                if (data.votingPhase === 'active' || data.votingPhase === 'tiebreak') {
-                    formContainer.style.display = 'none'; offlineMessage.style.display = 'none';
+                // === HIER WIRD AUF DAS VOTING UMGESCHALTET ===
+                if (data.votingPhase === 'active') {
+                    formContainer.style.display = 'none';
+                    offlineMessage.style.display = 'none';
                     votingContainer.style.display = 'block';
                     mainCardTitle.innerText = "🔥 LIVE VOTING 🔥";
                     renderVotingForm(data);
+                } else if (data.votingPhase === 'tiebreak') {
+                    // WENN ES EIN STECHEN GIBT: Formular ausblenden, Info zeigen. (User können bei Stechen nicht voten, Admin entscheidet)[cite: 2]
+                    formContainer.style.display = 'none';
+                    offlineMessage.style.display = 'none';
+                    votingContainer.style.display = 'block';
+                    mainCardTitle.innerText = "🚨 STECHEN 🚨";
+                    votingContainer.innerHTML = '<div style="text-align:center; padding: 30px 20px; border: 2px dashed var(--neon-pink); border-radius: 12px; background: rgba(255,0,127,0.1);"><h3 style="color: var(--neon-pink); font-size: 24px; margin-top: 0;">UNENTSCHIEDEN!</h3><p style="font-family: sans-serif; font-size: 16px; line-height: 1.5; color: #fff;">Es gibt einen Gleichstand zwischen den Favoriten. Der Admin entscheidet nun live im Stream über den Sieger!</p></div>';
                 } else {
-                    formContainer.style.display = 'block'; votingContainer.style.display = 'none'; offlineMessage.style.display = 'none';
+                    formContainer.style.display = 'block';
+                    votingContainer.style.display = 'none';
+                    offlineMessage.style.display = 'none';
                     mainCardTitle.innerText = "SONG EINREICHEN";
-                    if (localTimerInterval) { clearInterval(localTimerInterval); localTimerInterval = null; } // Timer resetten
                 }
             }
             
@@ -442,27 +425,9 @@
                     let activeIndex = activeSongs.indexOf(item);
                     let timeText = activeIndex === 0 ? `NEXT UP` : `WARTEZEIT: ~${Math.floor(accTime/60)} MIN`;
                     accTime += item.duration + FEEDBACK_BUFFER_SEC;
-                    
-                    // PLATFORM ICONS & PREMIUM BADGES
-                    let platformIcon = item.platform === 'spotify' ? '<span style="color:#1DB954; margin-right:5px;">🟢</span>' : (item.platform === 'youtube' ? '<span style="color:#FF0000; margin-right:5px;">🔴</span>' : '🎵');
-                    let badges = '';
-                    if (item.isBoosted) badges += '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-cyan);">🚀 BOOST</span>';
-                    if (item.isAfterHours) badges += '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; border: 1px solid #b577ff; box-shadow: 0 0 8px #7000ff;">🌙 AFTER HOURS</span>';
-                    if (item.isDice) badges += '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-pink);">🎲 WÜRFEL</span>';
-
-                    activeList.innerHTML += `
-                    <div class="queue-item" style="${item.isBoosted ? 'border-color:var(--neon-cyan); box-shadow: 0 0 10px rgba(0,242,254,0.3);' : ''}">
-                        <div>
-                            <h4 style="margin:0 0 5px 0;">${platformIcon} ${item.artist} - ${item.title}</h4>
-                            <p style="margin:0; font-size:14px; color:var(--text-muted);">Genre: ${item.genre}</p>
-                            <div style="margin-top:8px;">${badges}</div>
-                        </div>
-                        <div style="text-align:right; font-weight:bold; color:var(--neon-gold); font-family: 'Impact', sans-serif; letter-spacing: 1px;">
-                            ${timeText}
-                        </div>
-                    </div>`;
+                    activeList.innerHTML += `<div class="queue-item"><div><h4>${item.artist} - ${item.title}</h4><p>Genre: ${item.genre}</p></div><div style="text-align:right;">${timeText}</div></div>`;
                 } else {
-                    doneList.innerHTML += `<div class="queue-item" style="opacity:0.5;"><h4>✔️ ${item.artist} - ${item.title}</h4></div>`;
+                    doneList.innerHTML += `<div class="queue-item" style="opacity:0.5;"><h4>${item.artist} - ${item.title}</h4></div>`;
                 }
             });
         } catch(e) {}
@@ -484,24 +449,36 @@
             const linkAfterHours = "https://mondomandorecords.lemonsqueezy.com/checkout/buy/434396c0-e721-45e1-8751-f5d39d3a4632";
             const linkDice = "https://mondomandorecords.lemonsqueezy.com/checkout/buy/65229fc8-af91-4ef7-a20c-738d5933a25a";
             
-            // NEON POPUP FÜR DIE EINREICHUNG MIT LEMONSQUEEZY INTEGRATION
+            // NEON POPUP FÜR DIE EINREICHUNG MIT EINGEFÜGTEN BESCHREIBUNGEN ZU DEN SHOP-FEATURES
             const overlay = document.createElement('div');
-            overlay.style = "position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(10,10,14,0.96); z-index:10000; display:flex; justify-content:center; align-items:center; padding: 20px; overflow-y: auto; backdrop-filter: blur(8px); box-sizing: border-box;";
-            overlay.innerHTML = `<div style="background: rgba(19, 19, 26, 0.95); border: 3px solid var(--neon-gold); padding: 40px; border-radius: 20px; text-align: center; max-width: 550px; width: 100%; box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1); color: white; font-family: 'Impact', sans-serif;">
+            overlay.style = "position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(10,10,14,0.96); z-index:10000; display:flex; justify-content:center; align-items:flex-start; padding: 20px; overflow-y: auto; backdrop-filter: blur(8px); box-sizing: border-box;";
+            overlay.innerHTML = `<div style="background: rgba(19, 19, 26, 0.95); border: 3px solid var(--neon-gold); padding: 40px; border-radius: 20px; text-align: center; max-width: 550px; width: 100%; box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1); color: white; font-family: 'Impact', sans-serif; margin: 40px 0;">
                 <h1 style="color: var(--neon-gold); font-size: 36px; text-shadow: 0 0 15px rgba(255, 215, 0, 0.6); margin-top: 0; letter-spacing: 2px;">TRACK EINGEREICHT!</h1>
                 <p style="font-family: sans-serif; font-size: 16px; color: #ccc; margin-bottom: 5px; text-transform: uppercase;">Dein Voting-Code:</p>
                 <div style="background: #000; padding: 20px; font-size: 45px; color: var(--neon-cyan); letter-spacing: 10px; margin: 15px 0; border: 2px dashed var(--neon-cyan); text-shadow: 0 0 12px rgba(0, 242, 254, 0.8); border-radius: 8px;">${resData.voteCode}</div>
                 <hr style="border: 0; border-top: 1px solid #2a2a35; margin: 25px 0;">
+                
                 <div style="display:flex; flex-direction:column; gap:15px; font-family: 'Impact', sans-serif;">
-                    <a href="${linkBoost}?checkout[custom][voteCode]=${resData.voteCode}" class="lemonsqueezy-button" style="background: var(--neon-cyan); color: black; padding: 18px; text-decoration: none; border-radius: 8px; font-size: 20px; text-transform: uppercase; box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);">🚀 PLATZ 1 BOOST</a>
-                    <a href="${linkAfterHours}?checkout[custom][voteCode]=${resData.voteCode}" class="lemonsqueezy-button" style="background: #7000ff; color: white; padding: 18px; text-decoration: none; border-radius: 8px; font-size: 20px; text-transform: uppercase; box-shadow: 0 0 15px rgba(112, 0, 255, 0.6);">🌙 AFTER HOURS PASS</a>
-                    <a href="${linkDice}?checkout[custom][voteCode]=${resData.voteCode}" class="lemonsqueezy-button" style="background: var(--neon-pink); color: white; padding: 18px; text-decoration: none; border-radius: 8px; font-size: 20px; text-transform: uppercase; box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);">🎲 SONGWÜRFEL</a>
+                    <a href="${linkBoost}?checkout[custom][voteCode]=${resData.voteCode}" class="lemonsqueezy-button" style="background: var(--neon-cyan); color: black; padding: 15px; text-decoration: none; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.4); display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 22px; text-transform: uppercase;">🚀 PLATZ 1 BOOST</span>
+                        <span style="font-size: 13px; font-family: sans-serif; font-weight: normal; margin-top: 5px; color: #111;">Dein Song überspringt die Warteschlange und ist als Nächstes dran!</span>
+                    </a>
+                    
+                    <a href="${linkAfterHours}?checkout[custom][voteCode]=${resData.voteCode}" class="lemonsqueezy-button" style="background: #7000ff; color: white; padding: 15px; text-decoration: none; border-radius: 8px; box-shadow: 0 0 15px rgba(112, 0, 255, 0.4); border: 1px solid #b577ff; display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 22px; text-transform: uppercase;">🌙 AFTER HOURS PASS</span>
+                        <span style="font-size: 13px; font-family: sans-serif; font-weight: normal; margin-top: 5px; color: #eeddff;">Dein Song wird garantiert gespielt, auch nach Ablauf der 90 Minuten.</span>
+                    </a>
+                    
+                    <a href="${linkDice}?checkout[custom][voteCode]=${resData.voteCode}" class="lemonsqueezy-button" style="background: var(--neon-pink); color: white; padding: 15px; text-decoration: none; border-radius: 8px; box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 22px; text-transform: uppercase;">🎲 SONGWÜRFEL</span>
+                        <span style="font-size: 13px; font-family: sans-serif; font-weight: normal; margin-top: 5px; color: #ffddee;">Lass den Zufall entscheiden und erhalte einen exklusiven Bonus!</span>
+                    </a>
                 </div>
+                
                 <button onclick="this.parentElement.parentElement.remove()" style="background: #2a2a35; border: 1px solid #4a4a5a; padding: 18px; color: white; margin-top: 25px; width: 100%; border-radius: 8px; font-size: 18px; cursor: pointer; text-transform: uppercase; font-family: 'Impact', sans-serif;">SCHLIESSEN</button>
             </div>`;
             document.body.appendChild(overlay);
             
-            // LemonSqueezy Buttons neu initialisieren, falls script geladen
             if(window.createLemonSqueezy) window.createLemonSqueezy();
 
             document.getElementById('songForm').reset(); loadQueue();
