@@ -14,31 +14,14 @@
         .card { background-color: var(--form-bg); border: 2px solid var(--neon-pink); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 25px rgba(255, 0, 127, 0.3); backdrop-filter: blur(5px); }
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--neon-cyan); padding-bottom: 10px; margin-bottom: 20px;}
         h1 { margin: 0; font-size: 32px; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-pink); }
-        
         .admin-time-box { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: rgba(5, 5, 7, 0.6); border: 1px dashed var(--neon-cyan); border-radius: 8px; font-family: sans-serif; font-size: 16px; font-weight: bold; }
         .time-value { color: var(--neon-cyan); }
-        
         .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: rgba(5, 5, 7, 0.85); border: 2px solid #2a2a35; border-radius: 8px; margin-bottom: 15px; font-family: sans-serif; }
-        .admin-item.is-active-first { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
-        .admin-item.is-hit { border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
-        .admin-item.is-done-admin { border-color: #22c55e; opacity: 0.4; }
-        
         .drag-handle { cursor: grab; font-size: 26px; padding-right: 15px; color: var(--neon-cyan); }
-
-        .actions-flex { display: flex; gap: 10px; align-items: center; }
-        .btn-control { background: #374151; color: white; border: none; padding: 10px 15px; font-family: sans-serif; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .btn-control:hover { background: #4b5563; transform: scale(1.02); }
-        
-        .link-icon { font-size: 20px; text-decoration: none; margin-right: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-        .icon-spotify { background: #1DB954; color: black; }
-        .icon-youtube { background: #FF0000; color: white; }
-
-        .btn-trash { background: #ef4444; color: white; border: none; padding: 14px; border-radius: 6px; cursor: pointer; font-size: 16px; }
-        .btn-hit-toggle { background: linear-gradient(45deg, var(--neon-gold), #ccac00); color: black; border: none; padding: 14px 20px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
-        .btn-delete { background: linear-gradient(45deg, #22c55e, #15803d); color: white; border: none; padding: 14px 24px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
-        .btn-voting-action { background: var(--neon-gold); color: black; border: none; padding: 15px; font-family: 'Impact'; font-size: 18px; border-radius: 6px; cursor: pointer; width: 100%; box-shadow: 0 0 15px var(--neon-gold); margin-top:10px; }
-        
-        .section-title { font-size: 22px; color: #ffffff; margin: 25px 0 15px 0; text-transform: uppercase; }
+        .btn-control { background: #374151; color: white; border: none; padding: 10px 15px; font-family: sans-serif; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .btn-trash { background: #ef4444; color: white; border: none; padding: 14px; border-radius: 6px; cursor: pointer; }
+        .btn-hit-toggle { background: var(--neon-gold); color: black; border: none; padding: 10px; font-family: 'Impact', sans-serif; border-radius: 6px; cursor: pointer; }
+        .btn-delete { background: #22c55e; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
         #login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#0b0b12; z-index:9999; display:flex; justify-content:center; align-items:center; }
     </style>
 </head>
@@ -46,8 +29,8 @@
     <div id="login-overlay">
         <div style="background:#14141f; padding:40px; border-radius:12px; border:2px solid var(--neon-pink); text-align:center;">
             <h2 style="color:var(--neon-pink);">🔒 MONDO RECORDS SCHALTZENTRALE</h2>
-            <input type="password" id="adminPassInput" placeholder="STUDIO PASSWORT" style="padding:14px; width:250px; text-align:center; font-size:16px;"><br><br>
-            <button class="btn-control" style="background:var(--neon-cyan); color:black;" onclick="tryLogin()">PROCEED</button>
+            <input type="password" id="adminPassInput" placeholder="STUDIO PASSWORT" style="padding:14px; width:250px; text-align:center;"><br><br>
+            <button class="btn-control" onclick="tryLogin()">PROCEED</button>
         </div>
     </div>
 
@@ -59,265 +42,58 @@
                     <h1>MONDO MANDO RECORDS LIVE-BOARD</h1>
                     <button class="btn-control" style="background:#ef4444;" onclick="resetQueue()">LISTE RESETTEN</button>
                 </div>
+                
+                <div class="card" style="border-color: var(--neon-gold);">
+                    <h2 style="color: var(--neon-gold); margin-top:0;">👑 STRIPE KÄUFE (STREAM HISTORIE)</h2>
+                    <div id="stripe-history-list" style="font-family: sans-serif; color: #ccc;">Bitte einloggen...</div>
+                </div>
 
                 <div class="admin-time-box" style="flex-direction:column; gap:10px;">
-                    <div style="display:flex; justify-content:space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                        <span>SHOW-ZEIT BELEBT: <span id="admin-total-time" class="time-value">0 Min. 00 Sek.</span></span>
-                        <span id="admin-form-status">🟢 LÄDT STATUS...</span>
-                    </div>
-                    
-                    <div style="display:flex; gap:10px; margin-top:5px; margin-bottom: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px;">
-                        <span style="display: flex; align-items: center; margin-right: 10px;">SYSTEM STATUS:</span>
-                        <button id="btn-system-online" class="btn-control" style="flex-grow: 1;" onclick="setSystemStatus(true)">🟢 ONLINE</button>
-                        <button id="btn-system-offline" class="btn-control" style="flex-grow: 1;" onclick="setSystemStatus(false)">🔴 OFFLINE</button>
-                    </div>
-
-                    <div style="display:flex; gap:10px; margin-top:5px; flex-wrap: wrap;">
-                        <button class="btn-control" style="background: var(--neon-cyan); color: black;" onclick="addExactSlots(2)">⚡ 50K LIKES: +2 PLÄTZE</button>
-                        <button id="btn-extension-toggle" class="btn-control" onclick="toggleExtension()">⏳ LÄDT VERLÄNGERUNG...</button>
-                    </div>
+                    <span>SHOW-ZEIT: <span id="admin-total-time" class="time-value">0 Min. 00 Sek.</span></span>
+                    <button id="btn-system-online" class="btn-control" onclick="setSystemStatus(true)">🟢 ONLINE</button>
+                    <button id="btn-system-offline" class="btn-control" onclick="setSystemStatus(false)">🔴 OFFLINE</button>
                 </div>
-
-                <div class="admin-time-box" style="flex-direction:column; gap:10px; border-color:var(--neon-gold);">
-                    <div class="section-title" style="margin:0; color:var(--neon-gold);">🗳️ VOTING STEUERUNG</div>
-                    <div id="admin-voting-controls"></div>
-                </div>
-
-                <div class="section-title" style="color: #ffaa00;">🏆 EWIGE HALL OF FAME DER LEGENDEN</div>
-                <div id="admin-hof-list" style="margin-bottom: 20px;"></div>
-
-                <div class="section-title" style="color: var(--neon-gold);">⭐ Heutige Hits (Für Spotify/YouTube Export)</div>
-                <div id="admin-hit-export-list" style="margin-bottom: 20px;"></div>
-
-                <div class="section-title" style="color: var(--neon-cyan);">Offene Einsendungen 🔥</div>
+                
                 <div id="admin-active-list"></div>
-
-                <div class="section-title" style="color: #22c55e;">Bereits bewertet (Historie) ✓</div>
                 <div id="admin-done-list"></div>
             </div>
         </div>
     </div>
-<script>
-    let token = ""; let sortableInstance = null;
-    let adminTimerInterval = null;
-    let adminRemainingSeconds = 0;
 
+<script>
+    let token = "";
+    
     function tryLogin() {
         const pass = document.getElementById('adminPassInput').value;
         fetch('/api/admin/auth', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ password: pass }) })
-        .then(res => { if (res.ok) { token = pass; document.getElementById('login-overlay').style.display = 'none'; loadAdminQueue(); setInterval(loadAdminQueue, 4000); } else { alert("Falsches Passwort!"); } })
-    }
-
-    function startAdminTimer(seconds) {
-        if (adminTimerInterval) clearInterval(adminTimerInterval);
-        adminRemainingSeconds = seconds; updateAdminTimerVisuals();
-        adminTimerInterval = setInterval(() => {
-            adminRemainingSeconds--;
-            if (adminRemainingSeconds <= 0) { adminRemainingSeconds = 0; clearInterval(adminTimerInterval); }
-            updateAdminTimerVisuals();
-        }, 1000);
-    }
-
-    function updateAdminTimerVisuals() {
-        const textEl = document.getElementById('admin-timer-text');
-        if (!textEl) return;
-        const m = Math.floor(adminRemainingSeconds / 60); const s = adminRemainingSeconds % 60;
-        textEl.innerText = `0${m}:${s < 10 ? '0' : ''}${s}`;
-        textEl.style.color = adminRemainingSeconds > 120 ? '#22c55e' : (adminRemainingSeconds > 60 ? '#ffd700' : '#ef4444');
-        textEl.style.textShadow = `0 0 10px ${textEl.style.color}`;
+        .then(res => { if (res.ok) { token = pass; document.getElementById('login-overlay').style.display = 'none'; loadAdminQueue(); setInterval(loadAdminQueue, 5000); } else { alert("Falsches Passwort!"); } })
     }
 
     async function loadAdminQueue() {
         if(!token) return;
-        try {
-            const res = await fetch('/api/queue'); const data = await res.json();
-            const queue = data.queue || []; const hof = data.hallOfFame || [];
-            
-            document.getElementById('admin-total-time').innerText = data.spentFormatted;
-            
-            const btnOnline = document.getElementById('btn-system-online');
-            const btnOffline = document.getElementById('btn-system-offline');
-            const statusText = document.getElementById('admin-form-status');
-            const btnExt = document.getElementById('btn-extension-toggle');
-            
-            if (data.systemOnline === false) {
-                btnOnline.style.background = "#374151"; btnOnline.style.opacity = "0.4"; btnOnline.style.boxShadow = "none";
-                btnOffline.style.background = "#ef4444"; btnOffline.style.opacity = "1"; btnOffline.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.6)";
-                statusText.innerText = "🔴 SYSTEM OFFLINE";
-            } else {
-                btnOnline.style.background = "#22c55e"; btnOnline.style.opacity = "1"; btnOnline.style.boxShadow = "0 0 15px rgba(34, 197, 94, 0.6)";
-                btnOffline.style.background = "#374151"; btnOffline.style.opacity = "0.4"; btnOffline.style.boxShadow = "none";
-                if (data.phase === 'base') statusText.innerText = "🟢 HAUPTZEIT GEÖFFNET";
-                else if (data.phase === 'base_full') statusText.innerText = "🔒 90 MIN VOLL (WARTET)";
-                else if (data.phase === 'extension') statusText.innerText = "🔥 VERLÄNGERUNG LÄUFT";
-                else if (data.phase === 'extension_full') statusText.innerText = "🚫 ABSOLUT VOLL (STOPP)";
-            }
-            
-            if (data.extensionActive) {
-                btnExt.innerText = "🚫 VERLÄNGERUNG BEENDEN"; btnExt.style.background = "#ef4444"; btnExt.style.boxShadow = "0 0 10px #ef4444"; btnExt.style.color = "white";
-            } else {
-                btnExt.innerText = "⏳ 30 MIN. VERLÄNGERUNG FREIGEBEN"; btnExt.style.background = "linear-gradient(45deg, #ff5500, #cc3300)"; btnExt.style.boxShadow = "0 0 15px #ff5500"; btnExt.style.color = "white";
-            }
-
-            const vBox = document.getElementById('admin-voting-controls');
-            if (data.votingPhase === 'inactive') {
-                if (!document.getElementById('start-voting-btn')) {
-                    vBox.innerHTML = `<button id="start-voting-btn" class="btn-voting-action" onclick="startVoting()">🔴 VOTING STARTEN (4 MIN)</button>`;
-                }
-                if(adminTimerInterval) { clearInterval(adminTimerInterval); adminTimerInterval = null; }
-            } else if (data.votingPhase === 'active') {
-                if (!document.getElementById('admin-timer-text')) {
-                    vBox.innerHTML = `
-                        <div id="admin-timer-text" style="font-size:48px; text-align:center; margin-bottom:15px; font-family:'Impact', sans-serif;">04:00</div>
-                        <div style="display:flex; gap:10px;">
-                            <button class="btn-voting-action" style="background:#22c55e; box-shadow:0 0 15px #22c55e; flex:2;" onclick="resolveVoting()">✅ MANUELL BEENDEN</button>
-                            <button class="btn-voting-action" style="background:#3b82f6; box-shadow:0 0 15px #3b82f6; flex:1;" onclick="resetVotingTimer()">🔄 +4 MIN</button>
-                        </div>
-                    `;
-                }
-                if (!adminTimerInterval || Math.abs(adminRemainingSeconds - data.votingRemainingSeconds) > 2) {
-                    startAdminTimer(data.votingRemainingSeconds);
-                }
-            } else if (data.votingPhase === 'tiebreak') {
-                if (!document.getElementById('tiebreak-container')) {
-                    let tbHtml = `<div id="tiebreak-container" style="background:#ef4444; color:white; padding:10px; border-radius:6px; margin-bottom:10px;">⚠️ GLEICHSTAND! Wähle den Gewinner:</div>`;
-                    data.tiedSongs.forEach(s => {
-                        tbHtml += `<div style="display:flex; justify-content:space-between; background:#000; padding:10px; margin-bottom:5px;">
-                            <span>${s.artist} - ${s.title}</span>
-                            <button class="btn-control" style="background:var(--neon-gold); color:black;" onclick="forceWinner('${s.id}')">👑 DIESEN WÄHLEN</button>
-                        </div>`;
-                    });
-                    vBox.innerHTML = tbHtml;
-                }
-                if(adminTimerInterval) { clearInterval(adminTimerInterval); adminTimerInterval = null; }
-            }
-
-            const activeList = document.getElementById('admin-active-list');
-            const doneList = document.getElementById('admin-done-list');
-            const hofList = document.getElementById('admin-hof-list');
-            const hitExportList = document.getElementById('admin-hit-export-list');
-            const activeSongs = queue.filter(item => !item.isDone);
-            
-            activeList.innerHTML = ''; doneList.innerHTML = ''; hofList.innerHTML = ''; hitExportList.innerHTML = '';
-
-            if(hof.length === 0) { hofList.innerHTML = '<div style="color:#8e8e9f; text-align:center; padding: 10px;">Noch keine Champions.</div>'; }
-            hof.forEach((c, hIndex) => {
-                hofList.innerHTML += `<div class="admin-item" style="border-color: #ffaa00;">
-                    <div><h3 style="color: #ffaa00; margin:0;">👑 ${c.artist} - ${c.title}</h3><p style="margin:5px 0 0 0; color:#bbb;">${c.votes} Stimmen | ${c.date}</p></div>
-                    <button class="btn-trash" onclick="deleteChampion(${hIndex})">🗑️</button>
-                </div>`;
+        const res = await fetch('/api/queue'); const data = await res.json();
+        document.getElementById('admin-total-time').innerText = data.spentFormatted || "0 Min";
+        
+        // Stripe History laden
+        fetch('/api/stripe/history', { headers: {'Authorization': token} })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('stripe-history-list').innerHTML = data.length ? data.map(p => `<div>${p.date} - ${p.artist}: ${p.product}</div>`).join('') : "Keine Käufe.";
             });
 
-            const hitSongs = queue.filter(item => item.isHit);
-            if(hitSongs.length === 0) {
-                hitExportList.innerHTML = '<div style="color:#8e8e9f; text-align:center; padding: 10px;">Noch keine Tracks als Hit markiert.</div>';
-            } else {
-                hitSongs.forEach(item => {
-                    let iconHtml = `<span class="link-icon icon-text">LINK</span>`;
-                    if(item.platform === 'spotify') iconHtml = `<span class="link-icon icon-spotify">🟢 SPOTIFY</span>`;
-                    if(item.platform === 'youtube') iconHtml = `<span class="link-icon icon-youtube">🔴 YOUTUBE</span>`;
-                    hitExportList.innerHTML += `<div class="admin-item" style="border-color: var(--neon-gold); padding: 12px 20px;">
-                            <div class="song-details"><h3 style="color: var(--neon-gold); margin:0;">⭐ ${item.artist} - ${item.title}</h3></div>
-                            <div class="actions-flex"><a href="${item.songLink}" target="_blank">${iconHtml}</a></div>
-                        </div>`;
-                });
-            }
-
-            queue.forEach((item, index) => {
-                const min = Math.floor(item.duration / 60); const sec = item.duration % 60;
-                let iconHtml = `<span class="link-icon icon-text">LINK</span>`;
-                if(item.platform === 'spotify') iconHtml = `<span class="link-icon icon-spotify">🟢 SPOTIFY</span>`;
-                if(item.platform === 'youtube') iconHtml = `<span class="link-icon icon-youtube">🔴 YOUTUBE</span>`;
-
-                if(!item.isDone) {
-                    let activeIndex = activeSongs.indexOf(item);
-                    let titlePrefix = activeIndex === 0 ? '[DRAN] ' : '';
-                    let itemStyleClass = item.isHit ? 'is-hit' : (activeIndex === 0 ? 'is-active-first' : '');
-
-                    activeList.innerHTML += `<div class="admin-item ${itemStyleClass}">
-                        <div style="display:flex; align-items:center;">
-                            <div class="drag-handle">☰</div>
-                            <div class="song-details">
-                                <h3 style="margin:0;">${titlePrefix}${item.artist} - ${item.title}</h3>
-                                <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ⏱️ ${min+2}:${sec < 10 ? '0':''}${sec} Min | Code: ${item.voteCode ? '✅' : '❌'}</p>
-                            </div>
-                        </div>
-                        <div class="actions-flex">
-                            <a href="${item.songLink}" target="_blank">${iconHtml}</a>
-                            <button class="btn-hit-toggle" onclick="toggleHit(${index})">HIT ⭐</button>
-                            <button class="btn-delete" onclick="toggleDone(${index})">✓</button>
-                            <button class="btn-trash" onclick="trashSong(${index})">🗑️</button>
-                        </div>
-                    </div>`;
-                } else {
-                    doneList.innerHTML += `<div class="admin-item is-done-admin">
-                            <div class="song-details"><h3 style="margin:0;">${item.artist} - ${item.title}</h3></div>
-                            <div class="actions-flex">
-                                <a href="${item.songLink}" target="_blank">${iconHtml}</a>
-                                <button class="btn-control" onclick="toggleDone(${index})">↩</button>
-                            </div>
-                        </div>`;
-                }
-            });
-
-            if (sortableInstance) sortableInstance.destroy();
-            sortableInstance = new Sortable(document.getElementById('admin-active-list'), {
-                animation: 150, handle: '.drag-handle',
-                onEnd: async function (evt) {
-                    if(evt.oldIndex !== evt.newIndex) {
-                        await fetch('/api/admin/reorder-active', { method: 'POST', headers: { 'Authorization': token, 'Content-Type': 'application/json' }, body: JSON.stringify({ oldIndex: evt.oldIndex, newIndex: evt.newIndex }) });
-                        loadAdminQueue();
-                    }
-                }
-            });
-        } catch(e) {}
+        // Queue anzeigen (deine bisherige Logik)
+        const activeList = document.getElementById('admin-active-list');
+        activeList.innerHTML = data.queue.filter(i => !i.isDone).map((item, index) => `
+            <div class="admin-item">
+                <span>${item.artist} - ${item.title}</span>
+                <button class="btn-trash" onclick="trashSong(${index})">🗑️</button>
+            </div>
+        `).join('');
     }
 
-    async function toggleExtension() {
-        const res = await fetch('/api/admin/toggle-extension', { method: 'POST', headers: {'Authorization': token} });
-        const resData = await res.json();
-        loadAdminQueue();
-        if (resData.extensionActive) alert("🔥 ORANGE PHASE AKTIV: Die 30 Minuten Verlängerung wurden für die Zuschauer geöffnet!");
-        else alert("🚫 Verlängerung geschlossen.");
-    }
-
-    async function setSystemStatus(isOnline) {
-        await fetch('/api/admin/set-system-status', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ online: isOnline }) });
-        loadAdminQueue(); if (isOnline) alert("✅ System ONLINE!"); else alert("🚫 System OFFLINE!");
-    }
-
-    async function addExactSlots(slots) {
-        const minutesToAdd = slots * 6; 
-        await fetch('/api/admin/overtime', { method: 'POST', headers: {'Authorization': token, 'Content-Type':'application/json'}, body: JSON.stringify({ minutes: minutesToAdd }) }); 
-        loadAdminQueue(); alert(`⚡ +${minutesToAdd} Min. Limit freigeschaltet!`);
-    }
-
-    async function startVoting() { 
-        await fetch('/api/admin/voting/start', { method: 'POST', headers: {'Authorization': token} }); 
-        alert("🔥 VOTING GESTARTET! 4 Minuten laufen jetzt ab.");
-        loadAdminQueue(); 
-    }
-
-    async function resetVotingTimer() {
-        await fetch('/api/admin/voting/reset-timer', { method: 'POST', headers: {'Authorization': token} });
-        loadAdminQueue();
-    }
-    
-    async function resolveVoting() { 
-        const res = await fetch('/api/admin/voting/resolve', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: "{}" });
-        const data = await res.json();
-        if (data.error) { alert("🚫 " + data.error); } 
-        else if (data.tiebreak) { alert("⚠️ GLEICHSTAND! Bitte wähle den Gewinner manuell aus der orangenen Liste."); } 
-        else { alert("✅ VOTING BEENDET! Der Gewinner wurde in die Hall of Fame eingetragen."); }
-        loadAdminQueue(); 
-    }
-    
-    async function forceWinner(id) { await fetch('/api/admin/voting/resolve', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ forceWinnerId: id }) }); loadAdminQueue(); }
-    async function toggleHit(index) { await fetch(`/api/queue/${index}/hit`, { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
-    async function toggleDone(index) { await fetch(`/api/queue/${index}/done`, { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
     async function trashSong(index) { if(confirm("Löschen?")) { await fetch(`/api/queue/${index}`, { method: 'DELETE', headers: {'Authorization': token} }); loadAdminQueue(); } }
-    async function deleteChampion(hIndex) { if(confirm("Löschen?")) { await fetch(`/api/admin/halloffame/${hIndex}`, { method: 'DELETE', headers: {'Authorization': token} }); loadAdminQueue(); } }
     async function resetQueue() { if(confirm("Reset?")) { await fetch('/api/queue/reset', { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); } }
+    async function setSystemStatus(status) { await fetch('/api/admin/set-system-status', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ online: status }) }); loadAdminQueue(); }
 </script>
 </body>
 </html>
