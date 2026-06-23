@@ -7,14 +7,14 @@
     <style>
         :root {
             --neon-pink: #ff007f; --neon-cyan: #00f2fe; --neon-gold: #ffd700; --neon-green: #22c55e;
-            --neon-orange: #ff5500; --text-main: #ffffff; --text-muted: #8e8e9f; --form-bg: rgba(19, 19, 26, 0.85);
+            --neon-orange: #ff5500; --text-main: #ffffff; --text-muted: #8e8e9f; --form-bg: rgba(19, 19, 26, 0.95);
         }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Impact', 'Arial Black', sans-serif; color: var(--text-main); overflow: hidden; }
         .studio-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('studio_bg.jpg'); background-size: cover; background-position: center; filter: brightness(0.8); z-index: -1; }
         .overlay-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 40px 0; box-sizing: border-box; }
         .interface-content { width: 100%; max-width: 650px; pointer-events: auto; }
         
-        .card { background-color: var(--form-bg); border: 2px solid var(--neon-cyan); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.1); backdrop-filter: blur(5px); transition: all 0.5s ease; }
+        .card { background-color: var(--form-bg); border: 2px solid var(--neon-cyan); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.1); backdrop-filter: blur(5px); }
         .card.pink-glow { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 127, 0.2), inset 0 0 15px rgba(255, 0, 127, 0.1); }
         .card.gold-glow { border-color: var(--neon-gold); box-shadow: 0 0 25px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1); }
 
@@ -29,6 +29,10 @@
         }
         @keyframes pulse-orange { 0% { transform: scale(1); box-shadow: 0 0 5px var(--neon-orange); } 50% { transform: scale(1.05); box-shadow: 0 0 20px var(--neon-orange); } 100% { transform: scale(1); box-shadow: 0 0 5px var(--neon-orange); } }
         
+        /* Popup Styles */
+        .popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .popup-content { background: var(--form-bg); border: 2px solid var(--neon-cyan); padding: 30px; border-radius: 16px; max-width: 500px; width: 90%; color: white; position: relative; }
+        .popup-close { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 24px; color: var(--neon-pink); }
         .rule-pulse-box { border: 2px solid #ef4444 !important; animation: pulse-red 1.5s infinite; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0px #ef4444; } 50% { box-shadow: 0 0 10px #ef4444; } 100% { box-shadow: 0 0 0px #ef4444; } }
 
@@ -37,31 +41,19 @@
         .status-divider { border: 0; border-top: 1px solid rgba(142, 142, 159, 0.4); margin: 15px 0; }
         .status-stats { display: flex; justify-content: space-between; font-family: sans-serif; font-size: 14px; font-weight: bold; }
         .time-highlight { color: var(--neon-cyan); }
-        .time-urgent { color: var(--neon-pink); }
         .badge-live { background-color: var(--neon-pink); color: white; padding: 4px 10px; border-radius: 4px; font-size: 14px; margin-right: 10px; animation: pulse 1.5s infinite; vertical-align: middle; }
         @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; box-shadow: 0 0 15px var(--neon-pink); } 100% { opacity: 0.8; } }
 
-        .calendar-section { margin-top: 25px; padding-top: 20px; border-top: 1px dashed rgba(0, 242, 254, 0.3); }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .calendar-header button { background: rgba(0,242,254,0.1); border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 5px 15px; color: var(--neon-cyan); font-size: 18px; cursor: pointer; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .cal-day-header { font-family: sans-serif; font-size: 13px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
-        .cal-day { padding: 10px 5px; background: rgba(5,5,7,0.8); border: 1px solid #2a2a35; border-radius: 6px; font-family: sans-serif; font-weight: bold; cursor: pointer; }
-        .cal-day.is-sunday { border-color: var(--neon-pink); color: var(--neon-pink); background: rgba(255,0,127,0.1); }
-        .cal-day.has-hits { background: rgba(255, 215, 0, 0.15); border-color: var(--neon-gold); color: var(--neon-gold); }
-        .cal-day.is-selected { background: var(--neon-gold); color: black; border-color: white; transform: scale(1.1); z-index: 2; }
-
-        h2 { text-transform: uppercase; margin-top: 0; font-size: 24px; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 8px var(--neon-cyan); border-bottom: 3px solid var(--neon-pink); padding-bottom: 8px; margin-bottom: 20px; }
+        h2 { text-transform: uppercase; margin-top: 0; font-size: 24px; letter-spacing: 2px; color: #ffffff; border-bottom: 3px solid var(--neon-pink); padding-bottom: 8px; margin-bottom: 20px; }
         .form-group { margin-bottom: 22px; }
         label { display: block; margin-bottom: 8px; font-size: 16px; text-transform: uppercase; color: var(--text-main); }
-        input[type="text"], input[type="url"], input[type="number"], select { width: 100%; padding: 14px; background-color: rgba(5, 5, 7, 0.8); border: 2px solid #2a2a35; border-radius: 8px; color: white; font-size: 16px; box-sizing: border-box; }
+        input[type="text"], input[type="url"], input[type="number"], select { width: 100%; padding: 14px; background: rgba(5, 5, 7, 0.8); border: 2px solid #2a2a35; border-radius: 8px; color: white; font-size: 16px; box-sizing: border-box; }
         .duration-inputs { display: flex; gap: 15px; }
         .checkbox-group { display: flex; align-items: flex-start; gap: 15px; background-color: rgba(5, 5, 7, 0.8); padding: 15px; border: 1px dashed var(--neon-pink); border-radius: 8px; margin-top: 10px; font-family: sans-serif; }
         .btn-submit { width: 100%; padding: 20px; font-size: 24px; text-transform: uppercase; color: #ffffff; border: none; border-radius: 8px; cursor: pointer; letter-spacing: 3px; font-family: 'Impact', sans-serif; box-shadow: 0 0 20px var(--neon-pink); margin-top: 20px; background: linear-gradient(45deg, var(--neon-pink) 25%, #bc005b 25%, #bc005b 50%, var(--neon-pink) 50%, var(--neon-pink) 75%, #bc005b 75%, #bc005b); background-size: 50px 50px; animation: move-stripes 1.5s linear infinite; }
         @keyframes move-stripes { 0% { background-position: 0 0; } 100% { background-position: 50px 0; } }
 
         .queue-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: rgba(5, 5, 7, 0.8); border: 1px solid #2a2a35; border-left: 5px solid var(--neon-cyan); border-radius: 6px; margin-bottom: 12px; font-family: sans-serif; }
-        .queue-item.is-playlist-hit { border: 2px solid var(--neon-gold); border-left: 8px solid var(--neon-gold); }
         .hof-card { background: rgba(5, 5, 7, 0.8); border: 2px solid var(--neon-gold); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px; }
         #submit-error-box { color: #ffffff; background-color: #ef4444; border: 2px solid #b91c1c; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; }
     </style>
@@ -81,20 +73,10 @@
                     <div>FREIE SENDEMINUTEN: <span id="time-left-pot" class="time-highlight">90 Min. 00 Sek.</span></div>
                     <div>BELEGTE SHOW-ZEIT: <span id="estimated-wait" class="time-highlight">0 Min. 00 Sek.</span></div>
                 </div>
-
-                <div class="calendar-section">
-                    <div class="calendar-header">
-                        <button onclick="changeMonth(-1)">◀</button>
-                        <h3 id="cal-month-year" style="margin: 0; color: var(--neon-cyan); font-size: 20px; letter-spacing: 2px;">MONAT JAHR</h3>
-                        <button onclick="changeMonth(1)">▶</button>
-                    </div>
-                    <div id="calendar-grid-content" class="calendar-grid"></div>
-                    <button id="btn-live-view" style="display:none; width: 100%; margin-top: 15px; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 6px; font-family: 'Impact', sans-serif; cursor: pointer; font-size: 16px;" onclick="resetToLiveView()">🔴 ZURÜCK ZUR LIVE-SHOW</button>
-                </div>
             </div>
 
             <div id="dynamic-main-card" class="card pink-glow" style="position: relative;">
-                <button class="btn-rules-small" onclick="window.location.href='/info'">Regeln lesen</button>
+                <button class="btn-rules-small" onclick="document.getElementById('rulesPopup').style.display='flex'">Regeln lesen</button>
                 <h2 id="main-card-title">SONG EINREICHEN</h2>
                 <form id="songForm" onsubmit="addSongToServer(event)">
                     <div class="form-group">
@@ -118,18 +100,11 @@
                     </div>
                     <div class="form-group">
                         <label for="genre">Genre</label>
-                        <select id="genre" required onchange="checkGenreSafety()">
-                            <option value="" disabled selected>Wähle deine Musikrichtung</option>
+                        <select id="genre" required>
                             <option value="Pop / Modern Hit">Pop / Modern Hit</option>
                             <option value="Hip Hop / Rap / Trap">Hip Hop / Rap / Trap</option>
-                            <option value="Rock / Alternative">Rock / Alternative</option>
-                            <option value="R&B / Soul / Funk">R&B / Soul / Funk</option>
                             <option value="EDM / House / Dance">EDM / House / Dance</option>
-                            <option value="Reggae / Dancehall / Afrobeats">Reggae / Dancehall / Afrobeats</option>
-                            <option value="Latin / Reggaeton">Latin / Reggaeton</option>
-                            <option value="Jazz / Blues">Jazz / Blues</option>
-                            <option value="Lofi / Acoustic">Lofi / Acoustic / Chill</option>
-                            <option value="Anderes Genre">Anderes passendes Genre</option>
+                            <option value="Anderes Genre">Anderes Genre</option>
                             <option value="Schlager" style="color:#ef4444">[GESPERRT] Schlager</option>
                             <option value="Hardstyle" style="color:#ef4444">[GESPERRT] Hardstyle</option>
                             <option value="Hardcore" style="color:#ef4444">[GESPERRT] Hardcore</option>
@@ -141,17 +116,29 @@
                         <label style="color: var(--neon-cyan);">Bestätigung</label>
                         <label class="checkbox-group">
                             <input type="checkbox" required>
-                            <span class="checkbox-label"><strong>BESTÄTIGEN:</strong> Ich besitze alle Rechte an diesem Song, verwende keine fremden Samples und der Track entspricht den Richtlinien.</span>
+                            <span>Ich besitze alle Rechte an diesem Song.</span>
                         </label>
                         <label class="checkbox-group rule-pulse-box" style="background-color: rgba(239, 68, 68, 0.08);">
                             <input type="checkbox" required>
-                            <span class="checkbox-label" style="color: #ffcccc;"><strong>FAIR PLAY & BANN-WARNUNG:</strong> Ich bestätige, dass ich mich fair gegenüber anderen verhalte und mir <strong>keine Fake-Namen</strong> ausdenke. Unfaires Verhalten führt zu einer sofortigen Sperre. Bei mehrfachen Vergehen folgt der <strong>Permabann!</strong></span>
+                            <span style="color:#ffcccc;"><strong>FAIR PLAY & BANN-WARNUNG:</strong> Ich bestätige, dass ich mich fair verhalte und mir keine Fake-Namen ausdenke. Bei Verstößen droht der <strong>Permabann!</strong></span>
                         </label>
                     </div>
-                    
-                    <div id="submit-error-box"></div>
-                    <button type="submit" id="submitBtn" class="btn-submit">SONG EINSENDEN</button>
+                    <button type="submit" class="btn-submit">SONG EINSENDEN</button>
                 </form>
+            </div>
+
+            <div id="rulesPopup" class="popup-overlay">
+                <div class="popup-content">
+                    <span class="popup-close" onclick="document.getElementById('rulesPopup').style.display='none'">&times;</span>
+                    <h2>Stream-Regeln</h2>
+                    <div style="font-size:14px; color:#ccc; line-height:1.6;">
+                        <p>1. <strong>Zeitlimit:</strong> 90 Min. Gesamtzeit.</p>
+                        <p>2. <strong>Overtime:</strong> Max. +30 Min. (Frosch 249 Coins).</p>
+                        <p>3. <strong>Forbidden Genres:</strong> Schlager, Hardstyle, Hardcore & Metal.</p>
+                        <p>4. <strong>Premium:</strong> „DJ-Set“ (399 Coins) schaltet den 3. Song-Slot frei.</p>
+                        <p>5. <strong>Fair Play:</strong> Keine Fake-Namen! Verstöße = <strong>Permabann!</strong></p>
+                    </div>
+                </div>
             </div>
             
             <div class="card pink-glow"><h2>WARTELISTE (<span id="queue-count">0</span>)</h2><div id="queue-list"></div></div>
@@ -162,62 +149,17 @@
     </div>
     <script>
         const FEEDBACK_BUFFER_SEC = 120;
-        let calDate = new Date(); let serverHistoricalHits = {}; let selectedArchiveDate = null;
-        function getSwissDateString(d) { return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`; }
-        function renderCalendar() { 
-            const year = calDate.getFullYear(); const month = calDate.getMonth();
-            const monthYearEl = document.getElementById('cal-month-year');
-            if(!monthYearEl) return;
-            monthYearEl.innerText = new Date(year, month).toLocaleString('de-CH', { month: 'long', year: 'numeric' }).toUpperCase();
-            const firstDay = new Date(year, month, 1).getDay(); const emptySlots = firstDay === 0 ? 6 : firstDay - 1; const daysInMonth = new Date(year, month + 1, 0).getDate();
-            let gridHtml = ''; const daysOfWeek = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-            daysOfWeek.forEach(d => gridHtml += `<div class="cal-day-header">${d}</div>`);
-            for(let i = 0; i < emptySlots; i++) gridHtml += `<div></div>`;
-            for(let i = 1; i <= daysInMonth; i++) {
-                const currentDayDate = new Date(year, month, i); const isSunday = currentDayDate.getDay() === 0; const dateStr = getSwissDateString(currentDayDate);
-                let extraClass = ''; let onClickAction = `onclick="selectArchiveDate('${dateStr}')"`;
-                if (isSunday) extraClass += ' is-sunday';
-                if (serverHistoricalHits[dateStr] && serverHistoricalHits[dateStr].length > 0) extraClass += ' has-hits';
-                if (selectedArchiveDate === dateStr) extraClass += ' is-selected';
-                gridHtml += `<div class="cal-day${extraClass}" ${onClickAction}>${i}</div>`;
-            }
-            document.getElementById('calendar-grid-content').innerHTML = gridHtml;
-            document.getElementById('btn-live-view').style.display = selectedArchiveDate ? 'block' : 'none';
-        }
-        function changeMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
-        function selectArchiveDate(dateStr) { if (!serverHistoricalHits[dateStr]) return; selectedArchiveDate = dateStr; loadQueue(); }
-        function resetToLiveView() { selectedArchiveDate = null; loadQueue(); }
-        function checkGenreSafety() { const val = document.getElementById('genre').value; const errBox = document.getElementById('genre-error'); const btn = document.getElementById('submitBtn'); if (["Schlager", "Hardstyle", "Hardcore", "Metal"].includes(val)) { errBox.style.display = "block"; btn.disabled = true; } else { errBox.style.display = "none"; btn.disabled = false; } }
         async function loadQueue() {
             try {
                 const res = await fetch('/api/queue'); const data = await res.json();
                 const queue = data.queue || []; const hallOfFame = data.hallOfFame || [];
-                serverHistoricalHits = data.historicalHits || {}; renderCalendar(); 
-                document.getElementById('estimated-wait').innerText = data.spentFormatted;
-                const timeLeftPot = document.getElementById('time-left-pot');
-                if (data.systemOnline === false) { timeLeftPot.innerText = "OFFLINE"; timeLeftPot.className = "time-urgent"; } else {
-                    const secFormatted = data.remainingSeconds < 10 ? '0' + data.remainingSeconds : data.remainingSeconds;
-                    timeLeftPot.innerText = `${data.remainingMinutes} Min. ${secFormatted} Sek.`;
-                    timeLeftPot.className = data.phase.includes('full') ? "time-urgent" : "time-highlight";
-                }
-                const activeList = document.getElementById('queue-list');
-                const doneList = document.getElementById('done-list');
-                const hitList = document.getElementById('hit-bestenliste');
-                const hofList = document.getElementById('hof-list');
-                const activeSongs = queue.filter(item => !item.isDone);
-                activeList.innerHTML = ''; doneList.innerHTML = ''; hitList.innerHTML = ''; hofList.innerHTML = '';
-                document.getElementById('queue-count').innerText = activeSongs.length;
-                queue.filter(s => s.isHit).forEach(item => { hitList.innerHTML += `<div class="queue-item is-playlist-hit"><h4>⭐ ${item.artist} - ${item.title}</h4></div>`; });
-                hallOfFame.forEach(h => { hofList.innerHTML += `<div class="hof-card"><h3>${h.artist}</h3><p>${h.title}</p><p class="votes">🏆 ${h.votes} Stimmen</p></div>`; });
-                let accTime = 0;
-                queue.forEach((item) => {
-                    if(!item.isDone) {
-                        let activeIndex = activeSongs.indexOf(item);
-                        let timeText = activeIndex === 0 ? `NEXT UP` : `WARTEZEIT: ~${Math.floor(accTime/60)} MIN`;
-                        accTime += item.duration + FEEDBACK_BUFFER_SEC;
-                        activeList.innerHTML += `<div class="queue-item"><div><h4>${item.artist} - ${item.title}</h4><p>Genre: ${item.genre}</p></div><div style="text-align:right;">${timeText}</div></div>`;
-                    } else { doneList.innerHTML += `<div class="queue-item" style="opacity:0.5;"><h4>${item.artist} - ${item.title}</h4></div>`; }
+                document.getElementById('queue-count').innerText = queue.filter(i=>!i.isDone).length;
+                const queueList = document.getElementById('queue-list'); queueList.innerHTML = '';
+                queue.filter(i=>!i.isDone).forEach(item => {
+                    queueList.innerHTML += `<div class="queue-item"><h4>${item.artist} - ${item.title}</h4></div>`;
                 });
+                const hofList = document.getElementById('hof-list'); hofList.innerHTML = '';
+                hallOfFame.forEach(h => hofList.innerHTML += `<div class="hof-card"><h3>${h.artist}</h3><p>${h.title}</p></div>`);
             } catch(e) {}
         }
         async function addSongToServer(e) {
