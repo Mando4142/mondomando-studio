@@ -493,7 +493,10 @@
         } else {
             errBox.style.display = "none"; 
             
-            const lsBaseUrl = "https://mondomandorecords.lemonsqueezy.com/checkout/buy/";
+            // DIE EXAKTEN LEMON SQUEEZY SHARE-LINKS AUS DEINEM DASHBOARD:
+            const linkBoost = "https://mondomandorecords.lemonsqueezy.com/checkout/buy/4fc302b9-f53e-4994-8612-11fd40e6c5d3";
+            const linkAfterHours = "https://mondomandorecords.lemonsqueezy.com/checkout/buy/434396c0-e721-45e1-8751-f5d39d3a4632";
+            const linkDice = "https://mondomandorecords.lemonsqueezy.com/checkout/buy/65229fc8-af91-4ef7-a20c-738d5933a25a";
             
             const overlay = document.createElement('div');
             overlay.style = "position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(13,13,17,0.95); z-index:10000; display:flex; justify-content:center; align-items:flex-start; padding-top: 5vh; overflow-y: auto;";
@@ -509,11 +512,11 @@
                 
                 <h3 style="color:white; margin-bottom:15px; font-size: 20px;">🔥 WARTESCHLANGE ÜBERSPRINGEN? 🔥</h3>
                 <div style="display:flex; flex-direction:column; gap:12px;">
-                    <a href="${lsBaseUrl}1827662?checkout[custom][voteCode]=${resData.voteCode}" target="_blank" style="background:var(--neon-cyan); color:black; padding:15px; text-decoration:none; font-family:'Impact'; font-size:18px; border-radius:8px; display:block; box-shadow:0 0 10px var(--neon-cyan); transition: transform 0.2s;">🚀 PLATZ 1 BOOST (DIREKT DRAN!)</a>
+                    <a href="${linkBoost}?checkout[custom][voteCode]=${resData.voteCode}" target="_blank" style="background:var(--neon-cyan); color:black; padding:15px; text-decoration:none; font-family:'Impact'; font-size:18px; border-radius:8px; display:block; box-shadow:0 0 10px var(--neon-cyan); transition: transform 0.2s;">🚀 PLATZ 1 BOOST (DIREKT DRAN!)</a>
                     
-                    <a href="${lsBaseUrl}1827685?checkout[custom][voteCode]=${resData.voteCode}" target="_blank" style="background:#7000ff; color:white; padding:15px; text-decoration:none; font-family:'Impact'; font-size:18px; border-radius:8px; display:block; box-shadow:0 0 10px #7000ff; transition: transform 0.2s;">🌙 AFTER HOURS PASS (VERLÄNGERUNG)</a>
+                    <a href="${linkAfterHours}?checkout[custom][voteCode]=${resData.voteCode}" target="_blank" style="background:#7000ff; color:white; padding:15px; text-decoration:none; font-family:'Impact'; font-size:18px; border-radius:8px; display:block; box-shadow:0 0 10px #7000ff; transition: transform 0.2s;">🌙 AFTER HOURS PASS (VERLÄNGERUNG)</a>
                     
-                    <a href="${lsBaseUrl}1827686?checkout[custom][voteCode]=${resData.voteCode}" target="_blank" style="background:var(--neon-pink); color:white; padding:15px; text-decoration:none; font-family:'Impact'; font-size:18px; border-radius:8px; display:block; box-shadow:0 0 10px var(--neon-pink); transition: transform 0.2s;">🎲 SONG IN DEN WÜRFEL WERFEN</a>
+                    <a href="${linkDice}?checkout[custom][voteCode]=${resData.voteCode}" target="_blank" style="background:var(--neon-pink); color:white; padding:15px; text-decoration:none; font-family:'Impact'; font-size:18px; border-radius:8px; display:block; box-shadow:0 0 10px var(--neon-pink); transition: transform 0.2s;">🎲 SONG IN DEN WÜRFEL WERFEN</a>
                 </div>
 
                 <button id="closeOverlay" style="background:#374151; border:none; padding:15px; color:white; font-family:'Impact'; font-size:18px; border-radius:8px; width:100%; cursor:pointer; margin-top:25px;">NEIN DANKE - CODE GESPEICHERT</button>
