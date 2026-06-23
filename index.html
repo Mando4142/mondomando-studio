@@ -17,6 +17,9 @@
         .card { background-color: var(--form-bg); border: 2px solid var(--neon-cyan); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.1); backdrop-filter: blur(5px); transition: all 0.5s ease; }
         .card.pink-glow { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 127, 0.2), inset 0 0 15px rgba(255, 0, 127, 0.1); }
         .card.gold-glow { border-color: var(--neon-gold); box-shadow: 0 0 25px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1); }
+        
+        /* NEU: Orange Glow für den Verlängerungs-Modus */
+        .card.orange-glow { border-color: var(--neon-orange); box-shadow: 0 0 15px rgba(255, 85, 0, 0.2), inset 0 0 15px rgba(255, 85, 0, 0.1); }
 
         /* Status Section Styles */
         .status-header { display: flex; justify-content: space-between; align-items: center; font-size: 20px; text-transform: uppercase; }
@@ -94,6 +97,7 @@
     <div class="overlay-container">
         <div class="interface-content">
             
+            <!-- STATUS & KALENDER CARD -->
             <div class="card" style="padding: 25px;">
                 <div class="status-header">
                     <span id="stream-status-title"><span id="live-badge" class="badge-live" style="display:none;">LIVE</span>NÄCHSTER STREAM</span>
@@ -116,11 +120,13 @@
                 </div>
             </div>
 
+            <!-- HAUPTCARD: EINREICHEN ODER VOTING -->
             <div id="dynamic-main-card" class="card pink-glow" style="position: relative;">
                 <button type="button" class="btn-rules-small" onclick="document.getElementById('rulesPopup').style.display='flex'">Regeln lesen & Infos</button>
                 <h2 id="main-card-title">SONG EINREICHEN</h2>
                 <div id="offline-message" style="display:none; text-align:center; padding: 40px 20px; font-size: 24px; color: var(--neon-pink); border: 2px dashed var(--neon-pink); border-radius: 12px; background: rgba(0,0,0,0.6); text-transform: uppercase;">STREAM IST OFFLINE</div>
 
+                <!-- EINREICHE-FORMULAR -->
                 <div id="form-container">
                     <form id="songForm" onsubmit="addSongToServer(event)">
                         <div class="form-group">
@@ -143,6 +149,7 @@
                             </div>
                         </div>
                         
+                        <!-- 10 ERLAUBTE & 3 VERBOTENE GENRES -->
                         <div class="form-group">
                             <label for="genre">Genre</label>
                             <select id="genre" required onchange="checkGenreSafety()">
@@ -167,6 +174,7 @@
                         <div class="form-group">
                             <label style="color: var(--neon-cyan);">Bestätigung</label>
                             
+                            <!-- CHECKBOX 1: Rechte & Samples -->
                             <label class="checkbox-group" style="cursor: pointer; align-items: center;">
                                 <input type="checkbox" required style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
                                 <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -175,6 +183,7 @@
                                 </div>
                             </label>
                             
+                            <!-- CHECKBOX 2: Permabann Warnung -->
                             <label class="checkbox-group rule-pulse-box" style="background-color: rgba(239, 68, 68, 0.08); cursor: pointer; align-items: center; margin-top: 15px;">
                                 <input type="checkbox" required style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
                                 <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -189,12 +198,20 @@
                     </form>
                 </div>
                 
+                <!-- LIVE VOTING FORMULAR (Wird eingeblendet, wenn Admin auf Start klickt) -->
                 <div id="voting-container" style="display:none;"></div>
             </div>
             
+            <!-- LISTEN & ARCHIV -->
             <div id="waitlist-card" class="card pink-glow">
                 <h2>WARTELISTE (<span id="queue-count">0</span>)</h2>
                 <div id="queue-list"></div>
+            </div>
+            
+            <!-- DIE NEUE VERLÄNGERUNGS / AFTER HOURS KARTE -->
+            <div id="overtime-card" class="card orange-glow" style="display:none;">
+                <h2 style="color: var(--neon-orange); border-bottom-color: var(--neon-orange);">⏳ VERLÄNGERUNG (<span id="overtime-count">0</span>)</h2>
+                <div id="overtime-list"></div>
             </div>
 
             <div id="hit-card" class="card gold-glow">
@@ -214,6 +231,7 @@
         </div>
     </div>
 
+    <!-- REGELN-POPUP (Neon Grün) -->
     <div id="rulesPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 14, 0.95); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(8px); overflow-y: auto; padding: 20px; box-sizing: border-box;">
         <div style="background: var(--form-bg); border: 3px solid var(--neon-green); padding: 40px; border-radius: 16px; max-width: 650px; width: 100%; color: white; position: relative; box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);">
             <span onclick="document.getElementById('rulesPopup').style.display='none'" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 36px; color: var(--neon-green); font-family: sans-serif;">&times;</span>
@@ -227,7 +245,10 @@
                 <p style="margin-top: 0; margin-bottom: 15px;">Nachdem alle Songs gehört wurden, startet das <strong>Voting (4 Minuten)</strong>! Mit dem Voting-Code, den du bei der Einreichung erhältst, kannst du zwei Stimmen (2 Punkte & 1 Punkt) für deine absoluten Favoriten abgeben.</p>
 
                 <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🚀 3. Premium Features (Shop)</h3>
-                <p style="margin-top: 0; margin-bottom: 15px;">Nach dem Einsenden erhältst du deinen Voting-Code. Damit kannst du dir im Shop Vorteile sichern: <strong>Platz 1 Boost</strong> (dein Song überspringt die Liste), den <strong>After Hours Pass</strong> (dein Song wird auch nach den 90 Min. gespielt) oder den <strong>Songwürfel</strong> (Zufallsbonus).</p>
+                <p style="margin-top: 0; margin-bottom: 15px;">Nach dem Einsenden kannst du dir Vorteile sichern:<br>
+                - <strong>Platz 1 Boost:</strong> Dein Song überspringt die Liste und ist als Nächstes dran.<br>
+                - <strong>After Hours Pass:</strong> Dein Song wird garantiert gespielt, auch wenn die 90 Min. vorbei sind.<br>
+                - <strong>Songwürfel:</strong> Lass den Zufall entscheiden und erhalte einen coolen Bonus für deinen Track.</p>
 
                 <h3 style="color: var(--neon-pink); margin-bottom: 5px;">🚫 4. Verbote & Fair Play</h3>
                 <p style="margin-top: 0; margin-bottom: 15px;"><strong>Gesperrte Genres:</strong> Schlager, Hardstyle & Metal sind strikt verboten.<br><strong>Fake-Accounts:</strong> Wer sich unfaire Vorteile verschafft, kassiert ohne Vorwarnung einen <strong>Permabann</strong>!</p>
@@ -375,6 +396,7 @@
             if (selectedArchiveDate) {
                 document.getElementById('dynamic-main-card').style.display = 'none';
                 document.getElementById('waitlist-card').style.display = 'none';
+                document.getElementById('overtime-card').style.display = 'none';
                 document.getElementById('hit-card').style.display = 'none';
                 document.getElementById('done-card').style.display = 'none';
                 
@@ -405,8 +427,9 @@
             const votingContainer = document.getElementById('voting-container');
             const offlineMessage = document.getElementById('offline-message');
             const mainCardTitle = document.getElementById('main-card-title');
+            const mainCard = document.getElementById('dynamic-main-card');
             
-            // SYSTEM OFFLINE ODER VOTING-SWITCH LOGIK
+            // SYSTEM OFFLINE ODER PHASEN-UMSCHALTUNG LOGIK
             if (data.systemOnline === false) {
                 timeLeftPot.innerText = "OFFLINE"; timeLeftPot.className = "time-urgent";
                 formContainer.style.display = 'none';
@@ -418,33 +441,97 @@
                 timeLeftPot.innerText = `${data.remainingMinutes} Min. ${secFormatted} Sek.`;
                 timeLeftPot.className = data.phase.includes('full') ? "time-urgent" : "time-highlight";
                 
-                // === HIER WIRD AUF DAS VOTING UMGESCHALTET ===
+                // === UMSCHALTUNG AUF LIVE VOTING, STECHEN ODER VERLÄNGERUNG ===
                 if (data.votingPhase === 'active') {
                     formContainer.style.display = 'none';
                     offlineMessage.style.display = 'none';
                     votingContainer.style.display = 'block';
                     mainCardTitle.innerText = "🔥 LIVE VOTING 🔥";
+                    mainCardTitle.style.color = "#ffffff";
+                    mainCardTitle.style.borderBottomColor = "var(--neon-pink)";
+                    mainCard.className = "card pink-glow";
                     renderVotingForm(data);
                 } else if (data.votingPhase === 'tiebreak') {
                     formContainer.style.display = 'none';
                     offlineMessage.style.display = 'none';
                     votingContainer.style.display = 'block';
                     mainCardTitle.innerText = "🚨 STECHEN 🚨";
+                    mainCardTitle.style.color = "#ffffff";
+                    mainCardTitle.style.borderBottomColor = "var(--neon-pink)";
+                    mainCard.className = "card pink-glow";
                     votingContainer.innerHTML = '<div style="text-align:center; padding: 30px 20px; border: 2px dashed var(--neon-pink); border-radius: 12px; background: rgba(255,0,127,0.1);"><h3 style="color: var(--neon-pink); font-size: 24px; margin-top: 0;">UNENTSCHIEDEN!</h3><p style="font-family: sans-serif; font-size: 16px; line-height: 1.5; color: #fff;">Es gibt einen Gleichstand zwischen den Favoriten. Der Admin entscheidet nun live im Stream über den Sieger!</p></div>';
+                } else if (data.phase === 'overtime' || data.isOvertime) {
+                    // HIER IST DIE NEUE VERLÄNGERUNGS-UMSCHALTUNG FÜR DAS HAUPTFORMULAR
+                    formContainer.style.display = 'block';
+                    votingContainer.style.display = 'none';
+                    offlineMessage.style.display = 'none';
+                    mainCardTitle.innerText = "⏳ 30 MIN. VERLÄNGERUNG ⏳";
+                    mainCardTitle.style.color = "var(--neon-orange)";
+                    mainCardTitle.style.borderBottomColor = "var(--neon-orange)";
+                    mainCard.className = "card orange-glow";
+                    if (localTimerInterval) { clearInterval(localTimerInterval); localTimerInterval = null; }
                 } else {
+                    // Normaler Modus
                     formContainer.style.display = 'block';
                     votingContainer.style.display = 'none';
                     offlineMessage.style.display = 'none';
                     mainCardTitle.innerText = "SONG EINREICHEN";
+                    mainCardTitle.style.color = "#ffffff";
+                    mainCardTitle.style.borderBottomColor = "var(--neon-pink)";
+                    mainCard.className = "card pink-glow";
                     if (localTimerInterval) { clearInterval(localTimerInterval); localTimerInterval = null; }
                 }
             }
             
+            // Listen Elemente filtern
+            // Falls das Backend die Overtime-Songs mit 'isOvertime' markiert, ziehen wir sie aus der normalen Liste heraus
+            const activeSongs = queue.filter(item => !item.isDone && !item.isOvertime);
+            
+            // ================= DIE NEUE VERLÄNGERUNGS LISTE =================
+            const overtimeCard = document.getElementById('overtime-card');
+            const overtimeList = document.getElementById('overtime-list');
+            // Checkt, ob das Backend "overtimeQueue" schickt, ansonsten filtert es aus der Haupt-Queue
+            let overtimeQueue = data.overtimeQueue || queue.filter(item => item.isOvertime);
+            const overtimeActiveSongs = overtimeQueue.filter(item => !item.isDone);
+            
+            if (data.phase === 'overtime' || data.isOvertime || overtimeActiveSongs.length > 0) {
+                overtimeCard.style.display = 'block';
+                document.getElementById('overtime-count').innerText = overtimeActiveSongs.length;
+                overtimeList.innerHTML = '';
+                
+                let otAccTime = 0;
+                overtimeActiveSongs.forEach((item) => {
+                    let activeIndex = overtimeActiveSongs.indexOf(item);
+                    let timeText = activeIndex === 0 ? `NEXT UP` : `WARTEZEIT: ~${Math.floor(otAccTime/60)} MIN`;
+                    otAccTime += item.duration + FEEDBACK_BUFFER_SEC;
+                    
+                    let platformIcon = item.platform === 'spotify' ? '<span style="color:#1DB954; margin-right:5px;">🟢</span>' : (item.platform === 'youtube' ? '<span style="color:#FF0000; margin-right:5px;">🔴</span>' : '🎵');
+                    let badges = '';
+                    if (item.isBoosted) badges += '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-cyan);">🚀 BOOST</span>';
+                    if (item.isAfterHours) badges += '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; border: 1px solid #b577ff; box-shadow: 0 0 8px #7000ff;">🌙 AFTER HOURS</span>';
+                    if (item.isDice) badges += '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-pink);">🎲 WÜRFEL</span>';
+
+                    overtimeList.innerHTML += `
+                    <div class="queue-item" style="border-color:var(--neon-orange); border-left-color:var(--neon-orange); background: rgba(255, 85, 0, 0.05); box-shadow: 0 0 10px rgba(255,85,0,0.1);">
+                        <div>
+                            <h4 style="margin:0 0 5px 0;">${platformIcon} ${item.artist} - ${item.title}</h4>
+                            <p style="margin:0; font-size:14px; color:var(--text-muted);">Genre: ${item.genre}</p>
+                            <div style="margin-top:8px;">${badges}</div>
+                        </div>
+                        <div style="text-align:right; font-weight:bold; color:var(--neon-orange); font-family: 'Impact', sans-serif; letter-spacing: 1px;">
+                            ${timeText}
+                        </div>
+                    </div>`;
+                });
+            } else {
+                overtimeCard.style.display = 'none';
+            }
+
+            // ================= NORMALE WARTELISTE =================
             const activeList = document.getElementById('queue-list');
             const doneList = document.getElementById('done-list');
             const hitList = document.getElementById('hit-bestenliste');
             const hofList = document.getElementById('hof-list');
-            const activeSongs = queue.filter(item => !item.isDone);
             
             activeList.innerHTML = ''; doneList.innerHTML = ''; hitList.innerHTML = ''; hofList.innerHTML = '';
             document.getElementById('queue-count').innerText = activeSongs.length;
@@ -456,33 +543,34 @@
             });
 
             let accTime = 0;
-            queue.forEach((item) => {
-                if(!item.isDone) {
-                    let activeIndex = activeSongs.indexOf(item);
-                    let timeText = activeIndex === 0 ? `NEXT UP` : `WARTEZEIT: ~${Math.floor(accTime/60)} MIN`;
-                    accTime += item.duration + FEEDBACK_BUFFER_SEC;
-                    
-                    let platformIcon = item.platform === 'spotify' ? '<span style="color:#1DB954; margin-right:5px;">🟢</span>' : (item.platform === 'youtube' ? '<span style="color:#FF0000; margin-right:5px;">🔴</span>' : '🎵');
-                    let badges = '';
-                    if (item.isBoosted) badges += '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-cyan);">🚀 BOOST</span>';
-                    if (item.isAfterHours) badges += '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; border: 1px solid #b577ff; box-shadow: 0 0 8px #7000ff;">🌙 AFTER HOURS</span>';
-                    if (item.isDice) badges += '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-pink);">🎲 WÜRFEL</span>';
+            activeSongs.forEach((item) => {
+                let activeIndex = activeSongs.indexOf(item);
+                let timeText = activeIndex === 0 ? `NEXT UP` : `WARTEZEIT: ~${Math.floor(accTime/60)} MIN`;
+                accTime += item.duration + FEEDBACK_BUFFER_SEC;
+                
+                let platformIcon = item.platform === 'spotify' ? '<span style="color:#1DB954; margin-right:5px;">🟢</span>' : (item.platform === 'youtube' ? '<span style="color:#FF0000; margin-right:5px;">🔴</span>' : '🎵');
+                let badges = '';
+                if (item.isBoosted) badges += '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-cyan);">🚀 BOOST</span>';
+                if (item.isAfterHours) badges += '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; border: 1px solid #b577ff; box-shadow: 0 0 8px #7000ff;">🌙 AFTER HOURS</span>';
+                if (item.isDice) badges += '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-pink);">🎲 WÜRFEL</span>';
 
-                    activeList.innerHTML += `
-                    <div class="queue-item" style="${item.isBoosted ? 'border-color:var(--neon-cyan); box-shadow: 0 0 10px rgba(0,242,254,0.3);' : ''}">
-                        <div>
-                            <h4 style="margin:0 0 5px 0;">${platformIcon} ${item.artist} - ${item.title}</h4>
-                            <p style="margin:0; font-size:14px; color:var(--text-muted);">Genre: ${item.genre}</p>
-                            <div style="margin-top:8px;">${badges}</div>
-                        </div>
-                        <div style="text-align:right; font-weight:bold; color:var(--neon-gold); font-family: 'Impact', sans-serif; letter-spacing: 1px;">
-                            ${timeText}
-                        </div>
-                    </div>`;
-                } else {
-                    doneList.innerHTML += `<div class="queue-item" style="opacity:0.5;"><h4>✔️ ${item.artist} - ${item.title}</h4></div>`;
-                }
+                activeList.innerHTML += `
+                <div class="queue-item" style="${item.isBoosted ? 'border-color:var(--neon-cyan); box-shadow: 0 0 10px rgba(0,242,254,0.3);' : ''}">
+                    <div>
+                        <h4 style="margin:0 0 5px 0;">${platformIcon} ${item.artist} - ${item.title}</h4>
+                        <p style="margin:0; font-size:14px; color:var(--text-muted);">Genre: ${item.genre}</p>
+                        <div style="margin-top:8px;">${badges}</div>
+                    </div>
+                    <div style="text-align:right; font-weight:bold; color:var(--neon-gold); font-family: 'Impact', sans-serif; letter-spacing: 1px;">
+                        ${timeText}
+                    </div>
+                </div>`;
             });
+            
+            queue.filter(item => item.isDone).forEach(item => {
+                doneList.innerHTML += `<div class="queue-item" style="opacity:0.5;"><h4>✔️ ${item.artist} - ${item.title}</h4></div>`;
+            });
+            
         } catch(e) {}
     }
     
