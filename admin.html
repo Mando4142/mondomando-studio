@@ -24,6 +24,7 @@
         .admin-item.is-done-admin { border-color: #22c55e; opacity: 0.4; }
         
         .drag-handle { cursor: grab; font-size: 26px; padding-right: 15px; color: var(--neon-cyan); }
+
         .actions-flex { display: flex; gap: 10px; align-items: center; }
         .btn-control { background: #374151; color: white; border: none; padding: 10px 15px; font-family: sans-serif; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
         .btn-control:hover { background: #4b5563; transform: scale(1.02); }
@@ -57,11 +58,6 @@
                 <div class="header-flex">
                     <h1>MONDO MANDO RECORDS LIVE-BOARD</h1>
                     <button class="btn-control" style="background:#ef4444;" onclick="resetQueue()">LISTE RESETTEN</button>
-                </div>
-
-                <div class="card" style="border-color: var(--neon-gold); margin-bottom: 25px;">
-                    <h2 style="color: var(--neon-gold); margin-top: 0;">👑 STRIPE KÄUFE (STREAM HISTORIE)</h2>
-                    <div id="stripe-history-list" style="font-family: sans-serif; color: #ccc;">Bitte einloggen...</div>
                 </div>
 
                 <div class="admin-time-box" style="flex-direction:column; gap:10px;">
@@ -112,17 +108,6 @@
         .then(res => { if (res.ok) { token = pass; document.getElementById('login-overlay').style.display = 'none'; loadAdminQueue(); setInterval(loadAdminQueue, 4000); } else { alert("Falsches Passwort!"); } })
     }
 
-    // Stripe Daten laden
-    async function loadStripeHistory() {
-        try {
-            const res = await fetch('/api/stripe/history', { headers: {'Authorization': token} });
-            const data = await res.json();
-            const list = document.getElementById('stripe-history-list');
-            if(data.length === 0) list.innerHTML = "Keine Käufe bisher.";
-            else list.innerHTML = data.map(p => `<div>${p.date} - ${p.artist}: ${p.product} (${p.price})</div>`).join('');
-        } catch(e) {}
-    }
-
     function startAdminTimer(seconds) {
         if (adminTimerInterval) clearInterval(adminTimerInterval);
         adminRemainingSeconds = seconds; updateAdminTimerVisuals();
@@ -144,9 +129,10 @@
 
     async function loadAdminQueue() {
         if(!token) return;
-        loadStripeHistory();
         try {
             const res = await fetch('/api/queue'); const data = await res.json();
+            const queue = data.queue || []; const hof = data.hallOfFame || [];
+            
             document.getElementById('admin-total-time').innerText = data.spentFormatted;
             
             const btnOnline = document.getElementById('btn-system-online');
@@ -210,40 +196,59 @@
             const doneList = document.getElementById('admin-done-list');
             const hofList = document.getElementById('admin-hof-list');
             const hitExportList = document.getElementById('admin-hit-export-list');
-            const activeSongs = data.queue.filter(item => !item.isDone);
+            const activeSongs = queue.filter(item => !item.isDone);
             
             activeList.innerHTML = ''; doneList.innerHTML = ''; hofList.innerHTML = ''; hitExportList.innerHTML = '';
 
-            if(data.hallOfFame.length === 0) { hofList.innerHTML = '<div style="color:#8e8e9f; text-align:center; padding: 10px;">Noch keine Legenden verzeichnet.</div>'; }
-            data.hallOfFame.forEach((c, hIndex) => {
+            if(hof.length === 0) { hofList.innerHTML = '<div style="color:#8e8e9f; text-align:center; padding: 10px;">Noch keine Champions.</div>'; }
+            hof.forEach((c, hIndex) => {
                 hofList.innerHTML += `<div class="admin-item" style="border-color: #ffaa00;">
                     <div><h3 style="color: #ffaa00; margin:0;">👑 ${c.artist} - ${c.title}</h3><p style="margin:5px 0 0 0; color:#bbb;">${c.votes} Stimmen | ${c.date}</p></div>
                     <button class="btn-trash" onclick="deleteChampion(${hIndex})">🗑️</button>
                 </div>`;
             });
 
-            const hitSongs = data.queue.filter(item => item.isHit);
-            hitSongs.forEach(item => {
-                let iconHtml = `<span class="link-icon">LINK</span>`;
-                hitExportList.innerHTML += `<div class="admin-item" style="border-color: var(--neon-gold); padding: 12px 20px;">
-                        <div class="song-details"><h3 style="color: var(--neon-gold); margin:0;">⭐ ${item.artist} - ${item.title}</h3></div>
-                        <div class="actions-flex"><a href="${item.songLink}" target="_blank" style="color:white; text-decoration:none;">${iconHtml}</a></div>
-                    </div>`;
-            });
+            const hitSongs = queue.filter(item => item.isHit);
+            if(hitSongs.length === 0) {
+                hitExportList.innerHTML = '<div style="color:#8e8e9f; text-align:center; padding: 10px;">Noch keine Tracks als Hit markiert.</div>';
+            } else {
+                hitSongs.forEach(item => {
+                    let iconHtml = `<span class="link-icon icon-text">LINK</span>`;
+                    if(item.platform === 'spotify') iconHtml = `<span class="link-icon icon-spotify">🟢 SPOTIFY</span>`;
+                    if(item.platform === 'youtube') iconHtml = `<span class="link-icon icon-youtube">🔴 YOUTUBE</span>`;
+                    hitExportList.innerHTML += `<div class="admin-item" style="border-color: var(--neon-gold); padding: 12px 20px;">
+                            <div class="song-details"><h3 style="color: var(--neon-gold); margin:0;">⭐ ${item.artist} - ${item.title}</h3></div>
+                            <div class="actions-flex"><a href="${item.songLink}" target="_blank">${iconHtml}</a></div>
+                        </div>`;
+                });
+            }
 
-            data.queue.forEach((item, index) => {
+            queue.forEach((item, index) => {
                 const min = Math.floor(item.duration / 60); const sec = item.duration % 60;
+                let iconHtml = `<span class="link-icon icon-text">LINK</span>`;
+                if(item.platform === 'spotify') iconHtml = `<span class="link-icon icon-spotify">🟢 SPOTIFY</span>`;
+                if(item.platform === 'youtube') iconHtml = `<span class="link-icon icon-youtube">🔴 YOUTUBE</span>`;
+
+                // GENERIERUNG DER DREI PREMIUM BADGES
+                let boostBadge = item.isBoosted ? '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-cyan);">🚀 BOOST</span> ' : '';
+                let afterHoursBadge = item.isAfterHours ? '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px #7000ff;">🌙 AFTER HOURS</span> ' : '';
+                let diceBadge = item.isDice ? '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-pink);">🎲 WÜRFEL</span> ' : '';
+
                 if(!item.isDone) {
-                    let itemStyleClass = item.isHit ? 'is-hit' : '';
+                    let activeIndex = activeSongs.indexOf(item);
+                    let titlePrefix = activeIndex === 0 ? '[DRAN] ' : '';
+                    let itemStyleClass = item.isHit ? 'is-hit' : (activeIndex === 0 ? 'is-active-first' : '');
+
                     activeList.innerHTML += `<div class="admin-item ${itemStyleClass}">
                         <div style="display:flex; align-items:center;">
                             <div class="drag-handle">☰</div>
                             <div class="song-details">
-                                <h3 style="margin:0;">${item.artist} - ${item.title}</h3>
-                                <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ⏱️ ${min}:${sec < 10 ? '0':''}${sec} Min</p>
+                                <h3 style="margin:0;">${titlePrefix}${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3>
+                                <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ⏱️ ${min+2}:${sec < 10 ? '0':''}${sec} Min | Code: ${item.voteCode ? '✅' : '❌'}</p>
                             </div>
                         </div>
                         <div class="actions-flex">
+                            <a href="${item.songLink}" target="_blank">${iconHtml}</a>
                             <button class="btn-hit-toggle" onclick="toggleHit(${index})">HIT ⭐</button>
                             <button class="btn-delete" onclick="toggleDone(${index})">✓</button>
                             <button class="btn-trash" onclick="trashSong(${index})">🗑️</button>
@@ -251,34 +256,67 @@
                     </div>`;
                 } else {
                     doneList.innerHTML += `<div class="admin-item is-done-admin">
-                            <div><h3>${item.artist} - ${item.title}</h3></div>
-                            <button class="btn-control" onclick="toggleDone(${index})">↩</button>
+                            <div class="song-details"><h3 style="margin:0;">${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3></div>
+                            <div class="actions-flex">
+                                <a href="${item.songLink}" target="_blank">${iconHtml}</a>
+                                <button class="btn-control" onclick="toggleDone(${index})">↩</button>
+                            </div>
                         </div>`;
                 }
             });
 
             if (sortableInstance) sortableInstance.destroy();
-            sortableInstance = new Sortable(activeList, {
+            sortableInstance = new Sortable(document.getElementById('admin-active-list'), {
                 animation: 150, handle: '.drag-handle',
                 onEnd: async function (evt) {
-                    await fetch('/api/admin/reorder-active', { method: 'POST', headers: { 'Authorization': token, 'Content-Type': 'application/json' }, body: JSON.stringify({ oldIndex: evt.oldIndex, newIndex: evt.newIndex }) });
-                    loadAdminQueue();
+                    if(evt.oldIndex !== evt.newIndex) {
+                        await fetch('/api/admin/reorder-active', { method: 'POST', headers: { 'Authorization': token, 'Content-Type': 'application/json' }, body: JSON.stringify({ oldIndex: evt.oldIndex, newIndex: evt.newIndex }) });
+                        loadAdminQueue();
+                    }
                 }
             });
         } catch(e) {}
     }
 
-    async function toggleExtension() { await fetch('/api/admin/toggle-extension', { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
-    async function setSystemStatus(isOnline) { await fetch('/api/admin/set-system-status', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ online: isOnline }) }); loadAdminQueue(); }
-    async function addExactSlots(slots) { await fetch('/api/admin/overtime', { method: 'POST', headers: {'Authorization': token, 'Content-Type':'application/json'}, body: JSON.stringify({ minutes: slots * 6 }) }); loadAdminQueue(); }
-    async function startVoting() { await fetch('/api/admin/voting/start', { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
-    async function resetVotingTimer() { await fetch('/api/admin/voting/reset-timer', { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
+    async function toggleExtension() {
+        const res = await fetch('/api/admin/toggle-extension', { method: 'POST', headers: {'Authorization': token} });
+        const resData = await res.json();
+        loadAdminQueue();
+        if (resData.extensionActive) alert("🔥 ORANGE PHASE AKTIV: Die 30 Minuten Verlängerung wurden für die Zuschauer geöffnet!");
+        else alert("🚫 Verlängerung geschlossen.");
+    }
+
+    async function setSystemStatus(isOnline) {
+        await fetch('/api/admin/set-system-status', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ online: isOnline }) });
+        loadAdminQueue(); if (isOnline) alert("✅ System ONLINE!"); else alert("🚫 System OFFLINE!");
+    }
+
+    async function addExactSlots(slots) {
+        const minutesToAdd = slots * 6; 
+        await fetch('/api/admin/overtime', { method: 'POST', headers: {'Authorization': token, 'Content-Type':'application/json'}, body: JSON.stringify({ minutes: minutesToAdd }) }); 
+        loadAdminQueue(); alert(`⚡ +${minutesToAdd} Min. Limit freigeschaltet!`);
+    }
+
+    async function startVoting() { 
+        await fetch('/api/admin/voting/start', { method: 'POST', headers: {'Authorization': token} }); 
+        alert("🔥 VOTING GESTARTET! 4 Minuten laufen jetzt ab.");
+        loadAdminQueue(); 
+    }
+
+    async function resetVotingTimer() {
+        await fetch('/api/admin/voting/reset-timer', { method: 'POST', headers: {'Authorization': token} });
+        loadAdminQueue();
+    }
+    
     async function resolveVoting() { 
         const res = await fetch('/api/admin/voting/resolve', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: "{}" });
         const data = await res.json();
-        if (data.error) alert(data.error); else if (data.tiebreak) alert("Gleichstand!"); else alert("Voting beendet!");
+        if (data.error) { alert("🚫 " + data.error); } 
+        else if (data.tiebreak) { alert("⚠️ GLEICHSTAND! Bitte wähle den Gewinner manuell aus der orangenen Liste."); } 
+        else { alert("✅ VOTING BEENDET! Der Gewinner wurde in die Hall of Fame eingetragen."); }
         loadAdminQueue(); 
     }
+    
     async function forceWinner(id) { await fetch('/api/admin/voting/resolve', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ forceWinnerId: id }) }); loadAdminQueue(); }
     async function toggleHit(index) { await fetch(`/api/queue/${index}/hit`, { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
     async function toggleDone(index) { await fetch(`/api/queue/${index}/done`, { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
