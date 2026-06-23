@@ -17,8 +17,6 @@
         .card { background-color: var(--form-bg); border: 2px solid var(--neon-cyan); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.1); backdrop-filter: blur(5px); transition: all 0.5s ease; }
         .card.pink-glow { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 127, 0.2), inset 0 0 15px rgba(255, 0, 127, 0.1); }
         .card.gold-glow { border-color: var(--neon-gold); box-shadow: 0 0 25px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1); }
-        
-        /* NEU: Orange Glow für den Verlängerungs-Modus */
         .card.orange-glow { border-color: var(--neon-orange); box-shadow: 0 0 15px rgba(255, 85, 0, 0.2), inset 0 0 15px rgba(255, 85, 0, 0.1); }
 
         /* Status Section Styles */
@@ -45,7 +43,7 @@
         .cal-day.is-selected { background: var(--neon-gold); color: black; border-color: white; transform: scale(1.1); z-index: 2; }
 
         /* Form & Title Styles */
-        h2 { text-transform: uppercase; margin-top: 0; font-size: 24px; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 8px var(--neon-cyan); border-bottom: 3px solid var(--neon-pink); padding-bottom: 8px; margin-bottom: 20px; }
+        h2 { text-transform: uppercase; margin-top: 0; font-size: 24px; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 8px var(--neon-cyan); border-bottom: 3px solid var(--neon-pink); padding-bottom: 8px; margin-bottom: 20px; transition: all 0.3s ease; }
         
         /* NEON GRÜNER REGEL-BUTTON */
         .btn-rules-small { 
@@ -120,7 +118,7 @@
                 </div>
             </div>
 
-            <!-- HAUPTCARD: EINREICHEN ODER VOTING -->
+            <!-- HAUPTCARD: EINREICHEN, VOTING ODER VERLÄNGERUNG -->
             <div id="dynamic-main-card" class="card pink-glow" style="position: relative;">
                 <button type="button" class="btn-rules-small" onclick="document.getElementById('rulesPopup').style.display='flex'">Regeln lesen & Infos</button>
                 <h2 id="main-card-title">SONG EINREICHEN</h2>
@@ -144,12 +142,11 @@
                         <div class="form-group">
                             <label>Genaue Song-Dauer</label>
                             <div class="duration-inputs">
-                                <input type="number" id="durationMin" required placeholder="MIN" min="0">
+                                <input type="number" id="durationMin" required placeholder="MIN" min="0" max="120">
                                 <input type="number" id="durationSec" required placeholder="SEK" min="0" max="59">
                             </div>
                         </div>
                         
-                        <!-- 10 ERLAUBTE & 3 VERBOTENE GENRES -->
                         <div class="form-group">
                             <label for="genre">Genre</label>
                             <select id="genre" required onchange="checkGenreSafety()">
@@ -174,7 +171,6 @@
                         <div class="form-group">
                             <label style="color: var(--neon-cyan);">Bestätigung</label>
                             
-                            <!-- CHECKBOX 1: Rechte & Samples -->
                             <label class="checkbox-group" style="cursor: pointer; align-items: center;">
                                 <input type="checkbox" required style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
                                 <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -183,7 +179,6 @@
                                 </div>
                             </label>
                             
-                            <!-- CHECKBOX 2: Permabann Warnung -->
                             <label class="checkbox-group rule-pulse-box" style="background-color: rgba(239, 68, 68, 0.08); cursor: pointer; align-items: center; margin-top: 15px;">
                                 <input type="checkbox" required style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
                                 <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -198,20 +193,20 @@
                     </form>
                 </div>
                 
-                <!-- LIVE VOTING FORMULAR (Wird eingeblendet, wenn Admin auf Start klickt) -->
+                <!-- LIVE VOTING FORMULAR -->
                 <div id="voting-container" style="display:none;"></div>
             </div>
             
-            <!-- LISTEN & ARCHIV -->
+            <!-- DIE NEUE VERLÄNGERUNGS / AFTER HOURS KARTE -->
+            <div id="overtime-card" class="card orange-glow" style="display:none; border-color: var(--neon-orange);">
+                <h2 style="color: var(--neon-orange); border-bottom-color: var(--neon-orange);">⏳ VERLÄNGERUNG / AFTER HOURS (<span id="overtime-count">0</span>)</h2>
+                <div id="overtime-list"></div>
+            </div>
+
+            <!-- REGULÄRE LISTEN -->
             <div id="waitlist-card" class="card pink-glow">
                 <h2>WARTELISTE (<span id="queue-count">0</span>)</h2>
                 <div id="queue-list"></div>
-            </div>
-            
-            <!-- DIE NEUE VERLÄNGERUNGS / AFTER HOURS KARTE -->
-            <div id="overtime-card" class="card orange-glow" style="display:none;">
-                <h2 style="color: var(--neon-orange); border-bottom-color: var(--neon-orange);">⏳ VERLÄNGERUNG (<span id="overtime-count">0</span>)</h2>
-                <div id="overtime-list"></div>
             </div>
 
             <div id="hit-card" class="card gold-glow">
@@ -245,10 +240,7 @@
                 <p style="margin-top: 0; margin-bottom: 15px;">Nachdem alle Songs gehört wurden, startet das <strong>Voting (4 Minuten)</strong>! Mit dem Voting-Code, den du bei der Einreichung erhältst, kannst du zwei Stimmen (2 Punkte & 1 Punkt) für deine absoluten Favoriten abgeben.</p>
 
                 <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🚀 3. Premium Features (Shop)</h3>
-                <p style="margin-top: 0; margin-bottom: 15px;">Nach dem Einsenden kannst du dir Vorteile sichern:<br>
-                - <strong>Platz 1 Boost:</strong> Dein Song überspringt die Liste und ist als Nächstes dran.<br>
-                - <strong>After Hours Pass:</strong> Dein Song wird garantiert gespielt, auch wenn die 90 Min. vorbei sind.<br>
-                - <strong>Songwürfel:</strong> Lass den Zufall entscheiden und erhalte einen coolen Bonus für deinen Track.</p>
+                <p style="margin-top: 0; margin-bottom: 15px;">Nach dem Einsenden erhältst du deinen Voting-Code. Damit kannst du dir im Shop Vorteile sichern: <strong>Platz 1 Boost</strong> (dein Song überspringt die Liste), den <strong>After Hours Pass</strong> (dein Song wird auch nach den 90 Min. in der Verlängerung gespielt) oder den <strong>Songwürfel</strong> (Zufallsbonus).</p>
 
                 <h3 style="color: var(--neon-pink); margin-bottom: 5px;">🚫 4. Verbote & Fair Play</h3>
                 <p style="margin-top: 0; margin-bottom: 15px;"><strong>Gesperrte Genres:</strong> Schlager, Hardstyle & Metal sind strikt verboten.<br><strong>Fake-Accounts:</strong> Wer sich unfaire Vorteile verschafft, kassiert ohne Vorwarnung einen <strong>Permabann</strong>!</p>
@@ -429,7 +421,9 @@
             const mainCardTitle = document.getElementById('main-card-title');
             const mainCard = document.getElementById('dynamic-main-card');
             
-            // SYSTEM OFFLINE ODER PHASEN-UMSCHALTUNG LOGIK
+            // === ERKENNUNG DER VERLÄNGERUNG (Tolerant für alle Backend-Variablen) ===
+            const isOvertimeMode = data.isOvertime === true || data.overtime === true || data.phase === 'overtime' || data.state === 'overtime' || data.overtimeActive === true;
+
             if (data.systemOnline === false) {
                 timeLeftPot.innerText = "OFFLINE"; timeLeftPot.className = "time-urgent";
                 formContainer.style.display = 'none';
@@ -439,9 +433,9 @@
             } else {
                 const secFormatted = data.remainingSeconds < 10 ? '0' + data.remainingSeconds : data.remainingSeconds;
                 timeLeftPot.innerText = `${data.remainingMinutes} Min. ${secFormatted} Sek.`;
-                timeLeftPot.className = data.phase.includes('full') ? "time-urgent" : "time-highlight";
+                timeLeftPot.className = data.phase && data.phase.includes('full') ? "time-urgent" : "time-highlight";
                 
-                // === UMSCHALTUNG AUF LIVE VOTING, STECHEN ODER VERLÄNGERUNG ===
+                // === UMSCHALTUNG: VOTING, STECHEN ODER VERLÄNGERUNG ===
                 if (data.votingPhase === 'active') {
                     formContainer.style.display = 'none';
                     offlineMessage.style.display = 'none';
@@ -460,8 +454,7 @@
                     mainCardTitle.style.borderBottomColor = "var(--neon-pink)";
                     mainCard.className = "card pink-glow";
                     votingContainer.innerHTML = '<div style="text-align:center; padding: 30px 20px; border: 2px dashed var(--neon-pink); border-radius: 12px; background: rgba(255,0,127,0.1);"><h3 style="color: var(--neon-pink); font-size: 24px; margin-top: 0;">UNENTSCHIEDEN!</h3><p style="font-family: sans-serif; font-size: 16px; line-height: 1.5; color: #fff;">Es gibt einen Gleichstand zwischen den Favoriten. Der Admin entscheidet nun live im Stream über den Sieger!</p></div>';
-                } else if (data.phase === 'overtime' || data.isOvertime) {
-                    // HIER IST DIE NEUE VERLÄNGERUNGS-UMSCHALTUNG FÜR DAS HAUPTFORMULAR
+                } else if (isOvertimeMode) {
                     formContainer.style.display = 'block';
                     votingContainer.style.display = 'none';
                     offlineMessage.style.display = 'none';
@@ -471,7 +464,6 @@
                     mainCard.className = "card orange-glow";
                     if (localTimerInterval) { clearInterval(localTimerInterval); localTimerInterval = null; }
                 } else {
-                    // Normaler Modus
                     formContainer.style.display = 'block';
                     votingContainer.style.display = 'none';
                     offlineMessage.style.display = 'none';
@@ -483,18 +475,23 @@
                 }
             }
             
-            // Listen Elemente filtern
-            // Falls das Backend die Overtime-Songs mit 'isOvertime' markiert, ziehen wir sie aus der normalen Liste heraus
-            const activeSongs = queue.filter(item => !item.isDone && !item.isOvertime);
-            
             // ================= DIE NEUE VERLÄNGERUNGS LISTE =================
             const overtimeCard = document.getElementById('overtime-card');
             const overtimeList = document.getElementById('overtime-list');
-            // Checkt, ob das Backend "overtimeQueue" schickt, ansonsten filtert es aus der Haupt-Queue
-            let overtimeQueue = data.overtimeQueue || queue.filter(item => item.isOvertime);
-            const overtimeActiveSongs = overtimeQueue.filter(item => !item.isDone);
             
-            if (data.phase === 'overtime' || data.isOvertime || overtimeActiveSongs.length > 0) {
+            // Trenne die Tracks: Alles was "After Hours" oder "Overtime" ist, kommt in die Extra-Liste
+            let overtimeQueueRaw = [];
+            if (Array.isArray(data.overtimeQueue) && data.overtimeQueue.length > 0) {
+                overtimeQueueRaw = data.overtimeQueue;
+            } else {
+                overtimeQueueRaw = queue.filter(item => item.isOvertime === true || item.overtime === true || item.isAfterHours === true);
+            }
+            const overtimeActiveSongs = overtimeQueueRaw.filter(item => !item.isDone);
+            
+            // Die normale Warteliste behält nur die restlichen Tracks
+            const activeSongs = queue.filter(item => !item.isDone && item.isOvertime !== true && item.overtime !== true && item.isAfterHours !== true);
+            
+            if (isOvertimeMode || overtimeActiveSongs.length > 0) {
                 overtimeCard.style.display = 'block';
                 document.getElementById('overtime-count').innerText = overtimeActiveSongs.length;
                 overtimeList.innerHTML = '';
@@ -551,7 +548,6 @@
                 let platformIcon = item.platform === 'spotify' ? '<span style="color:#1DB954; margin-right:5px;">🟢</span>' : (item.platform === 'youtube' ? '<span style="color:#FF0000; margin-right:5px;">🔴</span>' : '🎵');
                 let badges = '';
                 if (item.isBoosted) badges += '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-cyan);">🚀 BOOST</span>';
-                if (item.isAfterHours) badges += '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; border: 1px solid #b577ff; box-shadow: 0 0 8px #7000ff;">🌙 AFTER HOURS</span>';
                 if (item.isDice) badges += '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-pink);">🎲 WÜRFEL</span>';
 
                 activeList.innerHTML += `
@@ -587,7 +583,6 @@
         } else {
             errBox.style.display = "none"; 
             
-            // NEON POPUP FÜR DIE EINREICHUNG OHNE LINKS - NUR MIT VOTING CODE
             const overlay = document.createElement('div');
             overlay.style = "position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(10,10,14,0.96); z-index:10000; display:flex; justify-content:center; align-items:flex-start; padding: 20px; overflow-y: auto; backdrop-filter: blur(8px); box-sizing: border-box;";
             overlay.innerHTML = `<div style="background: rgba(19, 19, 26, 0.95); border: 3px solid var(--neon-gold); padding: 40px; border-radius: 20px; text-align: center; max-width: 550px; width: 100%; box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1); color: white; font-family: 'Impact', sans-serif; margin: 40px 0;">
