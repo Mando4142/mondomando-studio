@@ -45,9 +45,10 @@
         input[type="text"]:focus, input[type="url"]:focus, select:focus { outline: none; border-color: var(--neon-cyan); box-shadow: 0 0 12px rgba(0, 242, 254, 0.5); }
         .duration-inputs { display: flex; gap: 15px; }
         .duration-inputs input { width: 50%; text-align: center; }
-        .checkbox-group { display: flex; align-items: flex-start; gap: 15px; background-color: rgba(5, 5, 7, 0.8); padding: 15px; border: 1px dashed var(--neon-pink); border-radius: 8px; margin-top: 15px; font-family: sans-serif; }
-        .checkbox-group input { margin-top: 4px; transform: scale(1.4); accent-color: var(--neon-pink); }
-        .checkbox-label { font-size: 14px; color: var(--text-main); line-height: 1.5; }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 15px; background-color: rgba(5, 5, 7, 0.8); padding: 15px; border: 1px dashed var(--neon-pink); border-radius: 8px; margin-top: 10px; font-family: sans-serif; transition: all 0.3s; }
+        .checkbox-group:hover { background-color: rgba(20, 20, 25, 0.9); }
+        .checkbox-group input { margin-top: 4px; transform: scale(1.4); accent-color: var(--neon-pink); cursor: pointer; }
+        .checkbox-label { font-size: 14px; color: var(--text-main); line-height: 1.5; cursor: pointer; }
         
         .btn-submit { width: 100%; padding: 20px; font-size: 24px; text-transform: uppercase; color: #ffffff; border: none; border-radius: 8px; cursor: pointer; letter-spacing: 3px; font-family: 'Impact', sans-serif; box-shadow: 0 0 20px var(--neon-pink); margin-top: 20px; background: linear-gradient(45deg, var(--neon-pink) 25%, #bc005b 25%, #bc005b 50%, var(--neon-pink) 50%, var(--neon-pink) 75%, #bc005b 75%, #bc005b); background-size: 50px 50px; animation: move-stripes 1.5s linear infinite; }
         .btn-submit:disabled { background: #444 !important; color: #888 !important; box-shadow: none !important; cursor: not-allowed; }
@@ -177,13 +178,21 @@
                             </select>
                             <div id="genre-error" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 12px; border-radius: 8px; margin-top: 10px; display: none; font-size: 14px;">🚫 Dieses Genre verletzt Mondos Ohren! Einreichung blockiert.</div>
                         </div>
+                        
                         <div class="form-group">
-                            <label style="color: var(--neon-cyan);">Rechte & Richtlinien</label>
+                            <label style="color: var(--neon-cyan);">Rechte, Richtlinien & Fair Play</label>
+                            
                             <label class="checkbox-group">
                                 <input type="checkbox" required>
                                 <span class="checkbox-label"><strong>BESTÄTIGEN:</strong> Ich besitze alle Rechte an diesem Song, verwende keine fremden Samples und der Track entspricht den Richtlinien.</span>
                             </label>
+                            
+                            <label class="checkbox-group" style="border-color: #ef4444; background-color: rgba(239, 68, 68, 0.08);">
+                                <input type="checkbox" required>
+                                <span class="checkbox-label" style="color: #ffcccc;"><strong>FAIR PLAY & BANN-WARNUNG:</strong> Ich bestätige, dass ich mich fair gegenüber anderen verhalte und mir <strong>keine Fake-Namen</strong> ausdenke. Unfaires Verhalten führt zu einer sofortigen Sperre. Bei mehrfachen Vergehen folgt der <strong>Permabann!</strong></span>
+                            </label>
                         </div>
+                        
                         <div id="submit-error-box"></div>
                         <button type="submit" id="submitBtn" class="btn-submit">SONG EINSENDEN</button>
                     </form>
@@ -484,7 +493,6 @@
         } else {
             errBox.style.display = "none"; 
             
-            // DIE LEMON SQUEEZY BASIS-URL - JETZT DIREKT MIT DEINEM STORE!
             const lsBaseUrl = "https://mondomandorecords.lemonsqueezy.com/checkout/buy/";
             
             const overlay = document.createElement('div');
