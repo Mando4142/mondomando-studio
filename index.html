@@ -1,4 +1,4 @@
-7<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -277,11 +277,13 @@
             margin: 0;
         }
         .rules-info-section {
+            position: relative;
             text-align: center;
             border-color: var(--neon-orange) !important;
             box-shadow: 0 0 22px rgba(255,85,0,0.28), inset 0 0 12px rgba(255,85,0,0.08) !important;
             background: rgba(5,5,8,0.72) !important;
-            padding: 20px 24px !important;
+            padding: 18px 20px !important;
+            overflow: visible;
         }
         .rules-info-section-title {
             font-family: sans-serif;
@@ -293,21 +295,39 @@
             margin: 0 0 12px 0;
         }
         .btn-rules-main {
-            display: inline-block;
-            background: rgba(0, 0, 0, 0.55);
-            border: 2px solid var(--neon-orange);
+            display: block;
+            width: 100%;
+            background: transparent;
+            border: none;
             color: #ffffff;
-            padding: 12px 22px;
-            border-radius: 10px;
-            font-size: 14px;
+            padding: 10px 44px 10px 10px;
+            border-radius: 0;
+            font-size: 22px;
             cursor: pointer;
             text-transform: uppercase;
             font-weight: bold;
             animation: pulse-orange 1.8s infinite;
-            box-shadow: 0 0 12px var(--neon-orange), inset 0 0 8px rgba(255,85,0,0.45);
+            box-shadow: none;
             font-family: 'Impact', sans-serif;
             letter-spacing: 1px;
-            text-shadow: 0 0 5px var(--neon-orange);
+            text-shadow: 0 0 5px var(--neon-orange), 0 0 14px rgba(255,85,0,0.65);
+        }
+        .rules-finger-clipart {
+            position: absolute;
+            right: 26px;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            font-size: 44px;
+            line-height: 1;
+            filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)) drop-shadow(0 0 10px rgba(255,85,0,0.35));
+            pointer-events: none;
+            animation: finger-tap 1.4s infinite;
+        }
+        @keyframes finger-tap {
+            0% { transform: translateY(-50%) rotate(0deg) scale(1); }
+            35% { transform: translateY(-44%) rotate(0deg) scale(1.06); }
+            55% { transform: translateY(-34%) rotate(0deg) scale(0.94); }
+            100% { transform: translateY(-50%) rotate(0deg) scale(1); }
         }
 
         #submit-error-box { color: #ffffff; background-color: #ef4444; border: 2px solid #b91c1c; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; font-family: sans-serif; font-weight: bold;}
@@ -329,6 +349,7 @@
             <!-- REGELN & INFOS EIGENER ABSCHNITT -->
             <div class="card rules-info-section">
 <button type="button" class="btn-rules-main" onclick="document.getElementById('rulesPopup').style.display='flex'">REGELN LESEN & INFOS</button>
+                <div class="rules-finger-clipart">👈</div>
             </div>
 
 
