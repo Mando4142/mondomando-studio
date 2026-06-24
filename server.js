@@ -1,8 +1,45 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const path = require('path');
 const fs = require('fs');
+const Stripe = require('stripe');
 const PORT = process.env.PORT || 3000;
+
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+const STRIPE_PRICE_IDS = {
+    priority_boost: process.env.STRIPE_PRICE_PRIORITY_BOOST || 'price_1Tlc7pDROsW7ADLLN8z4ktIx',
+    after_hours: process.env.STRIPE_PRICE_AFTER_HOURS || 'price_1Tlc7xDROsW7ADLLF06uyho7',
+    song_dice: process.env.STRIPE_PRICE_SONG_DICE || 'price_1Tlc8KDROsW7ADLL8JjKlnW7'
+};
+
+const MAX_EXTRAS_PER_BUYER = 2;
+const PENDING_BONUS_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+
+// Stripe braucht den rohen Body für die Webhook-Signatur. Diese Route muss VOR express.json stehen.
+app.post('/api/webhook/stripe', express.raw({ type: 'application/json' }), (req, res) => {
+    let event;
+
+    try {
+        if (STRIPE_WEBHOOK_SECRET && req.headers['stripe-signature'] && stripe) {
+            event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET);
+        } else {
+            event = JSON.parse(req.body.toString('utf8'));
+        }
+    } catch (err) {
+        console.error('[STRIPE] Webhook Fehler:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        applyStripeBonus(session);
+    }
+
+    res.json({ received: true });
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -20,7 +57,12 @@ let dbData = {
     historicalHits: {}, 
     systemOnline: true,
     extensionActive: false,
-    votingEndsAt: null
+    votingEndsAt: null,
+    bonusUsage: {},
+    buyerBonusUsage: {},
+    afterHoursPasses: {},
+    processedStripeSessions: {},
+    bonusAnnouncements: []
 };
 
 let votingTimeout = null;
@@ -36,6 +78,11 @@ if (fs.existsSync(DB_FILE)) {
         if (!dbData.historicalHits) dbData.historicalHits = {}; 
         if (!dbData.usedCodes) dbData.usedCodes = {};
         if (!dbData.votingPhase) dbData.votingPhase = 'inactive';
+        if (!dbData.bonusUsage) dbData.bonusUsage = {};
+        if (!dbData.buyerBonusUsage) dbData.buyerBonusUsage = {};
+        if (!dbData.afterHoursPasses) dbData.afterHoursPasses = {};
+        if (!dbData.processedStripeSessions) dbData.processedStripeSessions = {};
+        if (!dbData.bonusAnnouncements) dbData.bonusAnnouncements = [];
         
         dbData.songQueue = dbData.songQueue.map(song => {
             if (!song.id) song.id = "S-" + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
@@ -43,6 +90,10 @@ if (fs.existsSync(DB_FILE)) {
             if (song.isDice === undefined) song.isDice = false;
             if (song.isBoosted === undefined) song.isBoosted = false;
             if (song.isAfterHours === undefined) song.isAfterHours = false;
+            if (song.bonusNotes === undefined) song.bonusNotes = [];
+            if (song.priorityBoostBuyerEmail === undefined) song.priorityBoostBuyerEmail = null;
+            if (song.afterHoursBuyerEmail === undefined) song.afterHoursBuyerEmail = null;
+            if (song.diceBuyerEmail === undefined) song.diceBuyerEmail = null;
             return song;
         });
     } catch (e) { console.log("DB initialisiert."); }
@@ -75,6 +126,208 @@ function getSwissDateString(d) {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = d.getFullYear();
     return `${day}.${month}.${year}`;
+}
+
+function cleanArtistName(name) {
+    return String(name || '').trim().toLowerCase();
+}
+
+function cleanBuyerEmail(email) {
+    return String(email || '').trim().toLowerCase();
+}
+
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
+}
+
+function cleanupPendingBonusUsage() {
+    if (!dbData.buyerBonusUsage) dbData.buyerBonusUsage = {};
+    const now = Date.now();
+    Object.values(dbData.buyerBonusUsage).forEach(usage => {
+        if (!usage.pending) usage.pending = {};
+        Object.keys(usage.pending).forEach(sessionId => {
+            if (now - (usage.pending[sessionId].createdAt || 0) > PENDING_BONUS_TIMEOUT_MS) {
+                delete usage.pending[sessionId];
+            }
+        });
+    });
+}
+
+function getBuyerUsage(email) {
+    const key = cleanBuyerEmail(email);
+    if (!dbData.buyerBonusUsage) dbData.buyerBonusUsage = {};
+    if (!dbData.buyerBonusUsage[key]) {
+        dbData.buyerBonusUsage[key] = {
+            completed: 0,
+            pending: {},
+            features: { priority_boost: 0, after_hours: 0, song_dice: 0 },
+            sessions: []
+        };
+    }
+    const usage = dbData.buyerBonusUsage[key];
+    if (!usage.pending) usage.pending = {};
+    if (!usage.features) usage.features = { priority_boost: 0, after_hours: 0, song_dice: 0 };
+    if (!usage.sessions) usage.sessions = [];
+    if (typeof usage.completed !== 'number') usage.completed = usage.sessions.length;
+    return usage;
+}
+
+function activePendingCount(usage) {
+    cleanupPendingBonusUsage();
+    return Object.keys(usage.pending || {}).length;
+}
+
+function canBuyerStartCheckout(email) {
+    if (!isValidEmail(email)) {
+        return { ok: false, error: 'Bitte gib eine gültige E-Mail ein. So schützen wir das Limit: max. 2 Extras pro Nutzer und Stream.' };
+    }
+    const usage = getBuyerUsage(email);
+    if ((usage.completed || 0) + activePendingCount(usage) >= MAX_EXTRAS_PER_BUYER) {
+        return { ok: false, error: 'Limit erreicht: Pro Nutzer sind maximal 2 Stream-Extras pro Stream erlaubt.' };
+    }
+    return { ok: true };
+}
+
+function registerPendingCheckout(email, sessionId, feature) {
+    const usage = getBuyerUsage(email);
+    usage.pending[sessionId] = { feature, createdAt: Date.now() };
+    saveToDB();
+}
+
+function completeBuyerCheckout(email, sessionId, feature) {
+    const usage = getBuyerUsage(email);
+    if (usage.sessions.includes(sessionId)) return { ok: true, duplicate: true };
+    delete usage.pending[sessionId];
+    if ((usage.completed || 0) >= MAX_EXTRAS_PER_BUYER) {
+        return { ok: false, error: 'Limit erreicht: Pro Nutzer sind maximal 2 Stream-Extras pro Stream erlaubt.' };
+    }
+    usage.completed = (usage.completed || 0) + 1;
+    usage.features[feature] = (usage.features[feature] || 0) + 1;
+    usage.sessions.push(sessionId);
+    return { ok: true };
+}
+
+function addBonusAnnouncement(text) {
+    if (!dbData.bonusAnnouncements) dbData.bonusAnnouncements = [];
+    dbData.bonusAnnouncements.unshift({ text, timestamp: Date.now() });
+    dbData.bonusAnnouncements = dbData.bonusAnnouncements.slice(0, 8);
+}
+
+function moveSongToTop(songId) {
+    const index = dbData.songQueue.findIndex(s => s.id === songId);
+    if (index < 0) return null;
+    if (index === 0) return dbData.songQueue[index];
+    const [song] = dbData.songQueue.splice(index, 1);
+    dbData.songQueue.unshift(song);
+    return song;
+}
+
+function markSongPriorityBoost(songId, buyerEmail) {
+    const targetSong = dbData.songQueue.find(s => s.id === songId && !s.isDone && !s.isAfterHours);
+    if (!targetSong) return { ok: false, error: 'Song nicht gefunden oder nicht mehr in der Warteliste.' };
+    if (!targetSong.bonusNotes) targetSong.bonusNotes = [];
+    targetSong.isBoosted = true;
+    targetSong.boostPaidAt = Date.now();
+    targetSong.priorityBoostBuyerEmail = cleanBuyerEmail(buyerEmail);
+    targetSong.bonusNotes.push('🚀💎 Platz-1-Push gekauft');
+    moveSongToTop(targetSong.id);
+    addBonusAnnouncement(`🚀💎 ${targetSong.artist} - ${targetSong.title} wurde per Platz-1-Push automatisch auf Platz 1 gesetzt.`);
+    return { ok: true };
+}
+
+function markRandomSongDice(buyerEmail) {
+    const candidates = dbData.songQueue.filter(s => !s.isDone && !s.isAfterHours);
+    if (candidates.length === 0) return { ok: false, error: 'Keine Songs in der Warteliste.' };
+    const pickedSong = candidates[Math.floor(Math.random() * candidates.length)];
+    if (!pickedSong.bonusNotes) pickedSong.bonusNotes = [];
+    pickedSong.isDice = true;
+    pickedSong.diceSelectedAt = Date.now();
+    pickedSong.diceBuyerEmail = cleanBuyerEmail(buyerEmail);
+    pickedSong.bonusNotes.push('🎲💎 Vom Song-Würfel zufällig ausgewählt');
+    addBonusAnnouncement(`🎲💎 SONG-WÜRFEL: ${pickedSong.artist} - ${pickedSong.title} wurde zufällig aus der Warteliste ausgewählt.`);
+    return { ok: true, songId: pickedSong.id };
+}
+
+function createAfterHoursPass(sessionId, buyerEmail) {
+    if (!dbData.afterHoursPasses) dbData.afterHoursPasses = {};
+    dbData.afterHoursPasses[sessionId] = {
+        sessionId,
+        buyerEmail: cleanBuyerEmail(buyerEmail),
+        used: false,
+        createdAt: Date.now(),
+        usedAt: null,
+        songId: null
+    };
+    dbData.extensionActive = true;
+    addBonusAnnouncement('🌙💎 After Hours Pass gekauft: Ein Nutzer kann nach den freien 90 Minuten einmalig einen Song in der Verlängerung einreichen.');
+    return { ok: true };
+}
+
+function applyPaidBonus(feature, songId, buyerEmail, stripeSessionId = null) {
+    let result = { ok: false, error: 'Unbekanntes Extra.' };
+
+    if (feature === 'priority_boost') {
+        result = markSongPriorityBoost(songId, buyerEmail);
+    } else if (feature === 'after_hours') {
+        result = createAfterHoursPass(stripeSessionId, buyerEmail);
+    } else if (feature === 'song_dice') {
+        result = markRandomSongDice(buyerEmail);
+    }
+
+    if (stripeSessionId) {
+        if (!dbData.processedStripeSessions) dbData.processedStripeSessions = {};
+        dbData.processedStripeSessions[stripeSessionId] = { feature, songId: songId || null, buyerEmail: cleanBuyerEmail(buyerEmail), result, timestamp: Date.now() };
+    }
+
+    saveToDB();
+    return result;
+}
+
+function applyStripeBonus(session) {
+    if (!session || !session.id) return;
+    if (!dbData.processedStripeSessions) dbData.processedStripeSessions = {};
+    if (dbData.processedStripeSessions[session.id]) return;
+
+    const feature = session.metadata && session.metadata.feature;
+    const songId = session.metadata && session.metadata.songId;
+    const buyerEmail = (session.metadata && session.metadata.buyerEmail) || (session.customer_details && session.customer_details.email) || session.customer_email || '';
+    if (!feature || !buyerEmail) {
+        console.log('[STRIPE] Checkout ohne Extra-Metadaten:', session.id);
+        return;
+    }
+
+    const buyerCheck = completeBuyerCheckout(buyerEmail, session.id, feature);
+    if (!buyerCheck.ok) {
+        dbData.processedStripeSessions[session.id] = { feature, songId: songId || null, buyerEmail: cleanBuyerEmail(buyerEmail), error: buyerCheck.error, timestamp: Date.now() };
+        addBonusAnnouncement(`⚠️ Stream-Extra nicht angewendet: ${buyerCheck.error}`);
+        saveToDB();
+        return;
+    }
+
+    const result = applyPaidBonus(feature, songId, buyerEmail, session.id);
+    if (!result.ok) {
+        dbData.processedStripeSessions[session.id] = { feature, songId: songId || null, buyerEmail: cleanBuyerEmail(buyerEmail), error: result.error, timestamp: Date.now() };
+        saveToDB();
+    }
+}
+
+function redeemAfterHoursPass(sessionId, song) {
+    if (!sessionId || !dbData.afterHoursPasses || !dbData.afterHoursPasses[sessionId]) {
+        return { ok: false, error: 'Kein gültiger After-Hours-Pass gefunden.' };
+    }
+    const pass = dbData.afterHoursPasses[sessionId];
+    if (pass.used) return { ok: false, error: 'Dieser After-Hours-Pass wurde bereits benutzt.' };
+    pass.used = true;
+    pass.usedAt = Date.now();
+    pass.songId = song.id;
+    song.isAfterHours = true;
+    song.afterHoursPaidAt = Date.now();
+    song.afterHoursPassId = sessionId;
+    song.afterHoursBuyerEmail = pass.buyerEmail;
+    if (!song.bonusNotes) song.bonusNotes = [];
+    song.bonusNotes.push('🌙💎 After Hours Pass eingelöst');
+    addBonusAnnouncement(`🌙💎 ${song.artist} - ${song.title} wurde mit After-Hours-Pass in die Verlängerung eingereicht.`);
+    return { ok: true };
 }
 
 // AUTOMATISCHE VOTING-AUSWERTUNG
@@ -208,7 +461,13 @@ app.get('/api/queue', (req, res) => {
             isHit: song.isHit, isDone: song.isDone, platform,
             isDice: song.isDice || false,
             isBoosted: song.isBoosted || false,
-            isAfterHours: song.isAfterHours || false
+            isAfterHours: song.isAfterHours || false,
+            dicePickedBy: song.dicePickedBy || null,
+            diceSelectedAt: song.diceSelectedAt || null,
+            priorityBoostBuyerEmail: song.priorityBoostBuyerEmail || null,
+            afterHoursBuyerEmail: song.afterHoursBuyerEmail || null,
+            diceBuyerEmail: song.diceBuyerEmail || null,
+            bonusNotes: song.bonusNotes || []
         };
     });
 
@@ -239,14 +498,23 @@ app.get('/api/queue', (req, res) => {
         tiedSongs: tiedSongsDetails,
         hallOfFame: processedHallOfFame,
         historicalHits: dbData.historicalHits,
-        systemOnline: dbData.systemOnline !== false
+        systemOnline: dbData.systemOnline !== false,
+        bonusAnnouncements: dbData.bonusAnnouncements || [],
+        afterHoursPasses: Object.values(dbData.afterHoursPasses || {}).map(p => ({
+            sessionId: p.sessionId,
+            buyerEmail: p.buyerEmail,
+            used: p.used,
+            createdAt: p.createdAt,
+            usedAt: p.usedAt,
+            songId: p.songId
+        }))
     });
 });
 
 app.post('/api/submit', (req, res) => {
     if (dbData.systemOnline === false) return res.status(400).json({ error: "Das Einreicheformular ist aktuell offline!" });
 
-    const { artist, title, duration, genre, songLink } = req.body;
+    const { artist, title, duration, genre, songLink, afterHoursSessionId } = req.body;
     const isSpotify = /spotify\.com/i.test(songLink);
     const isYouTube = /youtube\.com|youtu\.be/i.test(songLink);
     if (!isSpotify && !isYouTube) return res.status(400).json({ error: "Nur Links von Spotify oder YouTube erlaubt!" });
@@ -266,20 +534,81 @@ app.post('/api/submit', (req, res) => {
     const baseMaxSeconds = (BASE_LIMIT_MINUTES + dbData.extraTimeMinutes) * 60;
     const extensionMaxSeconds = (BASE_LIMIT_MINUTES + dbData.extraTimeMinutes + EXTENSION_LIMIT_MINUTES) * 60;
 
-    if (!dbData.extensionActive && totalSeconds >= baseMaxSeconds) return res.status(400).json({ error: "Hauptzeit voll!" });
-    if (dbData.extensionActive && totalSeconds >= extensionMaxSeconds) return res.status(400).json({ error: "Verlängerung komplett voll!" });
+    const wantsAfterHours = Boolean(afterHoursSessionId);
+    if (wantsAfterHours) {
+        if (totalSeconds < baseMaxSeconds) return res.status(400).json({ error: "Dein After-Hours-Pass ist für nach den freien 90 Minuten. Aktuell kannst du noch normal einreichen." });
+        if (totalSeconds >= extensionMaxSeconds) return res.status(400).json({ error: "Verlängerung komplett voll!" });
+        if (!dbData.afterHoursPasses || !dbData.afterHoursPasses[afterHoursSessionId] || dbData.afterHoursPasses[afterHoursSessionId].used) {
+            return res.status(400).json({ error: "After-Hours-Pass ungültig oder bereits benutzt." });
+        }
+        dbData.extensionActive = true;
+    } else {
+        if (!dbData.extensionActive && totalSeconds >= baseMaxSeconds) return res.status(400).json({ error: "Hauptzeit voll! Für die Verlängerung brauchst du einen After-Hours-Pass." });
+        if (dbData.extensionActive && totalSeconds >= extensionMaxSeconds) return res.status(400).json({ error: "Verlängerung komplett voll!" });
+    }
 
     const newCode = generateVoteCode();
     const newSong = {
         id: "S-" + Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
         voteCode: newCode,
         artist, title, duration: parseInt(duration) || 0, genre, songLink,
-        isHit: false, isDone: false, isDice: false, isBoosted: false, isAfterHours: false, timestamp: Date.now()
+        isHit: false, isDone: false, isDice: false, isBoosted: false, isAfterHours: false, bonusNotes: [], timestamp: Date.now()
     };
+
+    if (wantsAfterHours) {
+        const redeem = redeemAfterHoursPass(afterHoursSessionId, newSong);
+        if (!redeem.ok) return res.status(400).json({ error: redeem.error });
+    }
 
     dbData.songQueue.push(newSong);
     saveToDB();
-    res.json({ success: true, voteCode: newCode });
+    res.json({ success: true, voteCode: newCode, songId: newSong.id, afterHoursPassUsed: wantsAfterHours });
+});
+
+app.post('/api/create-bonus-checkout', async (req, res) => {
+    if (!stripe) return res.status(500).json({ error: 'Stripe ist noch nicht konfiguriert. STRIPE_SECRET_KEY fehlt in den Umgebungsvariablen.' });
+
+    const { feature, songId, buyerEmail } = req.body;
+    if (!STRIPE_PRICE_IDS[feature]) return res.status(400).json({ error: 'Unbekanntes Stream-Extra.' });
+
+    const buyerCheck = canBuyerStartCheckout(buyerEmail);
+    if (!buyerCheck.ok) return res.status(400).json({ error: buyerCheck.error });
+
+    let song = null;
+    if (feature === 'priority_boost') {
+        song = dbData.songQueue.find(s => s.id === songId && !s.isDone && !s.isAfterHours);
+        if (!song) return res.status(400).json({ error: 'Wähle zuerst einen Song aus der Warteliste aus.' });
+    }
+
+    try {
+        const origin = `${req.protocol}://${req.get('host')}`;
+        const successUrl = feature === 'after_hours'
+            ? `${origin}/?after_hours_paid={CHECKOUT_SESSION_ID}`
+            : `${origin}/?bonus=success`;
+
+        const session = await stripe.checkout.sessions.create({
+            mode: 'payment',
+            line_items: [{ price: STRIPE_PRICE_IDS[feature], quantity: 1 }],
+            customer_email: cleanBuyerEmail(buyerEmail),
+            metadata: {
+                feature,
+                songId: song ? song.id : '',
+                buyerEmail: cleanBuyerEmail(buyerEmail),
+                artist: song ? song.artist : '',
+                title: song ? song.title : '',
+                system: 'mondo_mando_stream_extras'
+            },
+            success_url: successUrl,
+            cancel_url: `${origin}/?bonus=cancel`,
+            submit_type: 'pay'
+        });
+
+        registerPendingCheckout(buyerEmail, session.id, feature);
+        res.json({ url: session.url });
+    } catch (err) {
+        console.error('[STRIPE] Checkout konnte nicht erstellt werden:', err.message);
+        res.status(500).json({ error: 'Stripe Checkout konnte nicht erstellt werden.' });
+    }
 });
 
 app.post('/api/vote', (req, res) => {
@@ -431,7 +760,7 @@ app.delete('/api/admin/halloffame/:index', checkAdminAuth, (req, res) => {
 });
 
 app.post('/api/queue/reset', checkAdminAuth, (req, res) => {
-    dbData.songQueue = []; dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; dbData.extensionActive = false; dbData.extraTimeMinutes = 0; dbData.votingEndsAt = null;
+    dbData.songQueue = []; dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; dbData.extensionActive = false; dbData.extraTimeMinutes = 0; dbData.votingEndsAt = null; dbData.bonusUsage = {}; dbData.buyerBonusUsage = {}; dbData.afterHoursPasses = {}; dbData.processedStripeSessions = {}; dbData.bonusAnnouncements = [];
     if(votingTimeout) { clearTimeout(votingTimeout); votingTimeout = null; }
     saveToDB(); res.json({ success: true });
 });
