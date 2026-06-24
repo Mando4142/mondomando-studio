@@ -240,7 +240,7 @@
                 const featureMeta = {
                     priority_boost: { cls: 'boost', title: '🚀💎 Platz 1 Push', desc: 'Song wurde bezahlt und auf Platz 1 geschoben.' },
                     after_hours: { cls: 'after', title: '🌙💎 After Hours', desc: 'After-Hours-Pass gekauft / freigeschaltet.' },
-                    song_dice: { cls: 'dice', title: '🎲💎 Song Würfel', desc: 'Zufälliger Song aus der Warteliste wurde gewählt.' }
+                    song_dice: { cls: 'dice', title: '🎲💎 Song Würfel', desc: 'Zufälliger Song wurde gewählt und auf Platz 1 gepusht.' }
                 };
 
                 const recentHtml = recentExtras.length
@@ -312,7 +312,7 @@
                     if (item.isDice) itemStyleClass += ' extra-dice';
                     const boostInfo = item.isBoosted && item.priorityBoostBuyerEmail ? `<p class="paid-note boost">🚀💎 Bezahlt von: ${item.priorityBoostBuyerEmail}</p>` : '';
                     const afterInfo = item.isAfterHours && item.afterHoursBuyerEmail ? `<p class="paid-note after">🌙💎 After-Hours-Pass von: ${item.afterHoursBuyerEmail}</p>` : '';
-                    const diceInfo = item.isDice ? `<p class="paid-note dice">🎲💎 Dieser Song wurde zufällig vom Song-Würfel ausgewählt${item.diceBuyerEmail ? ` · gekauft von: ${item.diceBuyerEmail}` : ''}</p>` : '';
+                    const diceInfo = item.isDice ? `<p class="paid-note dice">🎲💎 Dieser Song wurde zufällig vom Song-Würfel ausgewählt und auf Platz 1 gepusht${item.diceBuyerEmail ? ` · gekauft von: ${item.diceBuyerEmail}` : ''}</p>` : '';
 
                     activeList.innerHTML += `<div class="admin-item ${itemStyleClass}">
                         <div style="display:flex; align-items:center;">
@@ -331,7 +331,7 @@
                         </div>
                     </div>`;
                 } else {
-                    const doneNotes = `${item.isBoosted && item.priorityBoostBuyerEmail ? `<p class="paid-note boost">🚀💎 Bezahlt von: ${item.priorityBoostBuyerEmail}</p>` : ''}${item.isAfterHours && item.afterHoursBuyerEmail ? `<p class="paid-note after">🌙💎 After-Hours-Pass von: ${item.afterHoursBuyerEmail}</p>` : ''}${item.isDice ? `<p class="paid-note dice">🎲💎 Vom Song-Würfel ausgewählt${item.diceBuyerEmail ? ` · gekauft von: ${item.diceBuyerEmail}` : ''}</p>` : ''}`;
+                    const doneNotes = `${item.isBoosted && item.priorityBoostBuyerEmail ? `<p class="paid-note boost">🚀💎 Bezahlt von: ${item.priorityBoostBuyerEmail}</p>` : ''}${item.isAfterHours && item.afterHoursBuyerEmail ? `<p class="paid-note after">🌙💎 After-Hours-Pass von: ${item.afterHoursBuyerEmail}</p>` : ''}${item.isDice ? `<p class="paid-note dice">🎲💎 Vom Song-Würfel ausgewählt und auf Platz 1 gepusht${item.diceBuyerEmail ? ` · gekauft von: ${item.diceBuyerEmail}` : ''}</p>` : ''}`;
                     doneList.innerHTML += `<div class="admin-item is-done-admin ${item.isBoosted ? 'extra-boost is-extra-paid' : ''} ${item.isAfterHours ? 'extra-after is-extra-paid' : ''} ${item.isDice ? 'extra-dice is-extra-paid' : ''}">
                             <div class="song-details"><h3 style="margin:0;">${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3>${doneNotes}</div>
                             <div class="actions-flex">
