@@ -55,7 +55,7 @@ function saveToDB() {
 const BASE_LIMIT_MINUTES = 90;
 const EXTENSION_LIMIT_MINUTES = 30;
 const FEEDBACK_BUFFER_SECONDS = 120;
-const ADMIN_PASSWORD = "MONDO_STUDIO_CHEF_2026";
+const ADMIN_PASSWORD = "Sutter1998!";
 
 function getTotalTimeSeconds() {
     let total = 0;
