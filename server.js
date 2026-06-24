@@ -217,6 +217,13 @@ app.get('/api/queue', (req, res) => {
         tiedSongsDetails = dbData.tiedSongs.map(id => dbData.songQueue.find(s => s.id === id)).filter(Boolean);
     }
 
+    const processedHallOfFame = (dbData.hallOfFame || []).map(champ => {
+        let platform = 'other';
+        if (/spotify\.com/i.test(champ.songLink || '')) platform = 'spotify';
+        else if (/youtube\.com|youtu\.be/i.test(champ.songLink || '')) platform = 'youtube';
+        return { ...champ, platform };
+    });
+
     res.json({
         queue: processedQueue,
         remainingMinutes: Math.floor(remainingSecondsTotal / 60),
@@ -230,7 +237,7 @@ app.get('/api/queue', (req, res) => {
         votingRemainingSeconds: votingRemainingSeconds,
         votes: dbData.votes,
         tiedSongs: tiedSongsDetails,
-        hallOfFame: dbData.hallOfFame,
+        hallOfFame: processedHallOfFame,
         historicalHits: dbData.historicalHits,
         systemOnline: dbData.systemOnline !== false
     });
@@ -347,7 +354,15 @@ function finalizeWinner(songId) {
     const winner = dbData.songQueue.find(s => s.id === songId);
     if (winner) {
         const votes = dbData.votes[songId] || 0;
-        dbData.hallOfFame.push({ artist: winner.artist, title: winner.title, votes: votes, date: getSwissDateString(new Date()) });
+        dbData.hallOfFame.push({
+            artist: winner.artist,
+            title: winner.title,
+            votes: votes,
+            date: getSwissDateString(new Date()),
+            songLink: winner.songLink,
+            genre: winner.genre,
+            timestamp: Date.now()
+        });
     }
     dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; dbData.votingEndsAt = null;
     saveToDB();
@@ -386,7 +401,7 @@ app.post('/api/queue/:index/hit', checkAdminAuth, (req, res) => {
         if (!dbData.historicalHits[dateStr]) dbData.historicalHits[dateStr] = [];
         if (song.isHit) {
             const exists = dbData.historicalHits[dateStr].find(s => s.artist === song.artist && s.title === song.title);
-            if (!exists) dbData.historicalHits[dateStr].push({ artist: song.artist, title: song.title, genre: song.genre });
+            if (!exists) dbData.historicalHits[dateStr].push({ artist: song.artist, title: song.title, genre: song.genre, songLink: song.songLink });
         } else {
             dbData.historicalHits[dateStr] = dbData.historicalHits[dateStr].filter(s => !(s.artist === song.artist && s.title === song.title));
             if (dbData.historicalHits[dateStr].length === 0) delete dbData.historicalHits[dateStr];
