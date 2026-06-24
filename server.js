@@ -483,6 +483,27 @@ app.get('/api/queue', (req, res) => {
         return { ...champ, platform };
     });
 
+    const paidExtrasSessions = Object.values(dbData.processedStripeSessions || {})
+        .filter(entry => entry && !entry.error && entry.result && entry.result.ok)
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    const paidExtrasSummary = {
+        total: paidExtrasSessions.length,
+        priorityBoost: paidExtrasSessions.filter(entry => entry.feature === 'priority_boost').length,
+        afterHours: paidExtrasSessions.filter(entry => entry.feature === 'after_hours').length,
+        songDice: paidExtrasSessions.filter(entry => entry.feature === 'song_dice').length,
+        openAfterHoursPasses: Object.values(dbData.afterHoursPasses || {}).filter(p => !p.used).length,
+        usedAfterHoursPasses: Object.values(dbData.afterHoursPasses || {}).filter(p => p.used).length
+    };
+
+    const recentPaidExtras = paidExtrasSessions.slice(0, 12).map(entry => ({
+        feature: entry.feature,
+        songId: entry.songId || null,
+        buyerEmail: entry.buyerEmail || null,
+        timestamp: entry.timestamp || null,
+        result: entry.result || null
+    }));
+
     res.json({
         queue: processedQueue,
         remainingMinutes: Math.floor(remainingSecondsTotal / 60),
@@ -500,6 +521,8 @@ app.get('/api/queue', (req, res) => {
         historicalHits: dbData.historicalHits,
         systemOnline: dbData.systemOnline !== false,
         bonusAnnouncements: dbData.bonusAnnouncements || [],
+        paidExtrasSummary,
+        recentPaidExtras,
         afterHoursPasses: Object.values(dbData.afterHoursPasses || {}).map(p => ({
             sessionId: p.sessionId,
             buyerEmail: p.buyerEmail,
