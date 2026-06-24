@@ -164,6 +164,87 @@
             line-height: 1.4;
         }
 
+
+        /* BOOSTER VORSCHAU VOR DEM EINSENDEN */
+        .booster-preview-box {
+            border: 2px solid var(--neon-gold);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 24px;
+            background: rgba(255, 215, 0, 0.06);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.22), inset 0 0 12px rgba(255, 215, 0, 0.08);
+        }
+        .booster-preview-title {
+            color: var(--neon-gold);
+            font-size: 26px;
+            letter-spacing: 2px;
+            text-align: center;
+            margin: 0 0 8px 0;
+            text-shadow: 0 0 12px rgba(255, 215, 0, 0.75);
+            text-transform: uppercase;
+        }
+        .booster-preview-subtitle {
+            font-family: sans-serif;
+            text-align: center;
+            color: #e5e7eb;
+            font-size: 14px;
+            line-height: 1.45;
+            margin: 0 0 16px 0;
+        }
+        .booster-preview-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .booster-preview-item {
+            background: rgba(5, 5, 7, 0.78);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-left: 5px solid var(--neon-cyan);
+            border-radius: 12px;
+            padding: 14px;
+            font-family: sans-serif;
+            box-shadow: 0 0 14px rgba(0,0,0,0.25);
+        }
+        .booster-preview-item.orange { border-left-color: var(--neon-orange); box-shadow: 0 0 12px rgba(255,85,0,0.12); }
+        .booster-preview-item.pink { border-left-color: var(--neon-pink); box-shadow: 0 0 12px rgba(255,0,127,0.12); }
+        .booster-preview-name {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            color: #ffffff;
+            font-size: 20px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .booster-preview-desc {
+            color: #d1d5db;
+            line-height: 1.45;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .booster-preview-limit {
+            display: inline-block;
+            color: #001b10;
+            background: var(--neon-green);
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 900;
+            box-shadow: 0 0 10px rgba(34,197,94,0.45);
+        }
+        .booster-preview-locked {
+            margin-top: 12px;
+            background: rgba(255,255,255,0.08);
+            border: 1px dashed rgba(255,255,255,0.28);
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            font-family: 'Impact', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(255,255,255,0.20);
+        }
+
         #submit-error-box { color: #ffffff; background-color: #ef4444; border: 2px solid #b91c1c; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; font-family: sans-serif; font-weight: bold;}
     </style>
 </head>
@@ -210,6 +291,29 @@
 
                 <!-- EINREICHE-FORMULAR -->
                 <div id="form-container">
+
+                    <div class="booster-preview-box">
+                        <div class="booster-preview-title">👑 Mondo Gold Pass Boosts</div>
+                        <p class="booster-preview-subtitle">Sichere dir nach dem Einsenden freiwillig einen Bonus für deinen Song. Erst Song einreichen, dann Booster sichern.</p>
+                        <div class="booster-preview-grid">
+                            <div class="booster-preview-item">
+                                <div class="booster-preview-name">🚀 Platz 1 Push – CHF 6.20</div>
+                                <div class="booster-preview-desc">Dein Song springt auf Platz 1 der Warteliste.</div>
+                                <span class="booster-preview-limit">Max. 1× pro Künstler & Stream</span>
+                            </div>
+                            <div class="booster-preview-item orange">
+                                <div class="booster-preview-name">🌙 After Hours – CHF 5.00</div>
+                                <div class="booster-preview-desc">Dein Song kann nach den 90 Minuten in der Verlängerung gespielt werden.</div>
+                                <span class="booster-preview-limit">Max. 1× pro Künstler & Stream</span>
+                            </div>
+                            <div class="booster-preview-item pink">
+                                <div class="booster-preview-name">🎲 Song Würfel – CHF 3.50</div>
+                                <div class="booster-preview-desc">Dein Song kommt in den Zufalls-Boost.</div>
+                                <span class="booster-preview-limit">Max. 2× pro Künstler & Stream</span>
+                            </div>
+                        </div>
+                        <div class="booster-preview-locked">Erst Song einreichen, dann Booster sichern</div>
+                    </div>
                     <form id="songForm" onsubmit="addSongToServer(event)">
                         <div class="form-group">
                             <label for="artistName">Künstlername</label>
