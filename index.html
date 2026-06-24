@@ -3,648 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mondo Mando Records - Dashboard</title>
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=cbHZ47TVAC8UtDqGhdC5CiDhJ8ELlaDl2twNyV8SAHyKDBSEwP-_fXHUYsOb95vbZVVkmplTO_ROXpE-PIBtnLWmNdf5Zy2pnaVZC8SXmePugYdIIXM41UICnoIzg6iKMDChMGQz57kUpV5z5uqmvU-H5SqybhkNdlFuC7I4k84wuGQjthTt_blUJ5UBd2mNNHVOBKbbd8TLjdklsvCYgyq9LiQW4Eph5n7XaCCtjlD6985isrckBRkrAQkOk8SmkYrIFx9U7b_snbxypIjG1qo-7-RYXvukpC0Nz_cXUOiwoj6isKd0fcc-ELQPOcYt" charset="UTF-8"></script><style>
-        :root {
-            --neon-pink: #ff007f; --neon-cyan: #00f2fe; --neon-gold: #ffd700; --neon-green: #22c55e;
-            --neon-orange: #ff5500; --text-main: #ffffff; --text-muted: #8e8e9f; --form-bg: rgba(19, 19, 26, 0.85);
-        }
+    <title>Mondo Mando - Admin Schaltzentrale</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        :root { --neon-pink: #ff007f; --neon-cyan: #00f2fe; --neon-gold: #ffd700; --text-main: #ffffff; --form-bg: rgba(19, 19, 26, 0.9); }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Impact', 'Arial Black', sans-serif; color: var(--text-main); overflow: hidden; }
-        .studio-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('studio_bg.jpg'); background-size: cover; background-position: center; filter: brightness(0.8); z-index: -1; }
-        .overlay-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 40px 0; box-sizing: border-box; }
-        .interface-content { width: 100%; max-width: 650px; pointer-events: auto; }
+        .studio-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('studio_bg.jpg'); background-size: cover; background-position: center; filter: brightness(0.6); z-index: -1; }
+        .overlay-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; overflow-y: auto; padding: 40px 0; box-sizing: border-box; }
+        .interface-content { width: 100%; max-width: 800px; }
+        .card { background-color: var(--form-bg); border: 2px solid var(--neon-pink); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 25px rgba(255, 0, 127, 0.3); backdrop-filter: blur(5px); }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--neon-cyan); padding-bottom: 10px; margin-bottom: 20px;}
+        h1 { margin: 0; font-size: 32px; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-pink); }
         
-        .card { background-color: var(--form-bg); border: 2px solid var(--neon-cyan); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.1); backdrop-filter: blur(5px); transition: all 0.5s ease; }
-        .card.pink-glow { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 127, 0.2), inset 0 0 15px rgba(255, 0, 127, 0.1); }
-        .card.gold-glow { border-color: var(--neon-gold); box-shadow: 0 0 25px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1); }
-        .card.orange-glow { border-color: var(--neon-orange); box-shadow: 0 0 15px rgba(255, 85, 0, 0.2), inset 0 0 15px rgba(255, 85, 0, 0.1); }
-
-        /* Status Section Styles */
-        .status-header { display: flex; justify-content: space-between; align-items: center; font-size: 20px; text-transform: uppercase; }
-        .countdown-text { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0, 242, 254, 0.8); letter-spacing: 1px; }
-        .status-divider { border: 0; border-top: 1px solid rgba(142, 142, 159, 0.4); margin: 15px 0; }
-        .status-stats { display: flex; justify-content: space-between; font-family: sans-serif; font-size: 14px; font-weight: bold; }
-        .time-highlight { color: var(--neon-cyan); }
-        .time-urgent { color: var(--neon-pink); }
+        .admin-time-box { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: rgba(5, 5, 7, 0.6); border: 1px dashed var(--neon-cyan); border-radius: 8px; font-family: sans-serif; font-size: 16px; font-weight: bold; }
+        .time-value { color: var(--neon-cyan); }
         
-        .badge-live { background-color: var(--neon-pink); color: white; padding: 4px 10px; border-radius: 4px; font-size: 14px; margin-right: 10px; animation: pulse 1.5s infinite; vertical-align: middle; }
-        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; box-shadow: 0 0 15px var(--neon-pink); } 100% { opacity: 0.8; } }
-
-        /* Calendar Styles */
-        .calendar-section { margin-top: 25px; padding-top: 20px; border-top: 1px dashed rgba(0, 242, 254, 0.3); }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .calendar-header button { background: rgba(0,242,254,0.1); border: 1px solid var(--neon-cyan); border-radius: 4px; padding: 5px 15px; color: var(--neon-cyan); font-size: 18px; cursor: pointer; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .cal-day-header { font-family: sans-serif; font-size: 13px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
-        .cal-day { padding: 10px 5px; background: rgba(5,5,7,0.8); border: 1px solid #2a2a35; border-radius: 6px; font-family: sans-serif; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .cal-day:hover { background: rgba(255,255,255,0.1); }
-        .cal-day.is-sunday { border-color: var(--neon-pink); color: var(--neon-pink); background: rgba(255,0,127,0.1); }
-        .cal-day.has-hits { background: rgba(255, 215, 0, 0.15); border-color: var(--neon-gold); color: var(--neon-gold); }
-        .cal-day.is-selected { background: var(--neon-gold); color: black; border-color: white; transform: scale(1.1); z-index: 2; }
-
-        /* Form & Title Styles */
-        h2 { text-transform: uppercase; margin-top: 0; font-size: 24px; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 8px var(--neon-cyan); border-bottom: 3px solid var(--neon-pink); padding-bottom: 8px; margin-bottom: 20px; transition: all 0.3s ease; }
+        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: rgba(5, 5, 7, 0.85); border: 2px solid #2a2a35; border-radius: 8px; margin-bottom: 15px; font-family: sans-serif; }
+        .admin-item.is-active-first { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
+        .admin-item.is-hit { border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+        .admin-item.is-done-admin { border-color: #22c55e; opacity: 0.4; }
         
-        /* NEON GRÜNER REGEL-BUTTON */
-        .btn-rules-small { 
-            position: absolute; top: 12px; right: 14px; 
-            background: rgba(0, 0, 0, 0.55); 
-            border: 2px solid var(--neon-orange); 
-            color: #ffffff; 
-            padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; text-transform: uppercase; 
-            font-weight: bold; animation: pulse-orange 1.8s infinite; 
-            box-shadow: 0 0 12px var(--neon-orange), inset 0 0 8px rgba(255,85,0,0.45); 
-            font-family: 'Impact', sans-serif; letter-spacing: 1px; text-shadow: 0 0 5px var(--neon-orange);
-        }
-        @keyframes pulse-orange { 
-            0% { transform: scale(1); box-shadow: 0 0 8px var(--neon-orange), inset 0 0 5px rgba(255,85,0,0.45); } 
-            50% { transform: scale(1.04); box-shadow: 0 0 20px var(--neon-orange), inset 0 0 12px rgba(255,85,0,0.65); } 
-            100% { transform: scale(1); box-shadow: 0 0 8px var(--neon-orange), inset 0 0 5px rgba(255,85,0,0.45); } 
-        }
+        .drag-handle { cursor: grab; font-size: 26px; padding-right: 15px; color: var(--neon-cyan); }
 
-        .rule-pulse-box { border: 2px solid #ef4444 !important; animation: pulse-red 1.5s infinite; }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0px #ef4444; } 50% { box-shadow: 0 0 10px #ef4444; } 100% { box-shadow: 0 0 0px #ef4444; } }
-
-        .form-group { margin-bottom: 22px; }
-        label { display: block; margin-bottom: 8px; font-size: 16px; text-transform: uppercase; color: var(--text-main); }
-        input[type="text"], input[type="url"], input[type="number"], select { width: 100%; padding: 14px; background-color: rgba(5, 5, 7, 0.8); border: 2px solid #2a2a35; border-radius: 8px; color: white; font-size: 16px; box-sizing: border-box; }
-        .duration-inputs { display: flex; gap: 15px; }
-        .checkbox-group { display: flex; align-items: flex-start; gap: 15px; background-color: rgba(5, 5, 7, 0.8); padding: 15px; border: 1px dashed var(--neon-pink); border-radius: 8px; margin-top: 10px; font-family: sans-serif; }
+        .actions-flex { display: flex; gap: 10px; align-items: center; }
+        .btn-control { background: #374151; color: white; border: none; padding: 10px 15px; font-family: sans-serif; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .btn-control:hover { background: #4b5563; transform: scale(1.02); }
         
-        /* GESTREIFTER SONG EINSENDEN BUTTON */
-        .btn-submit { 
-            width: 100%; padding: 20px; font-size: 26px; text-transform: uppercase; color: #001b10; 
-            border: none; border-radius: 8px; cursor: pointer; letter-spacing: 3px; font-family: 'Impact', sans-serif; 
-            box-shadow: 0 0 24px var(--neon-green), inset 0 0 12px rgba(255,255,255,0.25); margin-top: 20px; 
-            background: repeating-linear-gradient(45deg, var(--neon-green), var(--neon-green) 20px, #16a34a 20px, #16a34a 40px); 
-            background-size: 56px 56px; animation: move-stripes 1s linear infinite; 
-            text-shadow: 0 0 8px rgba(255,255,255,0.45);
-        }
-        .btn-submit:disabled { filter: grayscale(0.8); cursor: not-allowed; animation: none; }
-        @keyframes move-stripes { 0% { background-position: 0 0; } 100% { background-position: 56px 0; } }
+        .link-icon { font-size: 20px; text-decoration: none; margin-right: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .icon-spotify { background: #1DB954; color: black; }
+        .icon-youtube { background: #FF0000; color: white; }
 
-        .queue-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: rgba(5, 5, 7, 0.8); border: 1px solid #2a2a35; border-left: 5px solid var(--neon-cyan); border-radius: 6px; margin-bottom: 12px; font-family: sans-serif; }
-        .queue-item.is-playlist-hit { border: 2px solid var(--neon-gold); border-left: 8px solid var(--neon-gold); }
-        .hof-card { background: rgba(5, 5, 7, 0.8); border: 2px solid var(--neon-gold); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px; }
+        .btn-trash { background: #ef4444; color: white; border: none; padding: 14px; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        .btn-hit-toggle { background: linear-gradient(45deg, var(--neon-gold), #ccac00); color: black; border: none; padding: 14px 20px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
+        .btn-delete { background: linear-gradient(45deg, #22c55e, #15803d); color: white; border: none; padding: 14px 24px; font-family: 'Impact', sans-serif; text-transform: uppercase; border-radius: 6px; cursor: pointer; }
+        .btn-voting-action { background: var(--neon-gold); color: black; border: none; padding: 15px; font-family: 'Impact'; font-size: 18px; border-radius: 6px; cursor: pointer; width: 100%; box-shadow: 0 0 15px var(--neon-gold); margin-top:10px; }
         
-        #submit-error-box { color: #ffffff; background-color: #ef4444; border: 2px solid #b91c1c; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; font-family: sans-serif; font-weight: bold;}
+        .section-title { font-size: 22px; color: #ffffff; margin: 25px 0 15px 0; text-transform: uppercase; }
+        #login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#0b0b12; z-index:9999; display:flex; justify-content:center; align-items:center; }
     </style>
 </head>
 <body>
+    <div id="login-overlay">
+        <div style="background:#14141f; padding:40px; border-radius:12px; border:2px solid var(--neon-pink); text-align:center;">
+            <h2 style="color:var(--neon-pink);">🔒 MONDO RECORDS SCHALTZENTRALE</h2>
+            <input type="password" id="adminPassInput" placeholder="STUDIO PASSWORT" style="padding:14px; width:250px; text-align:center; font-size:16px;"><br><br>
+            <button class="btn-control" style="background:var(--neon-cyan); color:black;" onclick="tryLogin()">PROCEED</button>
+        </div>
+    </div>
+
     <div class="studio-background"></div>
     <div class="overlay-container">
         <div class="interface-content">
-            
-            <!-- STATUS & KALENDER CARD -->
-            <div class="card" style="padding: 25px;">
-                <div class="status-header">
-                    <span id="stream-status-title"><span id="live-badge" class="badge-live" style="display:none;">LIVE</span>NÄCHSTER STREAM</span>
-                    <span id="countdown" class="countdown-text">BERECHNE...</span>
-                </div>
-                <hr class="status-divider">
-                <div class="status-stats">
-                    <div>FREIE SENDEMINUTEN: <span id="time-left-pot" class="time-highlight">90 Min. 00 Sek.</span></div>
-                    <div>BELEGTE SHOW-ZEIT: <span id="estimated-wait" class="time-highlight">0 Min. 00 Sek.</span></div>
+            <div class="card">
+                <div class="header-flex">
+                    <h1>MONDO MANDO RECORDS LIVE-BOARD</h1>
+                    <button class="btn-control" style="background:#ef4444;" onclick="resetQueue()">LISTE RESETTEN</button>
                 </div>
 
-                <div class="calendar-section">
-                    <div class="calendar-header">
-                        <button onclick="changeMonth(-1)">◀</button>
-                        <h3 id="cal-month-year" style="margin: 0; color: var(--neon-cyan); font-size: 20px; letter-spacing: 2px;">MONAT JAHR</h3>
-                        <button onclick="changeMonth(1)">▶</button>
+                <div class="admin-time-box" style="flex-direction:column; gap:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                        <span>SHOW-ZEIT BELEBT: <span id="admin-total-time" class="time-value">0 Min. 00 Sek.</span></span>
+                        <span id="admin-form-status">🟢 LÄDT STATUS...</span>
                     </div>
-                    <div id="calendar-grid-content" class="calendar-grid"></div>
-                    <button id="btn-live-view" style="display:none; width: 100%; margin-top: 15px; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 6px; font-family: 'Impact', sans-serif; cursor: pointer; font-size: 16px; box-shadow: 0 0 10px #ef4444;" onclick="resetToLiveView()">🔴 ZURÜCK ZUR LIVE-SHOW</button>
+                    
+                    <div style="display:flex; gap:10px; margin-top:5px; margin-bottom: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px;">
+                        <span style="display: flex; align-items: center; margin-right: 10px;">SYSTEM STATUS:</span>
+                        <button id="btn-system-online" class="btn-control" style="flex-grow: 1;" onclick="setSystemStatus(true)">🟢 ONLINE</button>
+                        <button id="btn-system-offline" class="btn-control" style="flex-grow: 1;" onclick="setSystemStatus(false)">🔴 OFFLINE</button>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-top:5px; flex-wrap: wrap;">
+                        <button class="btn-control" style="background: var(--neon-cyan); color: black;" onclick="addExactSlots(2)">⚡ 50K LIKES: +2 PLÄTZE</button>
+                        <button id="btn-extension-toggle" class="btn-control" onclick="toggleExtension()">⏳ LÄDT VERLÄNGERUNG...</button>
+                    </div>
                 </div>
-            </div>
 
-            <!-- HAUPTCARD: EINREICHEN, VOTING ODER VERLÄNGERUNG -->
-            <div id="dynamic-main-card" class="card pink-glow" style="position: relative;">
-                <button type="button" class="btn-rules-small" onclick="document.getElementById('rulesPopup').style.display='flex'">Regeln lesen & Infos</button>
-                <h2 id="main-card-title">SONG EINREICHEN</h2>
-                <div id="offline-message" style="display:none; text-align:center; padding: 40px 20px; font-size: 24px; color: var(--neon-pink); border: 2px dashed var(--neon-pink); border-radius: 12px; background: rgba(0,0,0,0.6); text-transform: uppercase;">STREAM IST OFFLINE</div>
-
-                <!-- EINREICHE-FORMULAR -->
-                <div id="form-container">
-                    <form id="songForm" onsubmit="addSongToServer(event)">
-                        <div class="form-group">
-                            <label for="artistName">Künstlername</label>
-                            <input type="text" id="artistName" required placeholder="z.B. Mando">
-                        </div>
-                        <div class="form-group">
-                            <label for="songTitle">Song Titel</label>
-                            <input type="text" id="songTitle" required placeholder="Titel deines Tracks">
-                        </div>
-                        <div class="form-group">
-                            <label for="songLink">Song Link <span style="color: var(--neon-pink);">(Spotify oder YouTube)</span></label>
-                            <input type="url" id="songLink" required placeholder="https://...">
-                        </div>
-                        <div class="form-group">
-                            <label>Genaue Song-Dauer</label>
-                            <div class="duration-inputs">
-                                <input type="number" id="durationMin" required placeholder="MIN" min="0" max="120">
-                                <input type="number" id="durationSec" required placeholder="SEK" min="0" max="59">
-                            </div>
-                        </div>
-                        
-                        <!-- 10 ERLAUBTE & 4 VERBOTENE GENRES -->
-                        <div class="form-group">
-                            <label for="genre">Genre</label>
-                            <select id="genre" required onchange="checkGenreSafety()">
-                                <option value="" disabled selected>Wähle deine Musikrichtung</option>
-                                <option value="Hip Hop / Rap">Hip Hop / Rap</option>
-                                <option value="Trap / Drill">Trap / Drill</option>
-                                <option value="R&B / Soul">R&B / Soul</option>
-                                <option value="Pop / Modern Hit">Pop / Modern Hit</option>
-                                <option value="EDM / House / Dance">EDM / House / Dance</option>
-                                <option value="Reggaeton / Dancehall">Reggaeton / Dancehall</option>
-                                <option value="Afrobeat / Amapiano">Afrobeat / Amapiano</option>
-                                <option value="Rock / Alternative">Rock / Alternative</option>
-                                <option value="Indie / Alternative Pop">Indie / Alternative Pop</option>
-                                <option value="Anderes Genre">Anderes Genre</option>
-                                <option value="Schlager" style="color: #ef4444;">[GESPERRT] Schlager</option>
-                                <option value="Hardstyle" style="color: #ef4444;">[GESPERRT] Hardstyle</option>
-                                <option value="Hardcore" style="color: #ef4444;">[GESPERRT] Hardcore</option>
-                                <option value="Metal" style="color: #ef4444;">[GESPERRT] Metal</option>
-                            </select>
-                            <div id="genre-error" style="color: #ffffff; background: #ef4444; border: 2px solid #b91c1c; padding: 12px; border-radius: 8px; margin-top: 10px; display: none; font-size: 15px; font-weight:bold; text-align:center;">🚫 Dieses Genre ist blockiert!</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label style="color: var(--neon-cyan);">Bestätigung</label>
-                            
-                            <label class="checkbox-group" style="cursor: pointer; align-items: center;">
-                                <input type="checkbox" required style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
-                                <div style="display: flex; flex-direction: column; gap: 4px;">
-                                    <span style="font-family: 'Impact', sans-serif; font-size: 18px; letter-spacing: 1px;">ICH BESITZE ALLE RECHTE AN DIESEM SONG.</span>
-                                    <span style="font-family: sans-serif; font-size: 13px; color: var(--text-muted); line-height: 1.4;">Ich bestätige hiermit, dass ich alle Rechte an dem Song besitze und keine fremden Samples verwende.</span>
-                                </div>
-                            </label>
-                            
-                            <label class="checkbox-group rule-pulse-box" style="background-color: rgba(239, 68, 68, 0.08); cursor: pointer; align-items: center; margin-top: 15px;">
-                                <input type="checkbox" required style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
-                                <div style="display: flex; flex-direction: column; gap: 4px;">
-                                    <span style="font-family: 'Impact', sans-serif; font-size: 18px; letter-spacing: 1px; color: #ffcccc;">KEINE FAKE-NAMEN! UNFAIRES VERHALTEN FÜHRT ZUM PERMABANN!</span>
-                                    <span style="font-family: sans-serif; font-size: 13px; color: #ff9999; line-height: 1.4;">Wer versucht das System mit Fake-Accounts oder erfundenen Namen auszutricksen, wird permanent von allen Mondo Mando Angeboten ausgeschlossen.</span>
-                                </div>
-                            </label>
-                        </div>
-                        
-                        <div id="submit-error-box"></div>
-                        <button type="submit" id="submitBtn" class="btn-submit">SONG EINSENDEN</button>
-                    </form>
+                <div class="admin-time-box" style="flex-direction:column; gap:10px; border-color:var(--neon-gold);">
+                    <div class="section-title" style="margin:0; color:var(--neon-gold);">🗳️ VOTING STEUERUNG</div>
+                    <div id="admin-voting-controls"></div>
                 </div>
-                
-                <!-- LIVE VOTING FORMULAR (Wird eingeblendet, wenn Admin auf Start klickt) -->
-                <div id="voting-container" style="display:none;"></div>
-            </div>
-            
-            <!-- DIE NEUE VERLÄNGERUNGS / AFTER HOURS KARTE -->
-            <div id="overtime-card" class="card orange-glow" style="display:none; border-color: var(--neon-orange);">
-                <h2 style="color: var(--neon-orange); border-bottom-color: var(--neon-orange);">⏳ VERLÄNGERUNG / AFTER HOURS (<span id="overtime-count">0</span>)</h2>
-                <div id="overtime-list"></div>
-            </div>
 
-            <!-- REGULÄRE LISTEN -->
-            <div id="waitlist-card" class="card pink-glow">
-                <h2>WARTELISTE (<span id="queue-count">0</span>)</h2>
-                <div id="queue-list"></div>
-            </div>
+                <div class="section-title" style="color: #ffaa00;">🏆 EWIGE HALL OF FAME DER LEGENDEN</div>
+                <div id="admin-hof-list" style="margin-bottom: 20px;"></div>
 
-            <div id="hit-card" class="card gold-glow">
-                <h2 style="color: var(--neon-gold); border-bottom-color: var(--neon-gold);">⭐ HIT PLAYLIST (LIVE) ⭐</h2>
-                <div id="hit-bestenliste"></div>
-            </div>
-            
-            <div id="done-card" class="card" style="border-color: #22c55e;">
-                <h2 style="border-bottom-color: #22c55e;">BEREITS BEWERTET 🔥</h2>
-                <div id="done-list"></div>
-            </div>
+                <div class="section-title" style="color: var(--neon-gold);">⭐ Heutige Hits (Für Spotify/YouTube Export)</div>
+                <div id="admin-hit-export-list" style="margin-bottom: 20px;"></div>
 
-            <div id="hof-card" class="card gold-glow" style="border-color: #ffaa00;">
-                <h2 style="color: #ffaa00; font-size:26px; text-align:center;">👑 EWIGE HALL OF FAME 👑</h2>
-                <div id="hof-list"></div>
+                <div class="section-title" style="color: var(--neon-cyan);">Offene Einsendungen 🔥</div>
+                <div id="admin-active-list"></div>
+
+                <div class="section-title" style="color: #22c55e;">Bereits bewertet (Historie) ✓</div>
+                <div id="admin-done-list"></div>
             </div>
         </div>
     </div>
-
-    <!-- REGELN-POPUP (Neon Grün) -->
-    <div id="rulesPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 14, 0.95); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(8px); overflow-y: auto; padding: 20px; box-sizing: border-box;">
-        <div style="background: var(--form-bg); border: 3px solid var(--neon-green); padding: 40px; border-radius: 16px; max-width: 650px; width: 100%; color: white; position: relative; box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);">
-            <span onclick="document.getElementById('rulesPopup').style.display='none'" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 36px; color: var(--neon-green); font-family: sans-serif;">&times;</span>
-            <h2 style="color: var(--neon-green); border-bottom-color: var(--neon-green); font-size: 32px; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);">STREAM-REGELN & INFOS</h2>
-            
-            <div style="font-family: sans-serif; font-size: 16px; line-height: 1.6; color: #ccc; text-align: left;">
-                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">⏱️ 1. Sendezeit & Ablauf</h3>
-                <p style="margin-top: 0; margin-bottom: 10px;">Der normale Stream hat einen festen Topf von <strong>90 Minuten</strong>. In dieser Zeit werden die regulär eingereichten Songs der Reihe nach angehört und bewertet.</p>
-                <p style="margin-top: 0; margin-bottom: 15px; background: rgba(255,85,0,0.10); border: 1px solid var(--neon-orange); border-radius: 10px; padding: 12px; color: #ffd8bf;"><strong>Nach den 90 Minuten:</strong> Wenn die Hauptzeit voll ist, können Songs nur noch über die bezahlte Stream-Verlängerung / After Hours berücksichtigt werden. Die Verlängerung läuft insgesamt maximal <strong>30 Minuten</strong>.</p>
-                
-                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🏆 2. Voting-Code & Live-Voting</h3>
-                <p style="margin-top: 0; margin-bottom: 10px;">Nach dem Einsenden erhältst du deinen persönlichen <strong>Voting-Code</strong>. Kopiere oder fotografiere diesen Code direkt, damit du ihn am Ende der Show fürs Voting bereit hast.</p>
-                <div style="background:#000; border:2px dashed var(--neon-cyan); border-radius:10px; padding:12px; margin-bottom:15px; color:#fff; box-shadow:0 0 12px rgba(0,242,254,0.25);">
-                    <strong style="color:var(--neon-cyan);">Wichtig:</strong> Der Code ist <strong>nur fürs Voting im Stream</strong>.
-                </div>
-                <p style="margin-top: 0; margin-bottom: 15px;">Am Ende der Show startet das <strong>Voting (4 Minuten)</strong>. Mit deinem Voting-Code kannst du für deine Favoriten abstimmen.</p>
-
-                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🚀 3. Premium Features / Extras</h3>
-                <div style="display:grid; gap:10px; margin-bottom:15px;">
-                    <div style="background:rgba(0,242,254,0.08); border:1px solid var(--neon-cyan); border-radius:10px; padding:12px;"><strong style="color:var(--neon-cyan);">🚀 Song Push auf Platz 1 – CHF 6.20</strong><br>Dein Song wird bevorzugt auf Platz 1 der Warteliste gesetzt.</div>
-                    <div style="background:rgba(255,85,0,0.10); border:1px solid var(--neon-orange); border-radius:10px; padding:12px;"><strong style="color:var(--neon-orange);">🌙 Stream-Verlängerung / After Hours – CHF 5.00</strong><br>Dein Song kann nach den regulären 90 Minuten in der Verlängerung berücksichtigt werden. Die gesamte Verlängerungszeit beträgt maximal 30 Minuten.</div>
-                    <div style="background:rgba(255,0,127,0.08); border:1px solid var(--neon-pink); border-radius:10px; padding:12px;"><strong style="color:var(--neon-pink);">🎲 Song Würfel – CHF 3.50</strong><br>Dein Song kommt in den Song-Würfel und hat die Chance, zufällig ausgewählt oder besonders hervorgehoben zu werden.</div>
-                </div>
-                <p style="margin-top: 0; margin-bottom: 15px;">Bezahlen läuft sicher über Stripe. Die verfügbaren Zahlungsarten können je nach Gerät und Freischaltung angezeigt werden, z.B. TWINT, Apple Pay, Google Pay, Karte, Link oder Klarna.</p>
-
-                <h3 style="color:#ff1744; margin-bottom:5px; text-shadow:0 0 8px #ff1744, 0 0 18px rgba(255,23,68,0.9);">🚫 4. Verbote & Fair Play</h3>
-                <p style="margin-top: 0; margin-bottom: 15px;"><strong>Gesperrte Genres:</strong> Schlager, Hardstyle, Hardcore & Metal sind strikt verboten.<br><strong>Fake-Accounts:</strong> Wer sich unfaire Vorteile verschafft, kassiert ohne Vorwarnung einen <strong>Permabann</strong>!</p>
-            </div>
-            
-            <button type="button" onclick="document.getElementById('rulesPopup').style.display='none'" style="width: 100%; padding: 18px; background: var(--neon-green); border: none; color: black; font-family: 'Impact', sans-serif; font-size: 22px; letter-spacing: 2px; border-radius: 8px; cursor: pointer; margin-top: 20px; text-transform: uppercase; box-shadow: 0 0 15px var(--neon-green);">ICH HABE VERSTANDEN</button>
-        </div>
-    </div>
-
 <script>
-    const FEEDBACK_BUFFER_SEC = 120;
-    let calDate = new Date(); let serverHistoricalHits = {}; let selectedArchiveDate = null;
-    let localTimerInterval = null; let localRemainingSeconds = 0;
-    
-    function getSwissDateString(d) {
-        return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+    let token = ""; let sortableInstance = null;
+    let adminTimerInterval = null;
+    let adminRemainingSeconds = 0;
+
+    function tryLogin() {
+        const pass = document.getElementById('adminPassInput').value;
+        fetch('/api/admin/auth', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ password: pass }) })
+        .then(res => { if (res.ok) { token = pass; document.getElementById('login-overlay').style.display = 'none'; loadAdminQueue(); setInterval(loadAdminQueue, 4000); } else { alert("Falsches Passwort!"); } })
     }
 
-    function renderCalendar() { 
-        const year = calDate.getFullYear(); const month = calDate.getMonth();
-        const monthYearEl = document.getElementById('cal-month-year');
-        if(!monthYearEl) return;
-        monthYearEl.innerText = new Date(year, month).toLocaleString('de-CH', { month: 'long', year: 'numeric' }).toUpperCase();
-        const firstDay = new Date(year, month, 1).getDay(); const emptySlots = firstDay === 0 ? 6 : firstDay - 1; const daysInMonth = new Date(year, month + 1, 0).getDate();
-        let gridHtml = ''; const daysOfWeek = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-        daysOfWeek.forEach(d => gridHtml += `<div class="cal-day-header">${d}</div>`);
-        for(let i = 0; i < emptySlots; i++) gridHtml += `<div></div>`;
-        for(let i = 1; i <= daysInMonth; i++) {
-            const currentDayDate = new Date(year, month, i); const isSunday = currentDayDate.getDay() === 0; const dateStr = getSwissDateString(currentDayDate);
-            let extraClass = ''; let onClickAction = `onclick="selectArchiveDate('${dateStr}')"`;
-            if (isSunday) extraClass += ' is-sunday';
-            if (serverHistoricalHits[dateStr] && serverHistoricalHits[dateStr].length > 0) extraClass += ' has-hits';
-            if (selectedArchiveDate === dateStr) extraClass += ' is-selected';
-            gridHtml += `<div class="cal-day${extraClass}" ${onClickAction}>${i}</div>`;
-        }
-        document.getElementById('calendar-grid-content').innerHTML = gridHtml;
-        document.getElementById('btn-live-view').style.display = selectedArchiveDate ? 'block' : 'none';
+    function startAdminTimer(seconds) {
+        if (adminTimerInterval) clearInterval(adminTimerInterval);
+        adminRemainingSeconds = seconds; updateAdminTimerVisuals();
+        adminTimerInterval = setInterval(() => {
+            adminRemainingSeconds--;
+            if (adminRemainingSeconds <= 0) { adminRemainingSeconds = 0; clearInterval(adminTimerInterval); }
+            updateAdminTimerVisuals();
+        }, 1000);
     }
 
-    function changeMonth(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCalendar(); }
-    function selectArchiveDate(dateStr) { if (!serverHistoricalHits[dateStr]) return; selectedArchiveDate = dateStr; loadQueue(); }
-    function resetToLiveView() { selectedArchiveDate = null; loadQueue(); }
-    
-    function checkGenreSafety() { 
-        const val = document.getElementById('genre').value; 
-        const errBox = document.getElementById('genre-error'); 
-        const btn = document.getElementById('submitBtn'); 
-        // Jetzt inkl. Hardcore Prüfung
-        if (["Schlager", "Hardstyle", "Hardcore", "Metal"].some(g => val.includes(g))) { 
-            errBox.style.display = "block"; btn.disabled = true; 
-        } else { 
-            errBox.style.display = "none"; btn.disabled = false; 
-        } 
+    function updateAdminTimerVisuals() {
+        const textEl = document.getElementById('admin-timer-text');
+        if (!textEl) return;
+        const m = Math.floor(adminRemainingSeconds / 60); const s = adminRemainingSeconds % 60;
+        textEl.innerText = `0${m}:${s < 10 ? '0' : ''}${s}`;
+        textEl.style.color = adminRemainingSeconds > 120 ? '#22c55e' : (adminRemainingSeconds > 60 ? '#ffd700' : '#ef4444');
+        textEl.style.textShadow = `0 0 10px ${textEl.style.color}`;
     }
 
-    // AUTOMATISCHE VOTING-FORMULAR GENERIERUNG
-    function renderVotingForm(data) {
-        const container = document.getElementById('voting-container');
-        const isTiebreak = data.votingPhase === 'tiebreak';
-        const hits = isTiebreak ? (data.tiedSongs || []) : data.queue.filter(s => s.isHit);
-        
-        if (!container.innerHTML.includes('voteCodeInput') || (isTiebreak && !container.innerHTML.includes('STECHEN'))) {
-            let optionsHtml = '<option value="" disabled selected>Deinen Favoriten wählen...</option>';
-            hits.forEach(hit => { optionsHtml += `<option value="${hit.id}">${hit.artist} - ${hit.title}</option>`; });
-
-            const titleColor = isTiebreak ? 'var(--neon-pink)' : 'var(--neon-cyan)';
-            const titleText = isTiebreak ? '🚨 UNENTSCHIEDEN! STECHEN! 🚨' : 'VOTING ENDET IN';
-
-            container.innerHTML = `
-                <div style="text-align:center; margin-bottom:20px; padding: 15px; background: rgba(0,242,254,0.1); border: 2px dashed ${titleColor}; border-radius: 10px;">
-                    <div style="font-size:20px; color:${titleColor}; margin-bottom:5px; font-family: sans-serif; text-transform: uppercase;">${titleText}</div>
-                    ${isTiebreak ? '<div style="font-size:14px; color:#fff; font-family:sans-serif;">Die Favoriten stehen unentschieden. Deine finale Wahl!</div>' : ''}
-                    <div id="voting-timer" style="font-size:45px; font-family:'Impact'; color:var(--neon-pink); letter-spacing:3px; text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);">--:--</div>
-                </div>
-                <form id="voteForm" onsubmit="submitVote(event)">
-                    <div class="form-group">
-                        <label>Dein Voting-Code</label>
-                        <input type="text" id="voteCodeInput" required placeholder="CODE EINGEBEN" style="text-transform:uppercase; text-align:center; font-size:24px; letter-spacing:5px;">
-                    </div>
-                    <div class="form-group">
-                        <label>Deine 1. Stimme (2 Punkte)</label>
-                        <select id="vote1Input" required>${optionsHtml}</select>
-                    </div>
-                    <div class="form-group" style="${isTiebreak ? 'display:none;' : ''}">
-                        <label>Deine 2. Stimme (1 Punkt)</label>
-                        <select id="vote2Input" ${isTiebreak ? '' : 'required'}>${optionsHtml}</select>
-                    </div>
-                    <div id="vote-error-box" style="color: #ffffff; background-color: #ef4444; border: 2px solid #b91c1c; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; font-family: sans-serif; font-weight: bold;"></div>
-                    <div id="vote-success-box" style="color: #ffffff; background-color: var(--neon-green); border: 2px solid #16a34a; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; font-family: sans-serif; font-weight: bold;">✅ Deine Stimmen wurden erfolgreich gezählt!</div>
-                    <button type="submit" class="btn-submit" style="background: ${isTiebreak ? 'var(--neon-pink)' : 'var(--neon-cyan)'}; color: black; text-shadow: none; box-shadow: 0 0 15px ${isTiebreak ? 'var(--neon-pink)' : 'var(--neon-cyan)'}; animation: none;">${isTiebreak ? 'FINAL ABSTIMMEN' : 'VOTING ABSCHICKEN'}</button>
-                </form>
-            `;
-        }
-
-        // Live Countdown für das Voting
-        localRemainingSeconds = data.votingRemainingSeconds || 0;
-        if (!localTimerInterval) {
-            localTimerInterval = setInterval(() => {
-                if (localRemainingSeconds > 0) {
-                    localRemainingSeconds--;
-                    const m = Math.floor(localRemainingSeconds / 60);
-                    const s = localRemainingSeconds % 60;
-                    const timerEl = document.getElementById('voting-timer');
-                    if (timerEl) timerEl.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
-                } else {
-                    const timerEl = document.getElementById('voting-timer');
-                    if (timerEl) timerEl.innerText = "BEENDET";
-                }
-            }, 1000);
-        }
-    }
-
-    // VOTING AN DEN SERVER SENDEN
-    async function submitVote(e) {
-        e.preventDefault();
-        const voteCode = document.getElementById('voteCodeInput').value;
-        const vote1 = document.getElementById('vote1Input').value;
-        const vote2Input = document.getElementById('vote2Input');
-        const vote2 = vote2Input.style.display !== 'none' && vote2Input.value ? vote2Input.value : vote1;
-        
-        const errBox = document.getElementById('vote-error-box');
-        const succBox = document.getElementById('vote-success-box');
-
-        const res = await fetch('/api/vote', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ voteCode, vote1, vote2 })
-        });
-        const resData = await res.json();
-        
-        if (resData.error && resData.error !== "Du darfst nicht zweimal für denselben Song abstimmen!") {
-            errBox.innerText = "🚫 " + resData.error;
-            errBox.style.display = "block"; succBox.style.display = "none";
-        } else {
-            errBox.style.display = "none"; succBox.style.display = "block";
-            document.getElementById('voteForm').reset();
-        }
-    }
-
-    async function loadQueue() {
+    async function loadAdminQueue() {
+        if(!token) return;
         try {
             const res = await fetch('/api/queue'); const data = await res.json();
-            const queue = data.queue || []; const hallOfFame = data.hallOfFame || [];
-            serverHistoricalHits = data.historicalHits || {}; renderCalendar(); 
+            const queue = data.queue || []; const hof = data.hallOfFame || [];
             
-            // ================== ARCHIV-ANSICHT ==================
-            if (selectedArchiveDate) {
-                document.getElementById('dynamic-main-card').style.display = 'none';
-                document.getElementById('waitlist-card').style.display = 'none';
-                document.getElementById('overtime-card').style.display = 'none';
-                document.getElementById('hit-card').style.display = 'none';
-                document.getElementById('done-card').style.display = 'none';
-                
-                let archiveHtml = `<div style="text-align:center; margin-bottom:20px;"><h3 style="color:var(--neon-cyan); font-size:24px; text-transform:uppercase; border-bottom: 2px solid var(--neon-cyan); display:inline-block; padding-bottom:5px;">Rückblick: ${selectedArchiveDate}</h3></div>`;
-                if (serverHistoricalHits[selectedArchiveDate] && serverHistoricalHits[selectedArchiveDate].length > 0) {
-                    serverHistoricalHits[selectedArchiveDate].forEach(hit => {
-                        archiveHtml += `<div class="queue-item is-playlist-hit" style="background:rgba(255,215,0,0.1); border-color:var(--neon-gold);">
-                            <div><h4 style="margin:0; color:var(--neon-gold);">⭐ ${hit.artist} - ${hit.title}</h4>
-                            <p style="margin:5px 0 0 0; font-size:14px; color:#ccc;">Genre: ${hit.genre || 'Unbekannt'}</p></div>
+            document.getElementById('admin-total-time').innerText = data.spentFormatted;
+            
+            const btnOnline = document.getElementById('btn-system-online');
+            const btnOffline = document.getElementById('btn-system-offline');
+            const statusText = document.getElementById('admin-form-status');
+            const btnExt = document.getElementById('btn-extension-toggle');
+            
+            if (data.systemOnline === false) {
+                btnOnline.style.background = "#374151"; btnOnline.style.opacity = "0.4"; btnOnline.style.boxShadow = "none";
+                btnOffline.style.background = "#ef4444"; btnOffline.style.opacity = "1"; btnOffline.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.6)";
+                statusText.innerText = "🔴 SYSTEM OFFLINE";
+            } else {
+                btnOnline.style.background = "#22c55e"; btnOnline.style.opacity = "1"; btnOnline.style.boxShadow = "0 0 15px rgba(34, 197, 94, 0.6)";
+                btnOffline.style.background = "#374151"; btnOffline.style.opacity = "0.4"; btnOffline.style.boxShadow = "none";
+                if (data.phase === 'base') statusText.innerText = "🟢 HAUPTZEIT GEÖFFNET";
+                else if (data.phase === 'base_full') statusText.innerText = "🔒 90 MIN VOLL (WARTET)";
+                else if (data.phase === 'extension') statusText.innerText = "🔥 VERLÄNGERUNG LÄUFT";
+                else if (data.phase === 'extension_full') statusText.innerText = "🚫 ABSOLUT VOLL (STOPP)";
+            }
+            
+            if (data.extensionActive) {
+                btnExt.innerText = "🚫 VERLÄNGERUNG BEENDEN"; btnExt.style.background = "#ef4444"; btnExt.style.boxShadow = "0 0 10px #ef4444"; btnExt.style.color = "white";
+            } else {
+                btnExt.innerText = "⏳ 30 MIN. VERLÄNGERUNG FREIGEBEN"; btnExt.style.background = "linear-gradient(45deg, #ff5500, #cc3300)"; btnExt.style.boxShadow = "0 0 15px #ff5500"; btnExt.style.color = "white";
+            }
+
+            const vBox = document.getElementById('admin-voting-controls');
+            if (data.votingPhase === 'inactive') {
+                if (!document.getElementById('start-voting-btn')) {
+                    vBox.innerHTML = `<button id="start-voting-btn" class="btn-voting-action" onclick="startVoting()">🔴 VOTING STARTEN (4 MIN)</button>`;
+                }
+                if(adminTimerInterval) { clearInterval(adminTimerInterval); adminTimerInterval = null; }
+            } else if (data.votingPhase === 'active') {
+                if (!document.getElementById('admin-timer-text')) {
+                    vBox.innerHTML = `
+                        <div id="admin-timer-text" style="font-size:48px; text-align:center; margin-bottom:15px; font-family:'Impact', sans-serif;">04:00</div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-voting-action" style="background:#22c55e; box-shadow:0 0 15px #22c55e; flex:2;" onclick="resolveVoting()">✅ MANUELL BEENDEN</button>
+                            <button class="btn-voting-action" style="background:#3b82f6; box-shadow:0 0 15px #3b82f6; flex:1;" onclick="resetVotingTimer()">🔄 +4 MIN</button>
+                        </div>
+                    `;
+                }
+                if (!adminTimerInterval || Math.abs(adminRemainingSeconds - data.votingRemainingSeconds) > 2) {
+                    startAdminTimer(data.votingRemainingSeconds);
+                }
+            } else if (data.votingPhase === 'tiebreak') {
+                if (!document.getElementById('tiebreak-container')) {
+                    let tbHtml = `<div id="tiebreak-container" style="background:#ef4444; color:white; padding:10px; border-radius:6px; margin-bottom:10px;">⚠️ GLEICHSTAND! Wähle den Gewinner:</div>`;
+                    data.tiedSongs.forEach(s => {
+                        tbHtml += `<div style="display:flex; justify-content:space-between; background:#000; padding:10px; margin-bottom:5px;">
+                            <span>${s.artist} - ${s.title}</span>
+                            <button class="btn-control" style="background:var(--neon-gold); color:black;" onclick="forceWinner('${s.id}')">👑 DIESEN WÄHLEN</button>
                         </div>`;
                     });
-                } else {
-                    archiveHtml += `<div style="text-align:center; color:#ccc; font-size:18px; padding:20px; font-family:sans-serif;">An diesem Datum gibt es leider keine gespeicherten Hits.</div>`;
+                    vBox.innerHTML = tbHtml;
                 }
-                document.getElementById('hof-list').innerHTML = archiveHtml;
-                return; 
-            } else {
-                document.getElementById('dynamic-main-card').style.display = 'block';
-                document.getElementById('waitlist-card').style.display = 'block';
-                document.getElementById('hit-card').style.display = 'block';
-                document.getElementById('done-card').style.display = 'block';
+                if(adminTimerInterval) { clearInterval(adminTimerInterval); adminTimerInterval = null; }
             }
 
-            // ================== LIVE-ANSICHT ==================
-            document.getElementById('estimated-wait').innerText = data.spentFormatted;
-            const timeLeftPot = document.getElementById('time-left-pot');
-            const formContainer = document.getElementById('form-container');
-            const votingContainer = document.getElementById('voting-container');
-            const offlineMessage = document.getElementById('offline-message');
-            const mainCardTitle = document.getElementById('main-card-title');
-            const mainCard = document.getElementById('dynamic-main-card');
+            const activeList = document.getElementById('admin-active-list');
+            const doneList = document.getElementById('admin-done-list');
+            const hofList = document.getElementById('admin-hof-list');
+            const hitExportList = document.getElementById('admin-hit-export-list');
+            const activeSongs = queue.filter(item => !item.isDone);
             
-            // === ERKENNUNG DER VERLÄNGERUNG ===
-            const isOvertimeMode = data.extensionActive === true;
+            activeList.innerHTML = ''; doneList.innerHTML = ''; hofList.innerHTML = ''; hitExportList.innerHTML = '';
 
-            // SYSTEM OFFLINE ODER PHASEN-UMSCHALTUNG LOGIK
-            if (data.systemOnline === false) {
-                timeLeftPot.innerText = "OFFLINE"; timeLeftPot.className = "time-urgent";
-                formContainer.style.display = 'none';
-                votingContainer.style.display = 'none';
-                offlineMessage.style.display = 'block';
-                mainCardTitle.innerText = "SYSTEM OFFLINE";
-            } else {
-                const secFormatted = data.remainingSeconds < 10 ? '0' + data.remainingSeconds : data.remainingSeconds;
-                timeLeftPot.innerText = `${data.remainingMinutes} Min. ${secFormatted} Sek.`;
-                timeLeftPot.className = data.phase && data.phase.includes('full') ? "time-urgent" : "time-highlight";
-                
-                // === UMSCHALTUNG AUF LIVE VOTING, STECHEN ODER VERLÄNGERUNG ===
-                if (data.votingPhase === 'active') {
-                    formContainer.style.display = 'none';
-                    offlineMessage.style.display = 'none';
-                    votingContainer.style.display = 'block';
-                    mainCardTitle.innerText = "🔥 LIVE VOTING 🔥";
-                    mainCardTitle.style.color = "#ffffff";
-                    mainCardTitle.style.borderBottomColor = "var(--neon-pink)";
-                    mainCard.className = "card pink-glow";
-                    renderVotingForm(data);
-                } else if (data.votingPhase === 'tiebreak') {
-                    formContainer.style.display = 'none';
-                    offlineMessage.style.display = 'none';
-                    votingContainer.style.display = 'block';
-                    mainCardTitle.innerText = "🚨 STECHEN 🚨";
-                    mainCardTitle.style.color = "#ffffff";
-                    mainCardTitle.style.borderBottomColor = "var(--neon-pink)";
-                    mainCard.className = "card pink-glow";
-                    votingContainer.innerHTML = '<div style="text-align:center; padding: 30px 20px; border: 2px dashed var(--neon-pink); border-radius: 12px; background: rgba(255,0,127,0.1);"><h3 style="color: var(--neon-pink); font-size: 24px; margin-top: 0;">UNENTSCHIEDEN!</h3><p style="font-family: sans-serif; font-size: 16px; line-height: 1.5; color: #fff;">Es gibt einen Gleichstand zwischen den Favoriten. Der Admin entscheidet nun live im Stream über den Sieger!</p></div>';
-                } else if (isOvertimeMode) {
-                    // VERLÄNGERUNGS-ANSICHT
-                    formContainer.style.display = 'block';
-                    votingContainer.style.display = 'none';
-                    offlineMessage.style.display = 'none';
-                    mainCardTitle.innerText = "⏳ 30 MIN. VERLÄNGERUNG ⏳";
-                    mainCardTitle.style.color = "var(--neon-orange)";
-                    mainCardTitle.style.borderBottomColor = "var(--neon-orange)";
-                    mainCard.className = "card orange-glow";
-                    if (localTimerInterval) { clearInterval(localTimerInterval); localTimerInterval = null; }
-                } else {
-                    // NORMALER MODUS
-                    formContainer.style.display = 'block';
-                    votingContainer.style.display = 'none';
-                    offlineMessage.style.display = 'none';
-                    mainCardTitle.innerText = "SONG EINREICHEN";
-                    mainCardTitle.style.color = "#ffffff";
-                    mainCardTitle.style.borderBottomColor = "var(--neon-pink)";
-                    mainCard.className = "card pink-glow";
-                    if (localTimerInterval) { clearInterval(localTimerInterval); localTimerInterval = null; }
-                }
-            }
-            
-            // ================= DIE NEUE VERLÄNGERUNGS LISTE =================
-            const overtimeCard = document.getElementById('overtime-card');
-            const overtimeList = document.getElementById('overtime-list');
-            
-            // Trenne die Tracks: Alles was "After Hours" ist
-            const overtimeQueueRaw = queue.filter(item => item.isAfterHours === true);
-            const overtimeActiveSongs = overtimeQueueRaw.filter(item => !item.isDone);
-            
-            // Die normale Warteliste behält nur die restlichen Tracks
-            const activeSongs = queue.filter(item => !item.isDone && item.isAfterHours !== true);
-            
-            if (isOvertimeMode || overtimeActiveSongs.length > 0) {
-                overtimeCard.style.display = 'block';
-                document.getElementById('overtime-count').innerText = overtimeActiveSongs.length;
-                overtimeList.innerHTML = '';
-                
-                let otAccTime = 0;
-                overtimeActiveSongs.forEach((item) => {
-                    let activeIndex = overtimeActiveSongs.indexOf(item);
-                    let timeText = activeIndex === 0 ? `NEXT UP` : `WARTEZEIT: ~${Math.floor(otAccTime/60)} MIN`;
-                    otAccTime += item.duration + FEEDBACK_BUFFER_SEC;
-                    
-                    let platformIcon = item.platform === 'spotify' ? '<span style="color:#1DB954; margin-right:5px;">🟢</span>' : (item.platform === 'youtube' ? '<span style="color:#FF0000; margin-right:5px;">🔴</span>' : '🎵');
-                    let badges = '';
-                    if (item.isBoosted) badges += '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-cyan);">🚀 BOOST</span>';
-                    if (item.isAfterHours) badges += '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; border: 1px solid #b577ff; box-shadow: 0 0 8px #7000ff;">🌙 AFTER HOURS</span>';
-                    if (item.isDice) badges += '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-pink);">🎲 WÜRFEL</span>';
-
-                    overtimeList.innerHTML += `
-                    <div class="queue-item" style="border-color:var(--neon-orange); border-left-color:var(--neon-orange); background: rgba(255, 85, 0, 0.05); box-shadow: 0 0 10px rgba(255,85,0,0.1);">
-                        <div>
-                            <h4 style="margin:0 0 5px 0;">${platformIcon} ${item.artist} - ${item.title}</h4>
-                            <p style="margin:0; font-size:14px; color:var(--text-muted);">Genre: ${item.genre}</p>
-                            <div style="margin-top:8px;">${badges}</div>
-                        </div>
-                        <div style="text-align:right; font-weight:bold; color:var(--neon-orange); font-family: 'Impact', sans-serif; letter-spacing: 1px;">
-                            ${timeText}
-                        </div>
-                    </div>`;
-                });
-            } else {
-                overtimeCard.style.display = 'none';
-            }
-
-            // ================= NORMALE WARTELISTE =================
-            const activeList = document.getElementById('queue-list');
-            const doneList = document.getElementById('done-list');
-            const hitList = document.getElementById('hit-bestenliste');
-            const hofList = document.getElementById('hof-list');
-            
-            activeList.innerHTML = ''; doneList.innerHTML = ''; hitList.innerHTML = ''; hofList.innerHTML = '';
-            document.getElementById('queue-count').innerText = activeSongs.length;
-            
-            queue.filter(s => s.isHit).forEach(item => { hitList.innerHTML += `<div class="queue-item is-playlist-hit"><h4>⭐ ${item.artist} - ${item.title}</h4></div>`; });
-
-            hallOfFame.forEach(h => { 
-                hofList.innerHTML += `<div class="hof-card"><h3>${h.artist}</h3><p>${h.title}</p><p class="votes">🏆 ${h.votes} Stimmen</p></div>`; 
-            });
-
-            let accTime = 0;
-            activeSongs.forEach((item) => {
-                let activeIndex = activeSongs.indexOf(item);
-                let timeText = activeIndex === 0 ? `NEXT UP` : `WARTEZEIT: ~${Math.floor(accTime/60)} MIN`;
-                accTime += item.duration + FEEDBACK_BUFFER_SEC;
-                
-                let platformIcon = item.platform === 'spotify' ? '<span style="color:#1DB954; margin-right:5px;">🟢</span>' : (item.platform === 'youtube' ? '<span style="color:#FF0000; margin-right:5px;">🔴</span>' : '🎵');
-                let badges = '';
-                if (item.isBoosted) badges += '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-cyan);">🚀 BOOST</span>';
-                if (item.isDice) badges += '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:6px; font-size:12px; margin-right:6px; font-weight:bold; box-shadow: 0 0 8px var(--neon-pink);">🎲 WÜRFEL</span>';
-
-                activeList.innerHTML += `
-                <div class="queue-item" style="${item.isBoosted ? 'border-color:var(--neon-cyan); box-shadow: 0 0 10px rgba(0,242,254,0.3);' : ''}">
-                    <div>
-                        <h4 style="margin:0 0 5px 0;">${platformIcon} ${item.artist} - ${item.title}</h4>
-                        <p style="margin:0; font-size:14px; color:var(--text-muted);">Genre: ${item.genre}</p>
-                        <div style="margin-top:8px;">${badges}</div>
-                    </div>
-                    <div style="text-align:right; font-weight:bold; color:var(--neon-gold); font-family: 'Impact', sans-serif; letter-spacing: 1px;">
-                        ${timeText}
-                    </div>
+            if(hof.length === 0) { hofList.innerHTML = '<div style="color:#8e8e9f; text-align:center; padding: 10px;">Noch keine Champions.</div>'; }
+            hof.forEach((c, hIndex) => {
+                hofList.innerHTML += `<div class="admin-item" style="border-color: #ffaa00;">
+                    <div><h3 style="color: #ffaa00; margin:0;">👑 ${c.artist} - ${c.title}</h3><p style="margin:5px 0 0 0; color:#bbb;">${c.votes} Stimmen | ${c.date}</p></div>
+                    <button class="btn-trash" onclick="deleteChampion(${hIndex})">🗑️</button>
                 </div>`;
             });
-            
-            queue.filter(item => item.isDone).forEach(item => {
-                doneList.innerHTML += `<div class="queue-item" style="opacity:0.5;"><h4>✔️ ${item.artist} - ${item.title}</h4></div>`;
+
+            const hitSongs = queue.filter(item => item.isHit);
+            if(hitSongs.length === 0) {
+                hitExportList.innerHTML = '<div style="color:#8e8e9f; text-align:center; padding: 10px;">Noch keine Tracks als Hit markiert.</div>';
+            } else {
+                hitSongs.forEach(item => {
+                    let iconHtml = `<span class="link-icon icon-text">LINK</span>`;
+                    if(item.platform === 'spotify') iconHtml = `<span class="link-icon icon-spotify">🟢 SPOTIFY</span>`;
+                    if(item.platform === 'youtube') iconHtml = `<span class="link-icon icon-youtube">🔴 YOUTUBE</span>`;
+                    hitExportList.innerHTML += `<div class="admin-item" style="border-color: var(--neon-gold); padding: 12px 20px;">
+                            <div class="song-details"><h3 style="color: var(--neon-gold); margin:0;">⭐ ${item.artist} - ${item.title}</h3></div>
+                            <div class="actions-flex"><a href="${item.songLink}" target="_blank">${iconHtml}</a></div>
+                        </div>`;
+                });
+            }
+
+            queue.forEach((item, index) => {
+                const min = Math.floor(item.duration / 60); const sec = item.duration % 60;
+                let iconHtml = `<span class="link-icon icon-text">LINK</span>`;
+                if(item.platform === 'spotify') iconHtml = `<span class="link-icon icon-spotify">🟢 SPOTIFY</span>`;
+                if(item.platform === 'youtube') iconHtml = `<span class="link-icon icon-youtube">🔴 YOUTUBE</span>`;
+
+                // GENERIERUNG DER DREI PREMIUM BADGES
+                let boostBadge = item.isBoosted ? '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-cyan);">🚀 BOOST</span> ' : '';
+                let afterHoursBadge = item.isAfterHours ? '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px #7000ff;">🌙 AFTER HOURS</span> ' : '';
+                let diceBadge = item.isDice ? '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-pink);">🎲 WÜRFEL</span> ' : '';
+
+                if(!item.isDone) {
+                    let activeIndex = activeSongs.indexOf(item);
+                    let titlePrefix = activeIndex === 0 ? '[DRAN] ' : '';
+                    let itemStyleClass = item.isHit ? 'is-hit' : (activeIndex === 0 ? 'is-active-first' : '');
+
+                    activeList.innerHTML += `<div class="admin-item ${itemStyleClass}">
+                        <div style="display:flex; align-items:center;">
+                            <div class="drag-handle">☰</div>
+                            <div class="song-details">
+                                <h3 style="margin:0;">${titlePrefix}${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3>
+                                <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ⏱️ ${min+2}:${sec < 10 ? '0':''}${sec} Min | Code: ${item.voteCode ? '✅' : '❌'}</p>
+                            </div>
+                        </div>
+                        <div class="actions-flex">
+                            <a href="${item.songLink}" target="_blank">${iconHtml}</a>
+                            <button class="btn-hit-toggle" onclick="toggleHit(${index})">HIT ⭐</button>
+                            <button class="btn-delete" onclick="toggleDone(${index})">✓</button>
+                            <button class="btn-trash" onclick="trashSong(${index})">🗑️</button>
+                        </div>
+                    </div>`;
+                } else {
+                    doneList.innerHTML += `<div class="admin-item is-done-admin">
+                            <div class="song-details"><h3 style="margin:0;">${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3></div>
+                            <div class="actions-flex">
+                                <a href="${item.songLink}" target="_blank">${iconHtml}</a>
+                                <button class="btn-control" onclick="toggleDone(${index})">↩</button>
+                            </div>
+                        </div>`;
+                }
             });
-            
+
+            if (sortableInstance) sortableInstance.destroy();
+            sortableInstance = new Sortable(document.getElementById('admin-active-list'), {
+                animation: 150, handle: '.drag-handle',
+                onEnd: async function (evt) {
+                    if(evt.oldIndex !== evt.newIndex) {
+                        await fetch('/api/admin/reorder-active', { method: 'POST', headers: { 'Authorization': token, 'Content-Type': 'application/json' }, body: JSON.stringify({ oldIndex: evt.oldIndex, newIndex: evt.newIndex }) });
+                        loadAdminQueue();
+                    }
+                }
+            });
         } catch(e) {}
     }
-    
-    async function addSongToServer(e) {
-        e.preventDefault(); const artist = document.getElementById('artistName').value; const title = document.getElementById('songTitle').value;
-        const songLink = document.getElementById('songLink').value; const min = parseInt(document.getElementById('durationMin').value) || 0; const sec = parseInt(document.getElementById('durationSec').value) || 0;
-        const genre = document.getElementById('genre').value; const errBox = document.getElementById('submit-error-box');
-        
-        const res = await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink }) });
-        const resData = await res.json();
-        
-        if (resData.error) {
-            errBox.innerText = "🚫 " + resData.error; errBox.style.display = "block";
-        } else {
-            errBox.style.display = "none"; 
-            
-            const overlay = document.createElement('div');
-            overlay.style = "position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(10,10,14,0.96); z-index:10000; display:flex; justify-content:center; align-items:flex-start; padding: 20px; overflow-y: auto; backdrop-filter: blur(8px); box-sizing: border-box;";
-            overlay.innerHTML = `<div style="background: rgba(19, 19, 26, 0.97); border: 3px solid var(--neon-green); padding: 34px; border-radius: 22px; text-align: center; max-width: 620px; width: 100%; box-shadow: 0 0 34px rgba(34, 197, 94, 0.35), inset 0 0 18px rgba(34, 197, 94, 0.12); color: white; font-family: 'Impact', sans-serif; margin: 35px 0;">
-                <h1 style="color: var(--neon-green); font-size: 38px; text-shadow: 0 0 16px rgba(34, 197, 94, 0.8); margin: 0 0 8px 0; letter-spacing: 2px;">✅ TRACK EINGEREICHT!</h1>
-                <p style="font-family: sans-serif; font-size: 16px; color: #d1d5db; margin-bottom: 5px; text-transform: uppercase;">Dein Voting-Code:</p>
-                <div style="background: #000; padding: 20px; font-size: 45px; color: var(--neon-cyan); letter-spacing: 10px; margin: 15px 0; border: 2px dashed var(--neon-cyan); text-shadow: 0 0 12px rgba(0, 242, 254, 0.8); border-radius: 10px;">${resData.voteCode}</div>
-                <button type="button" onclick="navigator.clipboard.writeText('${resData.voteCode}'); this.innerText='✅ CODE KOPIERT';" style="background:linear-gradient(90deg, var(--neon-cyan), #60efff); color:black; border:none; padding:13px 18px; border-radius:10px; font-family:'Impact', sans-serif; font-size:18px; letter-spacing:1px; cursor:pointer; box-shadow:0 0 15px rgba(0,242,254,0.55); margin-bottom:12px;">📋 VOTING-CODE KOPIEREN</button>
-                <p style="font-family: sans-serif; font-size: 15px; color: #ffffff; margin: 0 0 12px 0; line-height: 1.5;">Wichtig: Kopiere oder fotografiere diesen Code. Du brauchst ihn am Ende der Show fürs Voting.</p>
-                <div style="background:rgba(0,242,254,0.10); border:2px dashed var(--neon-cyan); border-radius:12px; padding:14px; margin: 0 0 18px 0; font-family:sans-serif; color:#e0ffff; line-height:1.45; box-shadow:0 0 14px rgba(0,242,254,0.20);">
-                    <strong style="color:var(--neon-cyan);">CODE-HINWEIS:</strong><br>
-                    Der Code ist <strong>nur fürs Voting im Stream</strong>.
-                </div>
-                <div style="border:2px solid var(--neon-gold); border-radius:16px; padding:18px; background:rgba(255,215,0,0.06); box-shadow:0 0 18px rgba(255,215,0,0.18); margin-top: 18px;">
-                    <h2 style="color:var(--neon-gold); border-bottom:2px solid var(--neon-gold); padding-bottom:8px; margin:0 0 14px 0; font-size:24px; text-shadow:0 0 10px rgba(255,215,0,0.6);">👑 Willst du deinen Song pushen?</h2>
-                    <p style="font-family:sans-serif; color:#ddd; line-height:1.45; margin:0 0 12px 0;">Nach dem Einsenden kannst du freiwillig einen Bonus kaufen. Die Bezahlung läuft direkt über Stripe. Dein Voting-Code bleibt nur fürs Voting im Stream.</p>
-                    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin: 0 0 16px 0; font-family:sans-serif; font-weight:900; font-size:12px; letter-spacing:1px; text-transform:uppercase;">
-                        <span style="border:1px solid #ff5500; color:#ffbf8a; background:rgba(255,85,0,0.14); padding:7px 10px; border-radius:999px; box-shadow:0 0 10px rgba(255,85,0,0.3);">TWINT</span>
-                        <span style="border:1px solid #ffffff; color:#ffffff; background:rgba(255,255,255,0.10); padding:7px 10px; border-radius:999px; box-shadow:0 0 10px rgba(255,255,255,0.18);">Apple Pay</span>
-                        <span style="border:1px solid var(--neon-cyan); color:var(--neon-cyan); background:rgba(0,242,254,0.10); padding:7px 10px; border-radius:999px; box-shadow:0 0 10px rgba(0,242,254,0.25);">Google Pay</span>
-                        <span style="border:1px solid var(--neon-green); color:var(--neon-green); background:rgba(34,197,94,0.10); padding:7px 10px; border-radius:999px; box-shadow:0 0 10px rgba(34,197,94,0.22);">Karte</span>
-                    </div>
-                    <p style="font-family:sans-serif; color:#a7f3d0; line-height:1.35; margin:0 0 16px 0; font-size:13px;">Im Stripe-Checkout werden die verfügbaren Zahlungsarten automatisch angezeigt, z.B. TWINT, Apple Pay, Google Pay oder Karte.</p>
-                    <div style="display:grid; gap:12px;">
-                        <a href="https://buy.stripe.com/fZu4gz6xsasDarv6ps43S00" target="_blank" rel="noopener" style="display:block; text-decoration:none; background:linear-gradient(90deg, var(--neon-cyan), #60efff); color:black; padding:14px; border-radius:10px; font-size:20px; letter-spacing:1px; box-shadow:0 0 15px var(--neon-cyan);">🚀 Platz 1 Push – CHF 6.20<br><span style="font-family:sans-serif; font-size:12px; letter-spacing:0; font-weight:bold; opacity:0.82;">Bezahlen ohne Code</span></a>
-                        <a href="https://buy.stripe.com/3cI6oH8FAeIT9nrg0243S01" target="_blank" rel="noopener" style="display:block; text-decoration:none; background:linear-gradient(90deg, var(--neon-orange), #ff9a3d); color:white; padding:14px; border-radius:10px; font-size:20px; letter-spacing:1px; box-shadow:0 0 15px var(--neon-orange);">🌙 After Hours nach 90 Min – CHF 5.00<br><span style="font-family:sans-serif; font-size:12px; letter-spacing:0; font-weight:bold; opacity:0.9;">Bezahlen ohne Code</span></a>
-                        <a href="https://buy.stripe.com/8x200jcVQ44f4378xA43S02" target="_blank" rel="noopener" style="display:block; text-decoration:none; background:linear-gradient(90deg, var(--neon-pink), #ff5cad); color:white; padding:14px; border-radius:10px; font-size:20px; letter-spacing:1px; box-shadow:0 0 15px var(--neon-pink);">🎲 Song Würfel – CHF 3.50<br><span style="font-family:sans-serif; font-size:12px; letter-spacing:0; font-weight:bold; opacity:0.9;">Bezahlen ohne Code</span></a>
-                    </div>
-                </div>
-                <button onclick="this.parentElement.parentElement.remove()" style="background: #2a2a35; border: 1px solid #4a4a5a; padding: 16px; color: white; margin-top: 18px; width: 100%; border-radius: 10px; font-size: 18px; cursor: pointer; text-transform: uppercase; font-family: 'Impact', sans-serif;">OHNE BONUS SCHLIESSEN</button>
-            </div>`;
-            document.body.appendChild(overlay);
 
-            document.getElementById('songForm').reset(); loadQueue();
-        }
+    async function toggleExtension() {
+        const res = await fetch('/api/admin/toggle-extension', { method: 'POST', headers: {'Authorization': token} });
+        const resData = await res.json();
+        loadAdminQueue();
+        if (resData.extensionActive) alert("🔥 ORANGE PHASE AKTIV: Die 30 Minuten Verlängerung wurden für die Zuschauer geöffnet!");
+        else alert("🚫 Verlängerung geschlossen.");
+    }
+
+    async function setSystemStatus(isOnline) {
+        await fetch('/api/admin/set-system-status', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ online: isOnline }) });
+        loadAdminQueue(); if (isOnline) alert("✅ System ONLINE!"); else alert("🚫 System OFFLINE!");
+    }
+
+    async function addExactSlots(slots) {
+        const minutesToAdd = slots * 6; 
+        await fetch('/api/admin/overtime', { method: 'POST', headers: {'Authorization': token, 'Content-Type':'application/json'}, body: JSON.stringify({ minutes: minutesToAdd }) }); 
+        loadAdminQueue(); alert(`⚡ +${minutesToAdd} Min. Limit freigeschaltet!`);
+    }
+
+    async function startVoting() { 
+        await fetch('/api/admin/voting/start', { method: 'POST', headers: {'Authorization': token} }); 
+        alert("🔥 VOTING GESTARTET! 4 Minuten laufen jetzt ab.");
+        loadAdminQueue(); 
+    }
+
+    async function resetVotingTimer() {
+        await fetch('/api/admin/voting/reset-timer', { method: 'POST', headers: {'Authorization': token} });
+        loadAdminQueue();
     }
     
-    function updateCountdown() {
-        const now = new Date(); const currentDay = now.getDay(); const currentHour = now.getHours(); const currentMin = now.getMinutes();
-        let target = new Date(); target.setHours(19, 0, 0, 0); let daysToAdd = (7 - currentDay) % 7;
-        if (currentDay === 0) {
-            if (currentHour >= 19 && (currentHour < 21 || (currentHour === 21 && currentMin < 10))) {
-                document.getElementById('live-badge').style.display = "inline-block"; document.getElementById('stream-status-title').innerText = " SHOW IS LIVE"; document.getElementById('countdown').innerText = "JETZT EINSCHALTEN!"; return;
-            } else if (currentHour >= 21) { daysToAdd = 7; }
-        }
-        target.setDate(now.getDate() + daysToAdd); const diff = target - now;
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        document.getElementById('live-badge').style.display = "none";
-        document.getElementById('countdown').innerText = `${d} TAGE, ${h} STD. / ${m} MIN.`;
+    async function resolveVoting() { 
+        const res = await fetch('/api/admin/voting/resolve', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: "{}" });
+        const data = await res.json();
+        if (data.error) { alert("🚫 " + data.error); } 
+        else if (data.tiebreak) { alert("⚠️ GLEICHSTAND! Bitte wähle den Gewinner manuell aus der orangenen Liste."); } 
+        else { alert("✅ VOTING BEENDET! Der Gewinner wurde in die Hall of Fame eingetragen."); }
+        loadAdminQueue(); 
     }
-    setInterval(updateCountdown, 60000); updateCountdown();
-    setInterval(loadQueue, 5000); loadQueue();
+    
+    async function forceWinner(id) { await fetch('/api/admin/voting/resolve', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ forceWinnerId: id }) }); loadAdminQueue(); }
+    async function toggleHit(index) { await fetch(`/api/queue/${index}/hit`, { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
+    async function toggleDone(index) { await fetch(`/api/queue/${index}/done`, { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); }
+    async function trashSong(index) { if(confirm("Löschen?")) { await fetch(`/api/queue/${index}`, { method: 'DELETE', headers: {'Authorization': token} }); loadAdminQueue(); } }
+    async function deleteChampion(hIndex) { if(confirm("Löschen?")) { await fetch(`/api/admin/halloffame/${hIndex}`, { method: 'DELETE', headers: {'Authorization': token} }); loadAdminQueue(); } }
+    async function resetQueue() { if(confirm("Reset?")) { await fetch('/api/queue/reset', { method: 'POST', headers: {'Authorization': token} }); loadAdminQueue(); } }
 </script>
 </body>
 </html>
