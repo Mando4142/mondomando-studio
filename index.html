@@ -365,6 +365,122 @@
 
         #submit-error-box { color: #ffffff; background-color: #ef4444; border: 2px solid #b91c1c; padding: 15px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; font-family: sans-serif; font-weight: bold;}
         #bonus-announcement-box { display:none; margin-bottom: 18px; border: 2px solid var(--neon-gold); border-radius: 14px; padding: 14px; background: rgba(255, 215, 0, 0.10); box-shadow: 0 0 18px rgba(255, 215, 0, 0.22); font-family: sans-serif; font-weight: 900; color: #fff7cc; line-height: 1.45; }
+    
+        /* MOBILE FIX: Regeln-Popup oben nicht abschneiden */
+        #rulesPopup {
+            align-items: flex-start !important;
+            padding-top: max(22px, env(safe-area-inset-top)) !important;
+            padding-bottom: max(28px, env(safe-area-inset-bottom)) !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        .rules-popup-content {
+            box-sizing: border-box;
+            margin: 0 auto 34px auto !important;
+        }
+        @media (max-width: 520px) {
+            #rulesPopup {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+                padding-top: max(16px, env(safe-area-inset-top)) !important;
+            }
+            .rules-popup-content {
+                padding: 24px 16px !important;
+                border-radius: 14px !important;
+                width: 100% !important;
+            }
+            .rules-popup-content h2 {
+                font-size: 26px !important;
+                line-height: 1.12 !important;
+                padding-right: 34px !important;
+                margin-top: 6px !important;
+            }
+            .rules-popup-content h3 {
+                font-size: 18px !important;
+                line-height: 1.25 !important;
+            }
+            .rules-popup-content p,
+            .rules-popup-content li,
+            .rules-popup-content div {
+                font-size: 15px;
+            }
+        }
+
+    
+        .viewer-vote-card {
+            border-color: var(--neon-cyan) !important;
+            background: rgba(0, 242, 254, 0.07) !important;
+            box-shadow: 0 0 22px rgba(0,242,254,0.18), inset 0 0 12px rgba(0,242,254,0.08) !important;
+            text-align: center;
+        }
+        .viewer-vote-title {
+            color: var(--neon-cyan);
+            font-size: 28px;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 12px rgba(0,242,254,0.65);
+        }
+        .viewer-vote-text {
+            font-family: sans-serif;
+            color: #e5e7eb;
+            line-height: 1.5;
+            margin: 0 0 14px 0;
+        }
+        .viewer-vote-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+        .viewer-vote-row input {
+            flex: 1;
+            min-width: 0;
+            background: #000;
+            color: #fff;
+            border: 2px solid rgba(0,242,254,0.5);
+            border-radius: 10px;
+            padding: 12px;
+            font-family: sans-serif;
+            font-size: 15px;
+        }
+        .btn-viewer-code {
+            background: linear-gradient(90deg, var(--neon-cyan), #60efff);
+            color: #001;
+            border: none;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-family: 'Impact', sans-serif;
+            font-size: 17px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0,242,254,0.45);
+            text-transform: uppercase;
+        }
+        .viewer-code-output {
+            display: none;
+            margin-top: 14px;
+            background: #000;
+            border: 2px dashed var(--neon-cyan);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--neon-cyan);
+            font-size: 38px;
+            letter-spacing: 8px;
+            text-shadow: 0 0 12px rgba(0,242,254,0.8);
+            font-family: 'Impact', sans-serif;
+        }
+        .viewer-vote-hint {
+            margin-top: 10px;
+            font-family: sans-serif;
+            color: #bff9ff;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        @media (max-width: 520px) {
+            .viewer-vote-row { flex-direction: column; }
+            .viewer-vote-title { font-size: 24px; }
+            .viewer-code-output { font-size: 32px; letter-spacing: 6px; }
+        }
+
     </style>
 </head>
 <body>
@@ -375,7 +491,7 @@
             <!-- SEITEN-TITEL / BESCHREIBUNG -->
             <div class="card site-intro-card">
                 <img src="mondo_mando_logo.webp" alt="Mondo Mando Records Logo" class="site-intro-logo" width="360" height="540" fetchpriority="high" decoding="async">
-<p class="site-intro-text">Auf dieser Seite kannst du deinen Song für den nächsten Mondo Mando Studio Stream einreichen. Deine Musik wird live angehört, bewertet und kann durch das Chat-Voting auf die Hit-Playlist kommen. Zusätzlich gibt es Gold-Pass-Boosts wie Platz-1-Push, After Hours und Song-Würfel, um deinem Track mehr Aufmerksamkeit im Stream zu geben.</p>
+<p class="site-intro-text">Auf dieser Seite kannst du deinen Song für den nächsten Mondo Mando Records Stream einreichen. Deine Musik wird live angehört, bewertet und kann durch das Chat-Voting auf die Hit-Playlist kommen. Zusätzlich gibt es Stream Extras wie Platz-1-Push, After Hours und Song-Würfel.</p>
             </div>
 
 
@@ -384,6 +500,21 @@
 <button type="button" class="btn-rules-main" onclick="document.getElementById('rulesPopup').style.display='flex'">REGELN LESEN & INFOS</button>
                 <div class="rules-finger-clipart">👈</div>
             </div>
+
+
+            <!-- TIKTOK ZUSCHAUER VOTING-CODE -->
+            <div class="card viewer-vote-card" id="viewer-vote-card">
+                <h2 class="viewer-vote-title">🎟️ TikTok Voting-Code holen</h2>
+                <p class="viewer-vote-text">Du bist im TikTok-Live und willst mitvoten? Hol dir hier deinen Code. Pro Gerät ist nur <strong>1 Code pro Stream</strong> erlaubt.</p>
+                <div class="viewer-vote-row">
+                    <input type="text" id="viewerTikTokName" placeholder="TikTok-Name optional">
+                    <button type="button" class="btn-viewer-code" onclick="getViewerVotingCode(this)">Code holen</button>
+                </div>
+                <div id="viewerCodeOutput" class="viewer-code-output"></div>
+                <button type="button" id="viewerCopyBtn" class="btn-viewer-code" style="display:none; margin-top:10px;" onclick="copyViewerVotingCode()">📋 Code kopieren</button>
+                <div class="viewer-vote-hint">Wichtig: Der Code ist nur fürs Voting und kann nur einmal abstimmen.</div>
+            </div>
+
 
 
             <!-- STATUS & KALENDER CARD -->
@@ -507,19 +638,19 @@
                         <div class="booster-preview-item">
                             <div class="booster-preview-name">🚀 Platz 1 Push – CHF 6.20</div>
                             <div class="booster-preview-desc">Wähle einen Song aus der Warteliste und pushe ihn automatisch auf Platz 1.</div>
-                            <span class="booster-preview-limit">Max. 2× pro Nutzer & Stream</span><br>
+                            <span class="booster-preview-limit">Limit: maximal 2 Extras pro Nutzer und Stream</span><br>
                             <button type="button" class="stream-extra-buy-btn" style="background:linear-gradient(90deg,var(--neon-cyan),#60efff); color:#001;" onclick="document.getElementById('waitlist-card').scrollIntoView({behavior:'smooth'});">🚀 Song in der Warteliste auswählen</button>
                         </div>
                         <div class="booster-preview-item orange">
                             <div class="booster-preview-name">🌙 After Hours – CHF 5.00</div>
                             <div class="booster-preview-desc">Nach dem Kauf wirst du einmalig freigeschaltet, damit du deinen Song nach den freien 90 Minuten in der Verlängerungszeit einreichen kannst.</div>
-                            <span class="booster-preview-limit">Max. 2× pro Nutzer & Stream</span><br>
+                            <span class="booster-preview-limit">Limit: maximal 2 Extras pro Nutzer und Stream</span><br>
                             <button type="button" class="stream-extra-buy-btn" style="background:linear-gradient(90deg,var(--neon-orange),#ff9a3d); color:white;" onclick="startBonusCheckout('after_hours', null, this)">🌙 After Hours kaufen</button>
                         </div>
                         <div class="booster-preview-item pink">
                             <div class="booster-preview-name">🎲 Song Würfel – CHF 3.50</div>
                             <div class="booster-preview-desc">Der Song-Würfel pickt zufällig einen Song aus der aktuellen Warteliste und pusht ihn direkt auf Platz 1.</div>
-                            <span class="booster-preview-limit">Max. 2× pro Nutzer & Stream</span><br>
+                            <span class="booster-preview-limit">Limit: maximal 2 Extras pro Nutzer und Stream</span><br>
                             <button type="button" class="stream-extra-buy-btn" style="background:linear-gradient(90deg,var(--neon-pink),#ff5cad); color:white;" onclick="startBonusCheckout('song_dice', null, this)">🎲 Song Würfel kaufen</button>
                         </div>
                     </div>
@@ -557,8 +688,8 @@
     </div>
 
     <!-- REGELN-POPUP (Neon Grün) -->
-    <div id="rulesPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 14, 0.95); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(8px); overflow-y: auto; padding: 20px; box-sizing: border-box;">
-        <div style="background: var(--form-bg); border: 3px solid var(--neon-green); padding: 40px; border-radius: 16px; max-width: 650px; width: 100%; color: white; position: relative; box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);">
+    <div id="rulesPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 14, 0.95); z-index: 20000; justify-content: center; align-items: flex-start; backdrop-filter: blur(8px); overflow-y: auto; padding: max(22px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom)) 20px; box-sizing: border-box;">
+        <div class="rules-popup-content" style="background: var(--form-bg); border: 3px solid var(--neon-green); padding: 40px; border-radius: 16px; max-width: 650px; width: 100%; color: white; position: relative; box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);">
             <span onclick="document.getElementById('rulesPopup').style.display='none'" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 36px; color: var(--neon-green); font-family: sans-serif;">&times;</span>
             <h2 style="color: var(--neon-green); border-bottom-color: var(--neon-green); font-size: 32px; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);">STREAM-REGELN & INFOS</h2>
             
@@ -568,17 +699,17 @@
                 <p style="margin-top: 0; margin-bottom: 15px; background: rgba(255,85,0,0.10); border: 1px solid var(--neon-orange); border-radius: 10px; padding: 12px; color: #ffd8bf;"><strong>Nach den 90 Minuten:</strong> Wenn die Hauptzeit voll ist, können Songs nur noch über die bezahlte Stream-Verlängerung / After Hours berücksichtigt werden. Die Verlängerung läuft insgesamt maximal <strong>30 Minuten</strong>.</p>
                 
                 <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🏆 2. Voting-Code & Live-Voting</h3>
-                <p style="margin-top: 0; margin-bottom: 10px;">Nach dem Einsenden erhältst du deinen persönlichen <strong>Voting-Code</strong>. Kopiere oder fotografiere diesen Code direkt, damit du ihn am Ende der Show fürs Voting bereit hast.</p>
+                <p style="margin-top: 0; margin-bottom: 10px;">Künstler erhalten nach dem Einsenden einen persönlichen <strong>Voting-Code</strong>. Zuschauer aus dem TikTok-Chat können sich auf der Webseite einen eigenen Zuschauer-Code holen.</p>
                 <div style="background:#000; border:2px dashed var(--neon-cyan); border-radius:10px; padding:12px; margin-bottom:15px; color:#fff; box-shadow:0 0 12px rgba(0,242,254,0.25);">
                     <strong style="color:var(--neon-cyan);">Wichtig:</strong> Der Code ist <strong>nur fürs Voting im Stream</strong>.
                 </div>
-                <p style="margin-top: 0; margin-bottom: 15px;">Am Ende der Show startet das <strong>Voting (4 Minuten)</strong>. Mit deinem Voting-Code kannst du für deine Favoriten abstimmen.</p>
+                <p style="margin-top: 0; margin-bottom: 15px;">Am Ende der Show startet das <strong>Voting (4 Minuten)</strong>. Mit deinem Voting-Code kannst du für deine Favoriten abstimmen. Jeder Code kann nur einmal abstimmen.</p>
 
                 <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">💸💎 3. Stream Extras</h3>
                 <div style="display:grid; gap:10px; margin-bottom:15px;">
                     <div style="background:rgba(0,242,254,0.08); border:1px solid var(--neon-cyan); border-radius:10px; padding:12px;"><strong style="color:var(--neon-cyan);">🚀 Song Push auf Platz 1 – CHF 6.20</strong><br>Du kannst einen Song aus der Warteliste auswählen und automatisch auf Platz 1 pushen.<br><span style="color:#d9ffff; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
                     <div style="background:rgba(255,85,0,0.10); border:1px solid var(--neon-orange); border-radius:10px; padding:12px;"><strong style="color:var(--neon-orange);">🌙 Stream-Verlängerung / After Hours – CHF 5.00</strong><br>Nach dem Kauf wirst du einmalig freigeschaltet, damit du deinen Song nach den freien 90 Minuten in der Verlängerungszeit einreichen kannst. Die gesamte Verlängerungszeit beträgt maximal 30 Minuten.<br><span style="color:#ffd8bf; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
-                    <div style="background:rgba(255,0,127,0.08); border:1px solid var(--neon-pink); border-radius:10px; padding:12px;"><strong style="color:var(--neon-pink);">🎲 Song Würfel – CHF 3.50</strong><br>Der Song-Würfel pickt zufällig einen Song aus der aktuellen Warteliste und markiert ihn deutlich.<br><span style="color:#ffd1e8; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
+                    <div style="background:rgba(255,0,127,0.08); border:1px solid var(--neon-pink); border-radius:10px; padding:12px;"><strong style="color:var(--neon-pink);">🎲 Song Würfel – CHF 3.50</strong><br>Der Song-Würfel pickt zufällig einen Song aus der aktuellen Warteliste und pusht ihn direkt auf Platz 1.<br><span style="color:#ffd1e8; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
                     <div style="background:rgba(255,255,255,0.06); border:1px dashed rgba(255,255,255,0.35); border-radius:10px; padding:12px; color:#f3f4f6;"><strong>Fair-Play & Schutz:</strong> Stream Extras sind nicht auf Künstler beschränkt. Pro Nutzer sind maximal 2 Extras pro Stream erlaubt. Beim Kauf wird die E-Mail zur Limit-Kontrolle verwendet, damit niemand das System mit dauernden eigenen Pushs austrickst.</div>
                 </div>
                 <p style="margin-top: 0; margin-bottom: 15px;">Bezahlen läuft sicher über Stripe. Die verfügbaren Zahlungsarten können je nach Gerät und Freischaltung angezeigt werden, z.B. TWINT, Apple Pay, Google Pay, Karte, Link oder Klarna.</p>
@@ -820,6 +951,71 @@
         } 
     }
 
+
+    function getViewerDeviceId() {
+        let id = localStorage.getItem('mondo_viewer_device_id');
+        if (!id) {
+            id = 'D-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 12);
+            localStorage.setItem('mondo_viewer_device_id', id);
+        }
+        return id;
+    }
+
+    async function getViewerVotingCode(btn) {
+        const output = document.getElementById('viewerCodeOutput');
+        const copyBtn = document.getElementById('viewerCopyBtn');
+        const tiktokName = document.getElementById('viewerTikTokName') ? document.getElementById('viewerTikTokName').value : '';
+        const original = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.innerHTML = '⏳ CODE WIRD ERSTELLT...';
+        }
+        try {
+            const res = await fetch('/api/voting-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deviceId: getViewerDeviceId(), tiktokName })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            localStorage.setItem('mondo_viewer_vote_code', data.code);
+            if (output) {
+                output.style.display = 'block';
+                output.innerText = data.code;
+            }
+            if (copyBtn) copyBtn.style.display = 'inline-block';
+            if (btn) btn.innerHTML = data.reused ? '✅ DEIN CODE' : '✅ CODE ERSTELLT';
+        } catch (err) {
+            alert('🚫 ' + err.message);
+            if (btn) btn.innerHTML = original;
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        }
+    }
+
+    function copyViewerVotingCode() {
+        const code = localStorage.getItem('mondo_viewer_vote_code') || (document.getElementById('viewerCodeOutput') ? document.getElementById('viewerCodeOutput').innerText.trim() : '');
+        if (!code) return;
+        navigator.clipboard.writeText(code);
+        const btn = document.getElementById('viewerCopyBtn');
+        if (btn) btn.innerText = '✅ CODE KOPIERT';
+    }
+
+    function showSavedViewerCode() {
+        const code = localStorage.getItem('mondo_viewer_vote_code');
+        const output = document.getElementById('viewerCodeOutput');
+        const copyBtn = document.getElementById('viewerCopyBtn');
+        if (code && output) {
+            output.style.display = 'block';
+            output.innerText = code;
+            if (copyBtn) copyBtn.style.display = 'inline-block';
+        }
+    }
+
     // AUTOMATISCHE VOTING-FORMULAR GENERIERUNG
     function renderVotingForm(data) {
         const container = document.getElementById('voting-container');
@@ -841,7 +1037,7 @@
                 </div>
                 <form id="voteForm" onsubmit="submitVote(event)">
                     <div class="form-group">
-                        <label>Dein Voting-Code</label>
+                        <label>Dein Voting-Code <span style="color:var(--neon-cyan);">(Song-Code oder TikTok-Zuschauer-Code)</span></label>
                         <input type="text" id="voteCodeInput" required placeholder="CODE EINGEBEN" style="text-transform:uppercase; text-align:center; font-size:24px; letter-spacing:5px;">
                     </div>
                     <div class="form-group">
