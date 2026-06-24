@@ -83,6 +83,12 @@
                     <div id="admin-voting-controls"></div>
                 </div>
 
+
+                <div class="admin-time-box" style="flex-direction:column; gap:10px; border-color:#a855f7;">
+                    <div class="section-title" style="margin:0; color:#d8b4fe;">💎 STREAM EXTRAS / AFTER HOURS PÄSSE</div>
+                    <div id="admin-extras-list" style="font-family:sans-serif; font-size:14px; color:#eee;"></div>
+                </div>
+
                 <div class="section-title" style="color: #ffaa00;">🏆 EWIGE HALL OF FAME DER LEGENDEN</div>
                 <div id="admin-hof-list" style="margin-bottom: 20px;"></div>
 
@@ -200,6 +206,15 @@
             
             activeList.innerHTML = ''; doneList.innerHTML = ''; hofList.innerHTML = ''; hitExportList.innerHTML = '';
 
+            const extrasList = document.getElementById('admin-extras-list');
+            if (extrasList) {
+                const passes = data.afterHoursPasses || [];
+                const openPasses = passes.filter(p => !p.used);
+                const usedPasses = passes.filter(p => p.used);
+                extrasList.innerHTML = `<div>🌙💎 Offene After-Hours-Pässe: <strong>${openPasses.length}</strong> | Eingelöst: <strong>${usedPasses.length}</strong></div>` +
+                    openPasses.slice(0, 5).map(p => `<div style="margin-top:6px; padding:8px; border:1px solid #a855f7; border-radius:8px; background:rgba(168,85,247,0.12);">🌙💎 Offen für: ${p.buyerEmail || 'unbekannt'}</div>`).join('');
+            }
+
             if(hof.length === 0) { hofList.innerHTML = '<div style="color:#8e8e9f; text-align:center; padding: 10px;">Noch keine Champions.</div>'; }
             hof.forEach((c, hIndex) => {
                 hofList.innerHTML += `<div class="admin-item" style="border-color: #ffaa00;">
@@ -230,13 +245,13 @@
                 if(item.platform === 'youtube') iconHtml = `<span class="link-icon icon-youtube">🔴 YOUTUBE</span>`;
 
                 // GENERIERUNG DER DREI PREMIUM BADGES
-                let boostBadge = item.isBoosted ? '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-cyan);">🚀 BOOST</span> ' : '';
-                let afterHoursBadge = item.isAfterHours ? '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px #7000ff;">🌙 AFTER HOURS</span> ' : '';
-                let diceBadge = item.isDice ? '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-pink);">🎲 WÜRFEL</span> ' : '';
+                let boostBadge = item.isBoosted ? '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-cyan);">🚀💎 PLATZ 1 PUSH</span> ' : '';
+                let afterHoursBadge = item.isAfterHours ? '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px #7000ff;">🌙💎 AFTER HOURS</span> ' : '';
+                let diceBadge = item.isDice ? '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-pink);">🎲💎 SONG-WÜRFEL</span> ' : '';
 
                 if(!item.isDone) {
                     let activeIndex = activeSongs.indexOf(item);
-                    let titlePrefix = activeIndex === 0 ? '[DRAN] ' : '';
+                    let titlePrefix = activeIndex === 0 ? '🔥 #1 DRAN 🔥 ' : `#${activeIndex + 1} `;
                     let itemStyleClass = item.isHit ? 'is-hit' : (activeIndex === 0 ? 'is-active-first' : '');
 
                     activeList.innerHTML += `<div class="admin-item ${itemStyleClass}">
@@ -244,6 +259,7 @@
                             <div class="drag-handle">☰</div>
                             <div class="song-details">
                                 <h3 style="margin:0;">${titlePrefix}${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3>
+                                ${item.isDice ? '<p style="margin:6px 0 0 0; color:var(--neon-pink); font-weight:900; text-shadow:0 0 8px var(--neon-pink);">🎲💎 Dieser Song wurde zufällig vom Song-Würfel ausgewählt!</p>' : ''}
                                 <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ⏱️ ${min+2}:${sec < 10 ? '0':''}${sec} Min | Code: ${item.voteCode ? '✅' : '❌'}</p>
                             </div>
                         </div>
