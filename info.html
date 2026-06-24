@@ -1,24 +1,25 @@
-
+<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mondo Mando Studio - Stream Infos & Regeln</title>
     <style>
-        :root {
-            --bg-color: #0d0d11; --card-bg: #14141f; --neon-pink: #ff007f;
-            --neon-cyan: #00f2fe; --neon-gold: #ffd700; --text-main: #ffffff; --text-muted: #8e8e9f;
-        }
-        body { font-family: 'Impact', 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
-        .info-container { max-width: 600px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 16px; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 242, 254, 0.2); }
-        h1 { text-align: center; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 0 0 10px rgba(0, 242, 254, 0.5); }
-        .subtitle { text-align: center; color: var(--neon-pink); font-size: 1.2rem; margin-bottom: 30px; }
-        .rule-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        h2 { color: var(--neon-gold); font-size: 1.3rem; margin-bottom: 10px; text-transform: uppercase; }
-        p { color: var(--text-muted); font-family: sans-serif; line-height: 1.6; }
-        .highlight { color: var(--neon-cyan); font-weight: bold; }
-        .warning { color: #ff3333; font-weight: bold; }
-        .btn-back { display: block; width: 100%; padding: 15px; background: var(--neon-pink); color: white; text-align: center; text-decoration: none; border-radius: 8px; font-size: 18px; margin-top: 20px; text-transform: uppercase; font-weight: bold; }
+        :root { --bg-color:#0d0d11; --card-bg:#14141f; --neon-pink:#ff007f; --neon-cyan:#00f2fe; --neon-gold:#ffd700; --neon-green:#22c55e; --neon-orange:#ff5500; --text-main:#ffffff; --text-muted:#c8c8d4; }
+        body { font-family:'Impact','Segoe UI',sans-serif; background:#0d0d11; color:var(--text-main); margin:0; padding:20px; display:flex; justify-content:center; min-height:100vh; }
+        .info-container { max-width:680px; width:100%; background:rgba(20,20,31,0.96); padding:30px; border-radius:16px; border:2px solid var(--neon-cyan); box-shadow:0 0 20px rgba(0,242,254,0.2); }
+        h1 { text-align:center; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:2px; margin-bottom:5px; text-shadow:0 0 10px rgba(0,242,254,0.5); }
+        .subtitle { text-align:center; color:var(--neon-pink); font-size:1.2rem; margin-bottom:30px; }
+        .rule-section { margin-bottom:25px; padding-bottom:18px; border-bottom:1px solid rgba(255,255,255,0.1); }
+        h2 { color:var(--neon-gold); font-size:1.3rem; margin-bottom:10px; text-transform:uppercase; }
+        p, li { color:var(--text-muted); font-family:sans-serif; line-height:1.6; }
+        ul { margin-top:8px; padding-left:20px; }
+        .highlight { color:var(--neon-cyan); font-weight:bold; }
+        .warning { color:#ff6666; font-weight:bold; }
+        .neon-red-heading { color:#ff1744 !important; text-shadow:0 0 8px #ff1744, 0 0 18px rgba(255,23,68,0.9); }
+        .code-box { background:#000; border:2px dashed var(--neon-cyan); border-radius:10px; padding:14px; color:#fff; font-family:sans-serif; box-shadow:0 0 12px rgba(0,242,254,0.25); }
+        .orange-box { background:rgba(255,85,0,0.10); border:1px solid var(--neon-orange); border-radius:10px; padding:12px; color:#ffd8bf; }
+        .btn-back { display:block; width:100%; box-sizing:border-box; padding:15px; background:var(--neon-pink); color:white; text-align:center; text-decoration:none; border-radius:8px; font-size:18px; margin-top:20px; text-transform:uppercase; font-weight:bold; }
     </style>
 </head>
 <body>
@@ -27,28 +28,41 @@
     <div class="subtitle">Stream-Ablauf & Regelwerk</div>
 
     <div class="rule-section">
-        <h2>⏱️ 1. Zeitlimits & Overtime</h2>
-        <p>Der Standard-Topf liegt bei <span class="highlight">90 Minuten</span>. Durch den "Singenden Frosch" (249 Coins) können maximal <span class="highlight">+30 Minuten</span> Overtime freigeschaltet werden (Gesamtlimit: 120 Min).</p>
+        <h2>⏱️ 1. Sendezeit & Ablauf</h2>
+        <p>Der normale Stream hat einen festen Topf von <span class="highlight">90 Minuten</span>. In dieser Zeit werden regulär eingereichte Songs der Reihe nach angehört und bewertet.</p>
+        <div class="orange-box"><strong>Nach den 90 Minuten:</strong> Wenn die Hauptzeit voll ist, können Songs nur noch über die bezahlte Stream-Verlängerung / After Hours berücksichtigt werden. Die Verlängerung läuft insgesamt maximal <strong>30 Minuten</strong>.</div>
     </div>
 
     <div class="rule-section">
-        <h2>🚫 2. Forbidden Genres</h2>
+        <h2>🏆 2. Voting-Code & Live-Voting</h2>
+        <p>Nach dem Einsenden erhält jeder Künstler einen persönlichen <span class="highlight">Voting-Code</span>. Kopiere oder fotografiere diesen Code direkt, damit du ihn am Ende der Show fürs Voting bereit hast.</p>
+        <div class="code-box"><strong style="color:var(--neon-cyan);">Wichtig:</strong> Der Code ist nur fürs Voting im Stream.</div>
+        <p>Am Ende der Show startet das <span class="highlight">Voting für 4 Minuten</span>. Mit deinem Code kannst du für deine Favoriten abstimmen.</p>
+    </div>
+
+    <div class="rule-section">
+        <h2>🚀 3. Premium-Features / Extras</h2>
+        <ul>
+            <li><span class="highlight">Song Push auf Platz 1 – CHF 6.20:</span> Dein Song wird bevorzugt auf Platz 1 der Warteliste gesetzt. <strong>Limit: 1× pro Künstler und Stream.</strong></li>
+            <li><span class="highlight">Stream-Verlängerung / After Hours – CHF 5.00:</span> Wenn die 90 Minuten voll sind, kann dein Song über die bezahlte Stream-Verlängerung / After Hours noch berücksichtigt werden. Die gesamte Verlängerungszeit beträgt maximal 30 Minuten. <strong>Limit: 1× pro Künstler und Stream.</strong></li>
+            <li><span class="highlight">Song Würfel – CHF 3.50:</span> Dein Song kommt in den Song-Würfel und hat die Chance, zufällig ausgewählt oder besonders hervorgehoben zu werden. <strong>Limit: maximal 2× pro Künstler und Stream.</strong></li>
+        </ul>
+        <div class="code-box" style="border-color:var(--neon-gold); box-shadow:0 0 12px rgba(255,215,0,0.22);"><strong style="color:var(--neon-gold);">Bonus-Limits:</strong> Platz-1-Boost 1×, After Hours 1× und Song-Würfel maximal 2× pro Künstler und Stream.</div>
+        <p>Bezahlen läuft sicher über Stripe. Verfügbare Zahlungsarten können je nach Gerät und Freischaltung angezeigt werden, z.B. TWINT, Apple Pay, Google Pay, Karte, Link oder Klarna.</p>
+    </div>
+
+    <div class="rule-section">
+        <h2 class="neon-red-heading">🚫 4. Verbote & Fair Play</h2>
         <p>Folgende Genres sind <span class="warning">strikt verboten</span> und werden vom System abgelehnt: Schlager, Hardstyle, Hardcore und Metal.</p>
+        <p>Wer versucht, das System mit <span class="warning">Fake-Namen</span> auszutricksen, riskiert eine sofortige Sperre oder einen <span class="warning">Permabann</span>.</p>
     </div>
 
-    <div class="rule-section">
-        <h2>💎 3. Fair Play & Bann-Richtlinien</h2>
-        <p>Wir spielen fair! Wer versucht, das System mit <span class="warning">Fake-Namen</span> auszutricksen, riskiert eine sofortige Sperre. Bei mehrfachen Verstößen erfolgt ein <span class="warning">permanenter Ausschluss (Permabann)</span> von allen Mondo Mando Records Angeboten.</p>
-    </div>
+
 
     <div class="rule-section">
-        <h2>🎧 4. Premium-Features</h2>
-        <p>Maximal 2 Songs pro Künstler gleichzeitig. Ein <span class="highlight">„DJ-Set“ (399 Coins)</span> schaltet manuell einen <span class="highlight">3. Song-Slot</span> frei.</p>
-    </div>
-
-    <div class="rule-section">
-        <h2>🏆 5. Voting & Hall of Fame</h2>
-        <p>Das Live-Voting startet am Ende des Streams. Der gewählte <span class="highlight">„Hit des Tages“</span> wird für immer in der Hall of Fame verewigt.</p>
+        <h2>👑 5. Hall of Fame Song der Woche</h2>
+        <p>Der aktuelle Hall-of-Fame-Gewinner wird oben auf der Startseite als <span class="highlight">Song der Woche</span> angezeigt.</p>
+        <p>Bei YouTube-Links kann der Player automatisch stumm geladen werden. Besucher können den Ton mit dem Mute-Button einschalten und die Lautstärke selbst regeln. Bei Spotify-Links wird der offizielle Spotify-Player angezeigt.</p>
     </div>
 
     <a href="/" class="btn-back">Zurück zur Einsendung</a>
