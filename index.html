@@ -167,6 +167,7 @@
 
         /* BOOSTER VORSCHAU VOR DEM EINSENDEN */
         .booster-preview-box {
+            margin-top: 6px;
             border: 2px solid var(--neon-gold);
             border-radius: 16px;
             padding: 18px;
@@ -392,30 +393,7 @@
 
                 <!-- EINREICHE-FORMULAR -->
                 <div id="form-container">
-
-                    <div class="booster-preview-box">
-                        <div class="booster-preview-title">👑 Mondo Gold Pass Boosts</div>
-                        <p class="booster-preview-subtitle">Sichere dir nach dem Einsenden freiwillig einen Bonus für deinen Song. Erst Song einreichen, dann Booster sichern.</p>
-                        <div class="booster-preview-grid">
-                            <div class="booster-preview-item">
-                                <div class="booster-preview-name">🚀 Platz 1 Push – CHF 6.20</div>
-                                <div class="booster-preview-desc">Dein Song springt auf Platz 1 der Warteliste.</div>
-                                <span class="booster-preview-limit">Max. 1× pro Künstler & Stream</span>
-                            </div>
-                            <div class="booster-preview-item orange">
-                                <div class="booster-preview-name">🌙 After Hours – CHF 5.00</div>
-                                <div class="booster-preview-desc">Dein Song kann nach den 90 Minuten in der Verlängerung gespielt werden.</div>
-                                <span class="booster-preview-limit">Max. 1× pro Künstler & Stream</span>
-                            </div>
-                            <div class="booster-preview-item pink">
-                                <div class="booster-preview-name">🎲 Song Würfel – CHF 3.50</div>
-                                <div class="booster-preview-desc">Dein Song kommt in den Zufalls-Boost.</div>
-                                <span class="booster-preview-limit">Max. 2× pro Künstler & Stream</span>
-                            </div>
-                        </div>
-                        <div class="booster-preview-locked">Erst Song einreichen, dann Booster sichern</div>
-                    </div>
-                    <form id="songForm" onsubmit="addSongToServer(event)">
+<form id="songForm" onsubmit="addSongToServer(event)">
                         <div class="form-group">
                             <label for="artistName">Künstlername</label>
                             <input type="text" id="artistName" required placeholder="z.B. Mando">
@@ -488,6 +466,34 @@
                 <div id="voting-container" style="display:none;"></div>
             </div>
             
+            <!-- STREAM EXTRAS EIGENER ABSCHNITT -->
+            <div class="card gold-glow">
+                    <div class="booster-preview-box">
+                        <div class="booster-preview-title">💸💎 Stream Extras</div>
+                        <p class="booster-preview-subtitle">Sichere dir nach dem Einsenden freiwillig einen Bonus für deinen Song. Erst Song einreichen, dann Booster sichern.</p>
+                        <div class="booster-preview-grid">
+                            <div class="booster-preview-item">
+                                <div class="booster-preview-name">🚀 Platz 1 Push – CHF 6.20</div>
+                                <div class="booster-preview-desc">Dein Song springt auf Platz 1 der Warteliste.</div>
+                                <span class="booster-preview-limit">Max. 1× pro Künstler & Stream</span>
+                            </div>
+                            <div class="booster-preview-item orange">
+                                <div class="booster-preview-name">🌙 After Hours – CHF 5.00</div>
+                                <div class="booster-preview-desc">Dein Song kann nach den 90 Minuten in der Verlängerung gespielt werden.</div>
+                                <span class="booster-preview-limit">Max. 1× pro Künstler & Stream</span>
+                            </div>
+                            <div class="booster-preview-item pink">
+                                <div class="booster-preview-name">🎲 Song Würfel – CHF 3.50</div>
+                                <div class="booster-preview-desc">Dein Song kommt in den Zufalls-Boost.</div>
+                                <span class="booster-preview-limit">Max. 2× pro Künstler & Stream</span>
+                            </div>
+                        </div>
+                        <div class="booster-preview-locked">Erst Song einreichen, dann Booster sichern</div>
+                    </div>
+                    
+            </div>
+
+
             <!-- DIE NEUE VERLÄNGERUNGS / AFTER HOURS KARTE -->
             <div id="overtime-card" class="card orange-glow" style="display:none; border-color: var(--neon-orange);">
                 <h2 style="color: var(--neon-orange); border-bottom-color: var(--neon-orange);">⏳ VERLÄNGERUNG / AFTER HOURS (<span id="overtime-count">0</span>)</h2>
