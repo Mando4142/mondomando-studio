@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mondo Mando TikTok Overlay</title>
-    <style>
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=yap33MCfLETUpVeH5FdKiBbD6pfEWYS8ihmPObxTl_Iiv2q6p2uwmlhxb7PqbAnjhOXlNxakgFHOGMNxVaMBQBBDvjiRwkLmGdEwSn4Kpoqo3hSjrtiuYoG4LkbRTJJiDGNHYviZ12-yPh0IcJVmKW5HrdSQE6duC-NCIEn2zx_2gfaDruncRXlf5ZSbjdXRGeiodtqFf_DzOk7z3PCRAF7Oe6941uyZyBXw9MSpj6qBjB4O9IiXM00GwnAfGZGIYEl1OUKYI0WyCg7QEMgP9MCMPw_18RW-_lVecNn5HLcT2dwd2OnNO99lEm7S6_Xz" charset="UTF-8"></script><style>
         :root {
             --neon-pink:#ff007f;
             --neon-cyan:#00f2fe;
@@ -14,11 +14,6 @@
             --dark:rgba(5,5,10,.72);
             --text:#ffffff;
             --muted:#c7c7d4;
-
-            /* TikTok Studio Position/Grösse */
-            --overlay-left:702px;
-            --overlay-top:6px;
-            --overlay-width:700px;
         }
 
         * { box-sizing:border-box; }
@@ -34,16 +29,14 @@
         }
 
         body {
-            display:block;
-            padding:0;
+            display:flex;
+            justify-content:center;
+            align-items:flex-start;
+            padding:28px;
         }
 
         .overlay-wrap {
-            position:absolute;
-            left:var(--overlay-left);
-            top:var(--overlay-top);
-            width:var(--overlay-width);
-            max-width:calc(100vw - var(--overlay-left) - 10px);
+            width:min(96vw, 760px);
             pointer-events:none;
         }
 
@@ -298,7 +291,7 @@
         }
 
         @media (max-width:600px) {
-            .overlay-wrap { left:8px; top:6px; width:calc(100vw - 16px); max-width:calc(100vw - 16px); }
+            body { padding:14px; }
             .title { font-size:27px; }
             .song { grid-template-columns:46px 1fr; }
             .status { grid-column:2; text-align:left; min-width:0; font-size:14px; }
