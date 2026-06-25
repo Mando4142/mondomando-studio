@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mondo Mando - Admin Schaltzentrale</title>
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=kSvF2qjEIhTFUSm7bu_EYvweB10K5CNZj1eFC1nOD44ROmINFgMfkEZfRsfWsVB-IRl-kQ6vR-wGaTsW-pLjw9kVrhs-LDpByQilJypWajusAP4OQIwRpfrwSjgGLqstnPq42roXbDAUTL-WS-NcxWDWHLzbzWjfis6loSsGsB1w3Wt3lLbWZZA7gOjqBU24GZJnvb__nHSRqkoyP1062C6KsMuIDxjIfV4vPrN5cmwzN4quUO8rWNXSxyfIdAP1WuzdX3HmCMbGnb3DIyZWS7BOaPGdN1VcW3L2ImLDrvQq7bmbKu9PLJpJUjHx3wVX" charset="UTF-8"></script><script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js">
     async function resetViewerVotingCodes() {
         if (!confirm('Alle TikTok-Zuschauer-Codes für den nächsten Stream löschen?')) return;
         await fetch('/api/admin/voting/reset-viewer-codes', { method: 'POST', headers: {'Authorization': token} });
