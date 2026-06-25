@@ -42,6 +42,7 @@
         .cal-day.is-sunday { border-color: var(--neon-pink); color: var(--neon-pink); background: rgba(255,0,127,0.1); }
         .cal-day.has-hits { background: rgba(255, 215, 0, 0.15); border-color: var(--neon-gold); color: var(--neon-gold); }
         .cal-day.is-selected { background: var(--neon-gold); color: black; border-color: white; transform: scale(1.1); z-index: 2; }
+        .cal-day.is-today { background: rgba(34,197,94,0.95) !important; color: #001b10 !important; border-color: var(--neon-green) !important; box-shadow: 0 0 14px rgba(34,197,94,0.85), inset 0 0 8px rgba(255,255,255,0.25); transform: scale(1.06); z-index: 3; }
 
         /* Form & Title Styles */
         h2 { text-transform: uppercase; margin-top: 0; font-size: 24px; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 8px var(--neon-cyan); border-bottom: 3px solid var(--neon-pink); padding-bottom: 8px; margin-bottom: 20px; transition: all 0.3s ease; }
@@ -925,11 +926,13 @@
         for(let i = 0; i < emptySlots; i++) gridHtml += `<div></div>`;
         for(let i = 1; i <= daysInMonth; i++) {
             const currentDayDate = new Date(year, month, i); const isSunday = currentDayDate.getDay() === 0; const dateStr = getSwissDateString(currentDayDate);
+            const isToday = dateStr === getSwissDateString(new Date());
             let extraClass = ''; let onClickAction = `onclick="selectArchiveDate('${dateStr}')"`;
             if (isSunday) extraClass += ' is-sunday';
             if (serverHistoricalHits[dateStr] && serverHistoricalHits[dateStr].length > 0) extraClass += ' has-hits';
             if (selectedArchiveDate === dateStr) extraClass += ' is-selected';
-            gridHtml += `<div class="cal-day${extraClass}" ${onClickAction}>${i}</div>`;
+            if (isToday) extraClass += ' is-today';
+            gridHtml += `<div class="cal-day${extraClass}" ${onClickAction} title="${isToday ? 'Heute' : dateStr}">${i}</div>`;
         }
         document.getElementById('calendar-grid-content').innerHTML = gridHtml;
         document.getElementById('btn-live-view').style.display = selectedArchiveDate ? 'block' : 'none';
