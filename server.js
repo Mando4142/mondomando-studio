@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const app = express();
 const path = require('path');
 const fs = require('fs');
@@ -9,6 +10,9 @@ const Stripe = require('stripe');
 const PORT = process.env.PORT || 3000;
 const TIKFINITY_WS_URL = process.env.TIKFINITY_WS_URL || 'ws://localhost:21213/';
 const TIKFINITY_EVENT_API_ENABLED = String(process.env.TIKFINITY_EVENT_API_ENABLED || 'true').toLowerCase() !== 'false';
+const MMR_BRIDGE_SECRET = process.env.MMR_BRIDGE_SECRET || 'mondo-mando-bridge';
+const MMR_BRIDGE_PATH = process.env.MMR_BRIDGE_PATH || '/mmr-bridge';
+const MMR_REMOTE_BRIDGE_URL = process.env.MMR_REMOTE_BRIDGE_URL || '';
 
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
@@ -179,8 +183,8 @@ function checkAdminAuth(req, res, next) {
 const MMR_RULES = {
     follow: 10,
     share: 5,
-    likeBlock: 3,          // pro 100 Likes
-    likeBlockSize: 100,
+    likeBlock: 30,         // pro 1000 Likes/Taps
+    likeBlockSize: 1000,
     chat: 1,               // maximal alle 5 Minuten pro User
     chatCooldownMs: 5 * 60 * 1000,
     subscribe: 50,         // einmaliger VIP-Bonus
@@ -189,21 +193,32 @@ const MMR_RULES = {
 };
 
 const MMR_REWARDS = {
-    extra_vote: { label: '🗳️ Extra Stimme', cost: 50 },
-    shoutout: { label: '📣 Shoutout im Stream', cost: 100 },
-    song_dice: { label: '🎲 Songwürfel', cost: 150 },
-    supporter_wall: { label: '🌍 Supporter-Wall', cost: 300 },
-    legend: { label: '👑 Mondo Legende', cost: 500 }
+    shoutout: { label: '📣 Shoutout im Stream', cost: 150 },
+    extra_vote: { label: '🗳️ Extra Stimme', cost: 400 },
+    song_dice: { label: '🎲 Songwürfel', cost: 750 },
+    supporter_wall: { label: '🌍 Supporter-Wall', cost: 1200 },
+    vip: { label: '👑 VIP Supporter des Monats', cost: 2500 },
+    after_hours: { label: '🌙 After Hours Pass', cost: 3500 },
+    legend: { label: '🏆 Mondo Legende', cost: 5000 },
+    priority_boost: { label: '🚀 Song auf Platz 1 pushen', cost: 10000 }
 };
 
 let tikfinityStatus = {
     enabled: TIKFINITY_EVENT_API_ENABLED,
     connected: false,
+    bridgeConnected: false,
+    bridgeMode: MMR_REMOTE_BRIDGE_URL ? 'local-forwarder' : 'render-receiver',
     url: TIKFINITY_WS_URL,
+    remoteBridgeUrl: MMR_REMOTE_BRIDGE_URL || null,
+    bridgePath: MMR_BRIDGE_PATH,
     lastEvent: null,
     lastError: null,
+    bridgeLastEvent: null,
     reconnects: 0
 };
+
+let mmrRemoteBridgeSocket = null;
+let mmrBridgeClients = new Set();
 
 function normalizeMmrUser(value) {
     return String(value || '').trim().replace(/^@+/, '').toLowerCase().slice(0, 80);
@@ -332,30 +347,85 @@ function getMmrSummary() {
         recentEvents: (dbData.mmrEvents || []).slice(0, 12),
         recentRedemptions: (dbData.mmrRedemptions || []).slice(0, 12),
         rewards: MMR_REWARDS,
-        tikfinityStatus
+        tikfinityStatus: {
+            ...tikfinityStatus,
+            connected: tikfinityStatus.connected || tikfinityStatus.bridgeConnected
+        }
     };
 }
 
-function redeemMmrReward(username, rewardKey) {
+function redeemMmrReward(username, rewardKey, options = {}) {
     const supporter = getOrCreateMmrSupporter(username);
     const reward = MMR_REWARDS[rewardKey];
     if (!supporter || !reward) return { ok: false, error: 'Supporter oder Belohnung nicht gefunden.' };
-    if ((supporter.points || 0) < reward.cost) return { ok: false, error: 'Nicht genug MMR Points.' };
+    if ((supporter.points || 0) < reward.cost) return { ok: false, error: `Nicht genug MMR Points. Benötigt: ${reward.cost}` };
+
+    let extraResult = null;
+    let note = reward.label;
+
+    if (rewardKey === 'extra_vote') {
+        supporter.extraVotes = (supporter.extraVotes || 0) + 1;
+    }
+
+    if (rewardKey === 'song_dice') {
+        extraResult = markRandomSongDice(`mmr:${supporter.username}`);
+        if (!extraResult.ok) return { ok: false, error: extraResult.error || 'Songwürfel konnte nicht eingelöst werden.' };
+        note = '🎲 MMR Songwürfel eingelöst';
+    }
+
+    if (rewardKey === 'priority_boost') {
+        const target = String(options.targetSongId || options.targetVoteCode || '').trim();
+        if (!target) return { ok: false, error: 'Für Platz 1 Push muss ein Song ausgewählt werden.' };
+        const song = dbData.songQueue.find(s => !s.isDone && !s.isAfterHours && (s.id === target || String(s.voteCode || '').toUpperCase() === target.toUpperCase()));
+        if (!song) return { ok: false, error: 'Song für Platz 1 Push nicht gefunden.' };
+        extraResult = markSongPriorityBoost(song.id, `mmr:${supporter.username}`);
+        if (!extraResult.ok) return { ok: false, error: extraResult.error || 'Platz 1 Push konnte nicht eingelöst werden.' };
+        note = `🚀 MMR Platz 1 Push eingelöst für ${song.artist} - ${song.title}`;
+    }
+
+    if (rewardKey === 'after_hours') {
+        const passId = `MMR-AH-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        extraResult = createAfterHoursPass(passId, `mmr:${supporter.username}`);
+        if (!extraResult.ok) return { ok: false, error: extraResult.error || 'After-Hours-Pass konnte nicht erstellt werden.' };
+        note = `🌙 MMR After-Hours-Pass erstellt: ${passId}`;
+        options.afterHoursPassId = passId;
+    }
+
     supporter.points -= reward.cost;
-    if (rewardKey === 'extra_vote') supporter.extraVotes = (supporter.extraVotes || 0) + 1;
-    const redemption = { username: supporter.username, displayName: supporter.displayName, rewardKey, rewardLabel: reward.label, cost: reward.cost, timestamp: Date.now() };
+    const redemption = {
+        username: supporter.username,
+        displayName: supporter.displayName,
+        rewardKey,
+        rewardLabel: reward.label,
+        cost: reward.cost,
+        timestamp: Date.now(),
+        targetSongId: options.targetSongId || null,
+        targetVoteCode: options.targetVoteCode || null,
+        afterHoursPassId: options.afterHoursPassId || null,
+        result: extraResult || null
+    };
     supporter.redeemed.unshift(redemption);
     supporter.redeemed = supporter.redeemed.slice(0, 20);
     if (!dbData.mmrRedemptions) dbData.mmrRedemptions = [];
     dbData.mmrRedemptions.unshift(redemption);
     dbData.mmrRedemptions = dbData.mmrRedemptions.slice(0, 60);
-    addMmrEvent(supporter.username, 'reward', -reward.cost, reward.label);
+    addMmrEvent(supporter.username, 'reward', -reward.cost, note);
     saveToDB();
     return { ok: true, supporter, redemption };
 }
 
-function handleTikFinityEvent(packet) {
+function forwardMmrBridgePacket(packet) {
+    if (!MMR_REMOTE_BRIDGE_URL || !mmrRemoteBridgeSocket || mmrRemoteBridgeSocket.readyState !== WebSocket.OPEN) return;
+    try {
+        mmrRemoteBridgeSocket.send(JSON.stringify({ type: 'tikfinity_event', packet, at: Date.now() }));
+    } catch (err) {
+        tikfinityStatus.lastError = 'Bridge senden fehlgeschlagen: ' + err.message;
+    }
+}
+
+function handleTikFinityEvent(packet, options = {}) {
     if (!packet || typeof packet !== 'object') return;
+    if (!options.fromBridge) forwardMmrBridgePacket(packet);
     const eventName = String(packet.event || packet.type || '').toLowerCase();
     const data = packet.data || packet;
     const username = getMmrUsername(data);
@@ -429,6 +499,93 @@ function handleTikFinityEvent(packet) {
 
     saveToDB();
 }
+
+
+function buildBridgeUrl() {
+    if (!MMR_REMOTE_BRIDGE_URL) return '';
+    try {
+        const url = new URL(MMR_REMOTE_BRIDGE_URL);
+        if (!url.searchParams.get('secret')) url.searchParams.set('secret', MMR_BRIDGE_SECRET);
+        return url.toString();
+    } catch (err) {
+        return MMR_REMOTE_BRIDGE_URL;
+    }
+}
+
+function startMmrRemoteBridgeClient() {
+    if (!MMR_REMOTE_BRIDGE_URL || !WebSocket) return;
+    const connect = () => {
+        try {
+            const bridgeUrl = buildBridgeUrl();
+            mmrRemoteBridgeSocket = new WebSocket(bridgeUrl);
+            mmrRemoteBridgeSocket.on('open', () => {
+                tikfinityStatus.bridgeConnected = true;
+                tikfinityStatus.lastError = null;
+                console.log(`[MMR] ✅ Render-Bridge verbunden: ${bridgeUrl}`);
+            });
+            mmrRemoteBridgeSocket.on('close', () => {
+                tikfinityStatus.bridgeConnected = false;
+                setTimeout(connect, 5000);
+            });
+            mmrRemoteBridgeSocket.on('error', (err) => {
+                tikfinityStatus.bridgeConnected = false;
+                tikfinityStatus.lastError = 'Render-Bridge Fehler: ' + err.message;
+            });
+        } catch (err) {
+            tikfinityStatus.bridgeConnected = false;
+            tikfinityStatus.lastError = 'Render-Bridge Startfehler: ' + err.message;
+            setTimeout(connect, 5000);
+        }
+    };
+    connect();
+}
+
+function startMmrBridgeServer(httpServer) {
+    if (!WebSocket) return;
+    const wss = new WebSocket.Server({ server: httpServer, path: MMR_BRIDGE_PATH });
+    wss.on('connection', (socket, req) => {
+        try {
+            const url = new URL(req.url, 'http://localhost');
+            const secret = url.searchParams.get('secret') || '';
+            if (secret !== MMR_BRIDGE_SECRET) {
+                socket.close(1008, 'Bridge Secret falsch');
+                return;
+            }
+        } catch (err) {
+            socket.close(1008, 'Bridge Prüfung fehlgeschlagen');
+            return;
+        }
+
+        mmrBridgeClients.add(socket);
+        tikfinityStatus.bridgeConnected = true;
+        tikfinityStatus.lastError = null;
+        console.log('[MMR] ✅ Lokaler TikFinity-Bridge-Client verbunden.');
+
+        socket.on('message', (message) => {
+            try {
+                const payload = JSON.parse(message.toString());
+                if (payload && payload.type === 'tikfinity_event' && payload.packet) {
+                    tikfinityStatus.bridgeLastEvent = { at: Date.now(), type: payload.packet.event || payload.packet.type || null };
+                    handleTikFinityEvent(payload.packet, { fromBridge: true });
+                }
+            } catch (err) {
+                tikfinityStatus.lastError = 'Bridge Event konnte nicht gelesen werden: ' + err.message;
+            }
+        });
+
+        socket.on('close', () => {
+            mmrBridgeClients.delete(socket);
+            tikfinityStatus.bridgeConnected = mmrBridgeClients.size > 0;
+            console.log('[MMR] Render-Bridge-Client getrennt.');
+        });
+
+        socket.on('error', (err) => {
+            tikfinityStatus.lastError = 'Bridge Socket Fehler: ' + err.message;
+        });
+    });
+    console.log(`[MMR] Bridge Server bereit auf ${MMR_BRIDGE_PATH}`);
+}
+
 
 function startTikFinityBridge() {
     if (!TIKFINITY_EVENT_API_ENABLED) {
@@ -1006,7 +1163,11 @@ app.post('/api/admin/mmr/manual-add', checkAdminAuth, (req, res) => {
 app.post('/api/admin/mmr/redeem', checkAdminAuth, (req, res) => {
     const username = String(req.body.username || '').trim();
     const rewardKey = String(req.body.rewardKey || '').trim();
-    const result = redeemMmrReward(username, rewardKey);
+    const options = {
+        targetSongId: String(req.body.targetSongId || '').trim(),
+        targetVoteCode: String(req.body.targetVoteCode || '').trim()
+    };
+    const result = redeemMmrReward(username, rewardKey, options);
     if (!result.ok) return res.status(400).json({ error: result.error });
     res.json({ success: true, redemption: result.redemption, supporter: result.supporter });
 });
@@ -1257,7 +1418,11 @@ app.post('/api/queue/reset', checkAdminAuth, (req, res) => {
     saveToDB(); res.json({ success: true });
 });
 
-app.listen(PORT, () => {
+const httpServer = http.createServer(app);
+startMmrBridgeServer(httpServer);
+
+httpServer.listen(PORT, () => {
     console.log(`🚀 MONDO MANDO RECORDS RUNNING ON PORT ${PORT}`);
     startTikFinityBridge();
+    startMmrRemoteBridgeClient();
 });
