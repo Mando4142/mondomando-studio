@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mondo Mando TikTok Overlay</title>
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=yap33MCfLETUpVeH5FdKiBbD6pfEWYS8ihmPObxTl_Iiv2q6p2uwmlhxb7PqbAnjhOXlNxakgFHOGMNxVaMBQBBDvjiRwkLmGdEwSn4Kpoqo3hSjrtiuYoG4LkbRTJJiDGNHYviZ12-yPh0IcJVmKW5HrdSQE6duC-NCIEn2zx_2gfaDruncRXlf5ZSbjdXRGeiodtqFf_DzOk7z3PCRAF7Oe6941uyZyBXw9MSpj6qBjB4O9IiXM00GwnAfGZGIYEl1OUKYI0WyCg7QEMgP9MCMPw_18RW-_lVecNn5HLcT2dwd2OnNO99lEm7S6_Xz" charset="UTF-8"></script><style>
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=r-YE7GlLKEQduA7CSRWbhUYhQvHNqec4R4mvLLV-RR3tdXhQUxh8QYt81r7i6BC5Gr8cRIAlySc9bOWeBLqL88Vk6PB2bz9DnjB68OSywqVbG4oUfzQYNQ8IJbUUKOtXEbACWzpLjLJMO0IeSFLLTQgcDEhW0cs_sGn3Vo9rnpbT4t6YEd2JoEeKb4VFbVgr12ZAs4eobIGYHHE_Y_OZkYMt_xI_nsxcXrvq-YUCaOZEx2fpbQx_CbI_K0p1Q9CrjPyuxNhRag4Yl2izhRVBRCwaDOiY1RcpMjQRga3hK0WDpokWRoWpwc8NH1lvAU6akuoxjL_diOFQpOSWdGtSnw" charset="UTF-8"></script><script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=yap33MCfLETUpVeH5FdKiBbD6pfEWYS8ihmPObxTl_Iiv2q6p2uwmlhxb7PqbAnjhOXlNxakgFHOGMNxVaMBQBBDvjiRwkLmGdEwSn4Kpoqo3hSjrtiuYoG4LkbRTJJiDGNHYviZ12-yPh0IcJVmKW5HrdSQE6duC-NCIEn2zx_2gfaDruncRXlf5ZSbjdXRGeiodtqFf_DzOk7z3PCRAF7Oe6941uyZyBXw9MSpj6qBjB4O9IiXM00GwnAfGZGIYEl1OUKYI0WyCg7QEMgP9MCMPw_18RW-_lVecNn5HLcT2dwd2OnNO99lEm7S6_Xz" charset="UTF-8"></script><style>
         :root {
             --neon-pink:#ff007f;
             --neon-cyan:#00f2fe;
@@ -99,6 +99,76 @@
 
         .song.first {
             transform:scale(1.02);
+        }
+
+        /* AKTUELL LAUFENDER SONG - deutlich markiert */
+        .song.now-playing {
+            position:relative;
+            transform:scale(1.045);
+            border:3px solid var(--neon-green);
+            border-left:12px solid var(--neon-green);
+            background:linear-gradient(90deg, rgba(34,197,94,.28), rgba(0,0,0,.70));
+            box-shadow:0 0 34px rgba(34,197,94,.85), inset 0 0 18px rgba(34,197,94,.18);
+            animation:nowPulse 1.15s ease-in-out infinite alternate;
+            overflow:hidden;
+        }
+
+        .song.now-playing::before {
+            content:"";
+            position:absolute;
+            inset:-4px;
+            background:linear-gradient(120deg, transparent 0%, rgba(255,255,255,.18) 48%, transparent 72%);
+            transform:translateX(-130%);
+            animation:shineNow 2s linear infinite;
+            pointer-events:none;
+        }
+
+        .song.now-playing .num {
+            background:var(--neon-green);
+            border-color:#ffffff;
+            color:#001b10;
+            box-shadow:0 0 18px rgba(34,197,94,.95);
+        }
+
+        .song.now-playing .song-title {
+            color:#ffffff;
+            text-shadow:0 0 12px rgba(34,197,94,.85), 0 0 22px rgba(255,255,255,.25);
+        }
+
+        .song.now-playing .status {
+            color:var(--neon-green);
+            text-shadow:0 0 12px rgba(34,197,94,.95);
+            font-size:20px;
+            min-width:142px;
+        }
+
+        .now-badge {
+            display:inline-block;
+            background:var(--neon-green);
+            color:#001b10;
+            border-radius:999px;
+            padding:4px 10px;
+            margin-bottom:5px;
+            font-family:Arial, sans-serif;
+            font-size:12px;
+            font-weight:900;
+            letter-spacing:1px;
+            box-shadow:0 0 14px rgba(34,197,94,.9);
+            animation:liveBlink .9s ease-in-out infinite alternate;
+        }
+
+        @keyframes nowPulse {
+            from { box-shadow:0 0 22px rgba(34,197,94,.55), inset 0 0 14px rgba(34,197,94,.12); }
+            to { box-shadow:0 0 44px rgba(34,197,94,1), inset 0 0 24px rgba(34,197,94,.25); }
+        }
+
+        @keyframes shineNow {
+            to { transform:translateX(130%); }
+        }
+
+        @keyframes liveBlink {
+            from { transform:scale(1); filter:brightness(1); }
+            to { transform:scale(1.06); filter:brightness(1.22); }
         }
 
         .num {
@@ -361,11 +431,14 @@
         queueBox.innerHTML = queue.slice(0, 8).map((song, index) => {
             const isPaid = !!(song.isBoosted || song.isDice);
             const platformIcon = song.platform === 'spotify' ? '🟢' : (song.platform === 'youtube' ? '🔴' : '🎵');
-            const waitText = index === 0
-                ? (isPaid ? '🔥 PLATZ 1' : '#1 NEXT')
+            const isNowPlaying = index === 0;
+            const waitText = isNowPlaying
+                ? '▶ LÄUFT JETZT'
                 : (isPaid ? `🔥 #${index + 1}` : `#${index + 1}`);
             const waitMin = Math.floor(accTime / 60);
-            const timeText = index === 0 ? waitText : `${waitText}<br><span style="font-family:Arial,sans-serif;font-size:12px;">~${waitMin} Min</span>`;
+            const timeText = isNowPlaying
+                ? `<span class="now-badge">LIVE</span><br>${waitText}`
+                : `${waitText}<br><span style="font-family:Arial,sans-serif;font-size:12px;">~${waitMin} Min</span>`;
             accTime += (parseInt(song.duration) || 0) + FEEDBACK_BUFFER_SEC;
 
             let badges = '';
@@ -374,7 +447,7 @@
             if (song.isAfterHours) badges += '<span class="badge after">🌙💎 After Hours</span>';
 
             return `
-                <div class="song ${isPaid ? 'paid' : ''} ${index === 0 ? 'first' : ''}">
+                <div class="song ${isPaid ? 'paid' : ''} ${isNowPlaying ? 'first now-playing' : ''}">
                     <div class="num">${index + 1}</div>
                     <div>
                         <div class="song-title">${platformIcon} ${escapeHtml(songName(song))}</div>
