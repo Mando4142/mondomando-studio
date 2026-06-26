@@ -71,6 +71,18 @@
         .paid-note.after { color:#ead8ff; text-shadow:0 0 8px rgba(124,58,237,.45); }
         .paid-note.dice { color:#ffd3eb; text-shadow:0 0 8px rgba(236,72,153,.45); }
 
+
+        .mmr-supporter-row { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; padding:12px; border-radius:12px; margin-top:10px; background:rgba(5,5,7,.72); border:1px solid rgba(255,215,0,.22); font-family:sans-serif; }
+        .mmr-supporter-row.top1 { border-color:var(--neon-gold); box-shadow:0 0 16px rgba(255,215,0,.22); }
+        .mmr-supporter-name { font-weight:900; color:#fff; font-size:15px; }
+        .mmr-supporter-rank { color:var(--neon-cyan); font-size:12px; font-weight:800; margin-top:4px; }
+        .mmr-supporter-points { color:var(--neon-gold); font-weight:900; white-space:nowrap; }
+        .mmr-mini-btn { border:none; border-radius:8px; padding:7px 9px; margin:3px 0 0 3px; font-size:12px; font-weight:900; cursor:pointer; background:#374151; color:white; }
+        .mmr-mini-btn.vote { background:var(--neon-cyan); color:#001018; }
+        .mmr-mini-btn.dice { background:var(--neon-pink); color:white; }
+        .mmr-mini-btn.legend { background:var(--neon-gold); color:black; }
+        .mmr-recent-item { padding:8px 10px; border-radius:10px; margin-top:6px; background:rgba(0,242,254,.08); color:#dffcff; font-family:sans-serif; font-size:12px; font-weight:700; }
+
 </style>
 </head>
 <body>
@@ -120,6 +132,17 @@
                     <div id="admin-extras-list" style="font-family:sans-serif; font-size:14px; color:#eee;"></div>
                 </div>
 
+                <div class="admin-time-box" style="flex-direction:column; gap:10px; border-color:var(--neon-gold);">
+                    <div class="section-title" style="margin:0; color:var(--neon-gold);">🌍 MMR SUPPORTER CLUB</div>
+                    <div id="admin-mmr-list" style="font-family:sans-serif; font-size:14px; color:#eee;">Lädt MMR Points...</div>
+                    <div style="display:grid; grid-template-columns:1fr 90px 1fr auto; gap:8px; align-items:center; margin-top:10px; font-family:sans-serif;">
+                        <input id="mmrManualUser" type="text" placeholder="TikTok-Name" style="padding:10px; border-radius:8px; border:1px solid #333; background:#050507; color:white;">
+                        <input id="mmrManualPoints" type="number" placeholder="Punkte" value="50" style="padding:10px; border-radius:8px; border:1px solid #333; background:#050507; color:white;">
+                        <input id="mmrManualReason" type="text" placeholder="Grund, z.B. Extra Support" style="padding:10px; border-radius:8px; border:1px solid #333; background:#050507; color:white;">
+                        <button class="btn-control" style="background:var(--neon-gold); color:black;" onclick="addMmrPoints()">+ MMR</button>
+                    </div>
+                </div>
+
                 <div class="section-title" style="color: #ffaa00;">🏆 EWIGE HALL OF FAME DER LEGENDEN</div>
                 <div id="admin-hof-list" style="margin-bottom: 20px;"></div>
 
@@ -139,6 +162,10 @@
     </div>
 <script>
     let token = ""; let sortableInstance = null; let sortableExtensionInstance = null;
+
+    function escapeAdminHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c] || c));
+    }
     let adminTimerInterval = null;
     let adminRemainingSeconds = 0;
 
@@ -285,6 +312,8 @@
                 `;
             }
 
+            renderMmrAdmin(data.mmr || {});
+
             if(hof.length === 0) { hofList.innerHTML = '<div style="color:#8e8e9f; text-align:center; padding: 10px;">Noch keine Champions.</div>'; }
             hof.forEach((c, hIndex) => {
                 hofList.innerHTML += `<div class="admin-item" style="border-color: #ffaa00;">
@@ -411,6 +440,74 @@
                 }
             });
         } catch(e) {}
+    }
+
+
+    function formatMmrDate(ts) {
+        if (!ts) return '';
+        try { return new Date(ts).toLocaleTimeString('de-CH', { hour:'2-digit', minute:'2-digit' }); } catch(e) { return ''; }
+    }
+
+    function renderMmrAdmin(mmr) {
+        const box = document.getElementById('admin-mmr-list');
+        if (!box) return;
+        const status = mmr.tikfinityStatus || {};
+        const top = mmr.top || [];
+        const events = mmr.recentEvents || [];
+        const statusColor = status.connected ? '#22c55e' : '#ef4444';
+        const statusText = status.connected ? 'VERBUNDEN' : 'NICHT VERBUNDEN';
+
+        const topHtml = top.length ? top.map(s => {
+            const encUser = encodeURIComponent(s.username || s.displayName || '');
+            return `<div class="mmr-supporter-row ${s.position === 1 ? 'top1' : ''}">
+                <div style="flex:1; min-width:0;">
+                    <div class="mmr-supporter-name">#${s.position} @${escapeAdminHtml(s.displayName || s.username)} ${s.isSubscriber ? '👑' : ''}</div>
+                    <div class="mmr-supporter-rank">${escapeAdminHtml(s.rank)} · Likes: ${s.likes || 0} · Coins: ${s.giftCoins || 0} · Extra-Stimmen: ${s.extraVotes || 0}</div>
+                    <div style="margin-top:6px;">
+                        <button class="mmr-mini-btn vote" onclick="redeemMmrReward('${encUser}', 'extra_vote')">🗳️ Extra Stimme 50</button>
+                        <button class="mmr-mini-btn" onclick="redeemMmrReward('${encUser}', 'shoutout')">📣 Shoutout 100</button>
+                        <button class="mmr-mini-btn dice" onclick="redeemMmrReward('${encUser}', 'song_dice')">🎲 Würfel 150</button>
+                        <button class="mmr-mini-btn legend" onclick="redeemMmrReward('${encUser}', 'legend')">👑 Legende 500</button>
+                    </div>
+                </div>
+                <div class="mmr-supporter-points">${s.points || 0} MMR</div>
+            </div>`;
+        }).join('') : '<div style="opacity:.8; font-family:sans-serif;">Noch keine Supporter-Punkte. Starte TikFinity und geh live.</div>';
+
+        const eventHtml = events.length ? events.slice(0, 6).map(e => `<div class="mmr-recent-item">${formatMmrDate(e.timestamp)} · @${escapeAdminHtml(e.username)} · ${escapeAdminHtml(e.note || e.type)} · <strong>${e.points > 0 ? '+' : ''}${e.points} MMR</strong></div>`).join('') : '<div style="opacity:.75; font-family:sans-serif; font-size:12px; margin-top:8px;">Noch keine MMR Events.</div>';
+
+        box.innerHTML = `
+            <div class="extras-summary-grid">
+                <div class="extras-summary-card total"><div class="label">TikFinity</div><div class="value" style="color:${statusColor}; font-size:18px;">${statusText}</div></div>
+                <div class="extras-summary-card boost"><div class="label">Supporter</div><div class="value">${mmr.totalSupporters || 0}</div></div>
+                <div class="extras-summary-card dice"><div class="label">MMR Points</div><div class="value">${mmr.totalPoints || 0}</div></div>
+                <div class="extras-summary-card pass"><div class="label">Endpoint</div><div class="value" style="font-size:13px;">${escapeAdminHtml(status.url || 'ws://localhost:21213/')}</div></div>
+            </div>
+            <div style="font-size:12px; color:#d1d5db; margin:8px 0;">Wenn TikFinity offen ist und dein Server auf demselben PC läuft, sollte hier VERBUNDEN stehen.</div>
+            <div style="font-weight:900; color:var(--neon-gold); text-transform:uppercase; letter-spacing:.8px; margin-top:10px;">Top Supporter</div>
+            ${topHtml}
+            <div style="font-weight:900; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:.8px; margin-top:12px;">Neueste MMR Events</div>
+            ${eventHtml}
+        `;
+    }
+
+    async function addMmrPoints() {
+        const username = document.getElementById('mmrManualUser').value.trim();
+        const points = parseInt(document.getElementById('mmrManualPoints').value, 10) || 0;
+        const reason = document.getElementById('mmrManualReason').value.trim() || 'Manuell im Admin vergeben';
+        if (!username) return alert('TikTok-Name fehlt.');
+        if (!points) return alert('Punkte dürfen nicht 0 sein.');
+        const res = await fetch('/api/admin/mmr/manual-add', { method:'POST', headers:{ 'Authorization': token, 'Content-Type':'application/json' }, body: JSON.stringify({ username, points, reason }) });
+        const data = await res.json();
+        if (data.error) alert('🚫 ' + data.error); else { alert('✅ MMR Points gespeichert.'); loadAdminQueue(); }
+    }
+
+    async function redeemMmrReward(encodedUser, rewardKey) {
+        const username = decodeURIComponent(encodedUser);
+        if (!confirm(`Belohnung für @${username} einlösen?`)) return;
+        const res = await fetch('/api/admin/mmr/redeem', { method:'POST', headers:{ 'Authorization': token, 'Content-Type':'application/json' }, body: JSON.stringify({ username, rewardKey }) });
+        const data = await res.json();
+        if (data.error) alert('🚫 ' + data.error); else { alert('✅ Belohnung eingelöst: ' + data.redemption.rewardLabel); loadAdminQueue(); }
     }
 
     async function toggleExtension() {
