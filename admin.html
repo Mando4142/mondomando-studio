@@ -161,7 +161,7 @@
         </div>
     </div>
 <script>
-    let token = ""; let sortableInstance = null; let sortableExtensionInstance = null;
+    let token = ""; let sortableInstance = null; let sortableExtensionInstance = null; let adminCurrentQueue = [];
 
     function escapeAdminHtml(value) {
         return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c] || c));
@@ -198,7 +198,7 @@
         if(!token) return;
         try {
             const res = await fetch('/api/queue'); const data = await res.json();
-            const queue = data.queue || []; const hof = data.hallOfFame || [];
+            const queue = data.queue || []; adminCurrentQueue = queue; const hof = data.hallOfFame || [];
             
             document.getElementById('admin-total-time').innerText = data.spentFormatted;
             
@@ -456,6 +456,8 @@
         const events = mmr.recentEvents || [];
         const statusColor = status.connected ? '#22c55e' : '#ef4444';
         const statusText = status.connected ? 'VERBUNDEN' : 'NICHT VERBUNDEN';
+        const bridgeText = status.bridgeConnected ? 'Bridge verbunden' : 'Bridge wartet';
+        const bridgeColor = status.bridgeConnected ? '#22c55e' : '#f97316';
 
         const topHtml = top.length ? top.map(s => {
             const encUser = encodeURIComponent(s.username || s.displayName || '');
@@ -464,10 +466,14 @@
                     <div class="mmr-supporter-name">#${s.position} @${escapeAdminHtml(s.displayName || s.username)} ${s.isSubscriber ? '👑' : ''}</div>
                     <div class="mmr-supporter-rank">${escapeAdminHtml(s.rank)} · Likes: ${s.likes || 0} · Coins: ${s.giftCoins || 0} · Extra-Stimmen: ${s.extraVotes || 0}</div>
                     <div style="margin-top:6px;">
-                        <button class="mmr-mini-btn vote" onclick="redeemMmrReward('${encUser}', 'extra_vote')">🗳️ Extra Stimme 50</button>
-                        <button class="mmr-mini-btn" onclick="redeemMmrReward('${encUser}', 'shoutout')">📣 Shoutout 100</button>
-                        <button class="mmr-mini-btn dice" onclick="redeemMmrReward('${encUser}', 'song_dice')">🎲 Würfel 150</button>
-                        <button class="mmr-mini-btn legend" onclick="redeemMmrReward('${encUser}', 'legend')">👑 Legende 500</button>
+                        <button class="mmr-mini-btn" onclick="redeemMmrReward('${encUser}', 'shoutout')">📣 Shoutout 150</button>
+                        <button class="mmr-mini-btn vote" onclick="redeemMmrReward('${encUser}', 'extra_vote')">🗳️ Extra Stimme 400</button>
+                        <button class="mmr-mini-btn dice" onclick="redeemMmrReward('${encUser}', 'song_dice')">🎲 Würfel 750</button>
+                        <button class="mmr-mini-btn" onclick="redeemMmrReward('${encUser}', 'supporter_wall')">🌍 Wall 1200</button>
+                        <button class="mmr-mini-btn legend" onclick="redeemMmrReward('${encUser}', 'vip')">👑 VIP 2500</button>
+                        <button class="mmr-mini-btn" style="background:#7c3aed;color:white;" onclick="redeemMmrReward('${encUser}', 'after_hours')">🌙 After Hours 3500</button>
+                        <button class="mmr-mini-btn legend" onclick="redeemMmrReward('${encUser}', 'legend')">🏆 Legende 5000</button>
+                        <button class="mmr-mini-btn vote" style="background:#22c55e;color:#001b10;" onclick="redeemMmrReward('${encUser}', 'priority_boost')">🚀 Platz 1 10000</button>
                     </div>
                 </div>
                 <div class="mmr-supporter-points">${s.points || 0} MMR</div>
@@ -483,7 +489,10 @@
                 <div class="extras-summary-card dice"><div class="label">MMR Points</div><div class="value">${mmr.totalPoints || 0}</div></div>
                 <div class="extras-summary-card pass"><div class="label">Endpoint</div><div class="value" style="font-size:13px;">${escapeAdminHtml(status.url || 'ws://localhost:21213/')}</div></div>
             </div>
-            <div style="font-size:12px; color:#d1d5db; margin:8px 0;">Wenn TikFinity offen ist und dein Server auf demselben PC läuft, sollte hier VERBUNDEN stehen.</div>
+            <div style="font-size:12px; color:#d1d5db; margin:8px 0;">
+                Lokal: Wenn TikFinity offen ist und dein Server auf demselben PC läuft, sollte hier VERBUNDEN stehen.<br>
+                Render: Mit Bridge zeigt Render ebenfalls VERBUNDEN. Status: <strong style="color:${bridgeColor};">${bridgeText}</strong>
+            </div>
             <div style="font-weight:900; color:var(--neon-gold); text-transform:uppercase; letter-spacing:.8px; margin-top:10px;">Top Supporter</div>
             ${topHtml}
             <div style="font-weight:900; color:var(--neon-cyan); text-transform:uppercase; letter-spacing:.8px; margin-top:12px;">Neueste MMR Events</div>
@@ -504,10 +513,32 @@
 
     async function redeemMmrReward(encodedUser, rewardKey) {
         const username = decodeURIComponent(encodedUser);
+        const payload = { username, rewardKey };
+
+        if (rewardKey === 'priority_boost') {
+            const activeSongs = (adminCurrentQueue || []).filter(s => !s.isDone && !s.isAfterHours);
+            if (!activeSongs.length) return alert('🚫 Keine Songs in der normalen Warteliste.');
+            const list = activeSongs.map((s, i) => `${i + 1}) ${s.artist} - ${s.title}`).join('\n');
+            const choice = prompt(`Welcher Song soll auf Platz 1 gepusht werden?\n\n${list}\n\nZahl eingeben:`);
+            if (!choice) return;
+            const num = parseInt(choice, 10);
+            if (!num || !activeSongs[num - 1]) return alert('🚫 Ungültige Auswahl.');
+            payload.targetSongId = activeSongs[num - 1].id;
+        }
+
         if (!confirm(`Belohnung für @${username} einlösen?`)) return;
-        const res = await fetch('/api/admin/mmr/redeem', { method:'POST', headers:{ 'Authorization': token, 'Content-Type':'application/json' }, body: JSON.stringify({ username, rewardKey }) });
+        const res = await fetch('/api/admin/mmr/redeem', { method:'POST', headers:{ 'Authorization': token, 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
         const data = await res.json();
-        if (data.error) alert('🚫 ' + data.error); else { alert('✅ Belohnung eingelöst: ' + data.redemption.rewardLabel); loadAdminQueue(); }
+        if (data.error) {
+            alert('🚫 ' + data.error);
+        } else {
+            let msg = '✅ Belohnung eingelöst: ' + data.redemption.rewardLabel;
+            if (data.redemption.afterHoursPassId) {
+                msg += `\n\nAfter-Hours-Link/Code:\n${window.location.origin}/?after_hours_paid=${data.redemption.afterHoursPassId}`;
+            }
+            alert(msg);
+            loadAdminQueue();
+        }
     }
 
     async function toggleExtension() {
