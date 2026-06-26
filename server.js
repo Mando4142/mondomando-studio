@@ -3,8 +3,12 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const fs = require('fs');
+let WebSocket = null;
+try { WebSocket = require('ws'); } catch (err) { console.log('[MMR] Paket ws fehlt. Bitte npm install ausführen, damit TikFinity verbunden wird.'); }
 const Stripe = require('stripe');
 const PORT = process.env.PORT || 3000;
+const TIKFINITY_WS_URL = process.env.TIKFINITY_WS_URL || 'ws://localhost:21213/';
+const TIKFINITY_EVENT_API_ENABLED = String(process.env.TIKFINITY_EVENT_API_ENABLED || 'true').toLowerCase() !== 'false';
 
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
@@ -70,7 +74,10 @@ let dbData = {
     processedStripeSessions: {},
     bonusAnnouncements: [],
     viewerVoteCodes: {},
-    viewerDeviceCodes: {}
+    viewerDeviceCodes: {},
+    mmrSupporters: {},
+    mmrEvents: [],
+    mmrRedemptions: []
 };
 
 let votingTimeout = null;
@@ -125,6 +132,9 @@ if (fs.existsSync(DB_FILE)) {
         if (!dbData.bonusAnnouncements) dbData.bonusAnnouncements = [];
         if (!dbData.viewerVoteCodes) dbData.viewerVoteCodes = {};
         if (!dbData.viewerDeviceCodes) dbData.viewerDeviceCodes = {};
+        if (!dbData.mmrSupporters) dbData.mmrSupporters = {};
+        if (!dbData.mmrEvents) dbData.mmrEvents = [];
+        if (!dbData.mmrRedemptions) dbData.mmrRedemptions = [];
         
         dbData.songQueue = dbData.songQueue.map(song => {
             if (!song.id) song.id = "S-" + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
@@ -161,6 +171,308 @@ function getTotalTimeSeconds() {
 function checkAdminAuth(req, res, next) {
     const authHeader = req.headers['authorization'];
     if (authHeader === ADMIN_PASSWORD) next(); else res.status(401).json({ error: "Unbefugter Zugriff!" });
+}
+
+// ==========================================
+// MMR POINTS / TIKFINITY SUPPORTER CLUB
+// ==========================================
+const MMR_RULES = {
+    follow: 10,
+    share: 5,
+    likeBlock: 3,          // pro 100 Likes
+    likeBlockSize: 100,
+    chat: 1,               // maximal alle 5 Minuten pro User
+    chatCooldownMs: 5 * 60 * 1000,
+    subscribe: 50,         // einmaliger VIP-Bonus
+    giftPointPerCoin: 1,
+    subscriberMultiplier: 1.20
+};
+
+const MMR_REWARDS = {
+    extra_vote: { label: '🗳️ Extra Stimme', cost: 50 },
+    shoutout: { label: '📣 Shoutout im Stream', cost: 100 },
+    song_dice: { label: '🎲 Songwürfel', cost: 150 },
+    supporter_wall: { label: '🌍 Supporter-Wall', cost: 300 },
+    legend: { label: '👑 Mondo Legende', cost: 500 }
+};
+
+let tikfinityStatus = {
+    enabled: TIKFINITY_EVENT_API_ENABLED,
+    connected: false,
+    url: TIKFINITY_WS_URL,
+    lastEvent: null,
+    lastError: null,
+    reconnects: 0
+};
+
+function normalizeMmrUser(value) {
+    return String(value || '').trim().replace(/^@+/, '').toLowerCase().slice(0, 80);
+}
+
+function getMmrUsername(data) {
+    return String(
+        data?.uniqueId ||
+        data?.user?.uniqueId ||
+        data?.userId ||
+        data?.username ||
+        data?.nickname ||
+        data?.user?.nickname ||
+        data?.displayName ||
+        ''
+    ).trim().replace(/^@+/, '').slice(0, 80);
+}
+
+function getMmrDisplayName(data, fallback) {
+    return String(
+        data?.nickname ||
+        data?.user?.nickname ||
+        data?.displayName ||
+        data?.uniqueId ||
+        fallback ||
+        'Unbekannt'
+    ).trim().slice(0, 80);
+}
+
+function getMmrRank(points) {
+    if (points >= 1000) return '👑 Mondo Legende';
+    if (points >= 600) return '💎 Gold Supporter';
+    if (points >= 300) return '⭐ Label Insider';
+    if (points >= 150) return '🔥 Street Team';
+    if (points >= 50) return '🎧 Supporter';
+    return '🌍 Listener';
+}
+
+function getOrCreateMmrSupporter(username, data = {}) {
+    const key = normalizeMmrUser(username);
+    if (!key) return null;
+    if (!dbData.mmrSupporters) dbData.mmrSupporters = {};
+    if (!dbData.mmrSupporters[key]) {
+        dbData.mmrSupporters[key] = {
+            username: key,
+            displayName: getMmrDisplayName(data, username),
+            points: 0,
+            lifetimePoints: 0,
+            follows: 0,
+            shares: 0,
+            likes: 0,
+            gifts: 0,
+            giftCoins: 0,
+            chats: 0,
+            isSubscriber: false,
+            extraVotes: 0,
+            redeemed: [],
+            lastChatPointAt: 0,
+            lastEventAt: Date.now(),
+            createdAt: Date.now()
+        };
+    }
+    const supporter = dbData.mmrSupporters[key];
+    supporter.displayName = getMmrDisplayName(data, supporter.displayName || username);
+    if (!supporter.redeemed) supporter.redeemed = [];
+    if (typeof supporter.extraVotes !== 'number') supporter.extraVotes = 0;
+    if (typeof supporter.lifetimePoints !== 'number') supporter.lifetimePoints = supporter.points || 0;
+    if (typeof supporter.points !== 'number') supporter.points = 0;
+    if (typeof supporter.likes !== 'number') supporter.likes = 0;
+    if (typeof supporter.giftCoins !== 'number') supporter.giftCoins = 0;
+    supporter.lastEventAt = Date.now();
+    return supporter;
+}
+
+function mmrMultiplierFor(supporter) {
+    return supporter && supporter.isSubscriber ? MMR_RULES.subscriberMultiplier : 1;
+}
+
+function addMmrEvent(username, type, points, note) {
+    if (!dbData.mmrEvents) dbData.mmrEvents = [];
+    dbData.mmrEvents.unshift({ username, type, points, note, timestamp: Date.now() });
+    dbData.mmrEvents = dbData.mmrEvents.slice(0, 80);
+}
+
+function awardMmrPoints(username, rawPoints, type, data = {}, note = '') {
+    const supporter = getOrCreateMmrSupporter(username, data);
+    if (!supporter) return null;
+    const multiplier = mmrMultiplierFor(supporter);
+    const points = Math.max(0, Math.round((Number(rawPoints) || 0) * multiplier));
+    if (points <= 0) return supporter;
+    supporter.points += points;
+    supporter.lifetimePoints += points;
+    supporter.lastEventAt = Date.now();
+    addMmrEvent(supporter.username, type, points, note || type);
+    saveToDB();
+    return supporter;
+}
+
+function getMmrTop(limit = 10) {
+    const supporters = Object.values(dbData.mmrSupporters || {});
+    return supporters
+        .sort((a, b) => (b.points || 0) - (a.points || 0))
+        .slice(0, limit)
+        .map((s, index) => ({
+            position: index + 1,
+            username: s.username,
+            displayName: s.displayName || s.username,
+            points: s.points || 0,
+            lifetimePoints: s.lifetimePoints || 0,
+            rank: getMmrRank(s.points || 0),
+            isSubscriber: s.isSubscriber === true,
+            extraVotes: s.extraVotes || 0,
+            shares: s.shares || 0,
+            likes: s.likes || 0,
+            giftCoins: s.giftCoins || 0,
+            redeemed: s.redeemed || []
+        }));
+}
+
+function getMmrSummary() {
+    const supporters = Object.values(dbData.mmrSupporters || {});
+    return {
+        top: getMmrTop(10),
+        totalSupporters: supporters.length,
+        totalPoints: supporters.reduce((sum, s) => sum + (s.points || 0), 0),
+        recentEvents: (dbData.mmrEvents || []).slice(0, 12),
+        recentRedemptions: (dbData.mmrRedemptions || []).slice(0, 12),
+        rewards: MMR_REWARDS,
+        tikfinityStatus
+    };
+}
+
+function redeemMmrReward(username, rewardKey) {
+    const supporter = getOrCreateMmrSupporter(username);
+    const reward = MMR_REWARDS[rewardKey];
+    if (!supporter || !reward) return { ok: false, error: 'Supporter oder Belohnung nicht gefunden.' };
+    if ((supporter.points || 0) < reward.cost) return { ok: false, error: 'Nicht genug MMR Points.' };
+    supporter.points -= reward.cost;
+    if (rewardKey === 'extra_vote') supporter.extraVotes = (supporter.extraVotes || 0) + 1;
+    const redemption = { username: supporter.username, displayName: supporter.displayName, rewardKey, rewardLabel: reward.label, cost: reward.cost, timestamp: Date.now() };
+    supporter.redeemed.unshift(redemption);
+    supporter.redeemed = supporter.redeemed.slice(0, 20);
+    if (!dbData.mmrRedemptions) dbData.mmrRedemptions = [];
+    dbData.mmrRedemptions.unshift(redemption);
+    dbData.mmrRedemptions = dbData.mmrRedemptions.slice(0, 60);
+    addMmrEvent(supporter.username, 'reward', -reward.cost, reward.label);
+    saveToDB();
+    return { ok: true, supporter, redemption };
+}
+
+function handleTikFinityEvent(packet) {
+    if (!packet || typeof packet !== 'object') return;
+    const eventName = String(packet.event || packet.type || '').toLowerCase();
+    const data = packet.data || packet;
+    const username = getMmrUsername(data);
+    tikfinityStatus.lastEvent = { event: eventName, at: Date.now(), user: username || null };
+    if (!username) return;
+
+    const supporter = getOrCreateMmrSupporter(username, data);
+    if (!supporter) return;
+
+    if (eventName === 'follow') {
+        if (!supporter.followed) {
+            supporter.followed = true;
+            supporter.follows = (supporter.follows || 0) + 1;
+            awardMmrPoints(username, MMR_RULES.follow, 'follow', data, 'Follow Bonus');
+        }
+        return;
+    }
+
+    if (eventName === 'share') {
+        supporter.shares = (supporter.shares || 0) + 1;
+        awardMmrPoints(username, MMR_RULES.share, 'share', data, 'Stream geteilt');
+        return;
+    }
+
+    if (eventName === 'chat') {
+        supporter.chats = (supporter.chats || 0) + 1;
+        if (!supporter.lastChatPointAt || Date.now() - supporter.lastChatPointAt >= MMR_RULES.chatCooldownMs) {
+            supporter.lastChatPointAt = Date.now();
+            awardMmrPoints(username, MMR_RULES.chat, 'chat', data, 'Chat-Aktivität');
+        } else {
+            saveToDB();
+        }
+        return;
+    }
+
+    if (eventName === 'like') {
+        const likeCount = Math.max(1, parseInt(data.likeCount || data.count || data.likes || 1, 10) || 1);
+        supporter.likes = (supporter.likes || 0) + likeCount;
+        const earnedBlocks = Math.floor((supporter.likes || 0) / MMR_RULES.likeBlockSize);
+        const alreadyBlocks = supporter.likeBlocksAwarded || 0;
+        const newBlocks = earnedBlocks - alreadyBlocks;
+        if (newBlocks > 0) {
+            supporter.likeBlocksAwarded = earnedBlocks;
+            awardMmrPoints(username, newBlocks * MMR_RULES.likeBlock, 'like', data, `${newBlocks * MMR_RULES.likeBlockSize} Likes erreicht`);
+        } else {
+            saveToDB();
+        }
+        return;
+    }
+
+    if (eventName === 'gift') {
+        // Bei Combo-Gifts nur am Ende zählen, damit keine doppelten Punkte entstehen.
+        if (data.giftType === 1 && data.repeatEnd === false) return;
+        const repeatCount = Math.max(1, parseInt(data.repeatCount || data.repeat || 1, 10) || 1);
+        const coinValue = Math.max(1, parseInt(data.diamondCount || data.coins || data.coin || data.gift?.diamondCount || 1, 10) || 1);
+        const coins = coinValue * repeatCount;
+        supporter.gifts = (supporter.gifts || 0) + 1;
+        supporter.giftCoins = (supporter.giftCoins || 0) + coins;
+        awardMmrPoints(username, coins * MMR_RULES.giftPointPerCoin, 'gift', data, `Geschenk: ${data.giftName || data.gift?.name || coins + ' Coins'}`);
+        return;
+    }
+
+    if (eventName === 'subscribe' || eventName === 'sub' || eventName === 'superfan') {
+        const wasSubscriber = supporter.isSubscriber === true;
+        supporter.isSubscriber = true;
+        supporter.subscribedAt = supporter.subscribedAt || Date.now();
+        if (!wasSubscriber) awardMmrPoints(username, MMR_RULES.subscribe, 'subscribe', data, 'VIP Supporter Bonus');
+        else saveToDB();
+        return;
+    }
+
+    saveToDB();
+}
+
+function startTikFinityBridge() {
+    if (!TIKFINITY_EVENT_API_ENABLED) {
+        console.log('[MMR] TikFinity Event API ist deaktiviert.');
+        return;
+    }
+    if (!WebSocket) {
+        tikfinityStatus.lastError = 'Paket ws fehlt. Bitte npm install ausführen.';
+        return;
+    }
+
+    let ws;
+    const connect = () => {
+        try {
+            ws = new WebSocket(TIKFINITY_WS_URL);
+            ws.on('open', () => {
+                tikfinityStatus.connected = true;
+                tikfinityStatus.lastError = null;
+                console.log(`[MMR] ✅ TikFinity verbunden: ${TIKFINITY_WS_URL}`);
+            });
+            ws.on('message', (message) => {
+                try {
+                    const packet = JSON.parse(message.toString());
+                    handleTikFinityEvent(packet);
+                } catch (err) {
+                    console.log('[MMR] TikFinity Event konnte nicht gelesen werden:', err.message);
+                }
+            });
+            ws.on('close', () => {
+                tikfinityStatus.connected = false;
+                tikfinityStatus.reconnects += 1;
+                setTimeout(connect, 5000);
+            });
+            ws.on('error', (err) => {
+                tikfinityStatus.connected = false;
+                tikfinityStatus.lastError = err.message;
+            });
+        } catch (err) {
+            tikfinityStatus.connected = false;
+            tikfinityStatus.lastError = err.message;
+            setTimeout(connect, 5000);
+        }
+    };
+    connect();
 }
 
 function getSwissDateString(d) {
@@ -568,6 +880,7 @@ app.get('/api/queue', (req, res) => {
         viewerCodeStats: getViewerCodeStats(),
         paidExtrasSummary,
         recentPaidExtras,
+        mmr: getMmrSummary(),
         afterHoursPasses: Object.values(dbData.afterHoursPasses || {}).map(p => ({
             sessionId: p.sessionId,
             buyerEmail: p.buyerEmail,
@@ -675,6 +988,36 @@ app.post('/api/voting-code', (req, res) => {
     res.json({ success: true, code, reused: false });
 });
 
+
+app.get('/api/mmr', (req, res) => {
+    res.json(getMmrSummary());
+});
+
+app.post('/api/admin/mmr/manual-add', checkAdminAuth, (req, res) => {
+    const username = String(req.body.username || '').trim();
+    const points = parseInt(req.body.points, 10) || 0;
+    const reason = String(req.body.reason || 'Manuell im Admin vergeben').slice(0, 120);
+    if (!username) return res.status(400).json({ error: 'TikTok-Name fehlt.' });
+    if (points === 0) return res.status(400).json({ error: 'Punkte dürfen nicht 0 sein.' });
+    const supporter = awardMmrPoints(username, points, 'manual', { uniqueId: username }, reason);
+    res.json({ success: true, supporter });
+});
+
+app.post('/api/admin/mmr/redeem', checkAdminAuth, (req, res) => {
+    const username = String(req.body.username || '').trim();
+    const rewardKey = String(req.body.rewardKey || '').trim();
+    const result = redeemMmrReward(username, rewardKey);
+    if (!result.ok) return res.status(400).json({ error: result.error });
+    res.json({ success: true, redemption: result.redemption, supporter: result.supporter });
+});
+
+app.post('/api/admin/mmr/reset-events', checkAdminAuth, (req, res) => {
+    dbData.mmrEvents = [];
+    dbData.mmrRedemptions = [];
+    saveToDB();
+    res.json({ success: true });
+});
+
 app.post('/api/create-bonus-checkout', async (req, res) => {
     if (!stripe) return res.status(500).json({ error: 'Stripe ist noch nicht konfiguriert. STRIPE_SECRET_KEY fehlt in den Umgebungsvariablen.' });
 
@@ -751,15 +1094,25 @@ app.post('/api/vote', (req, res) => {
     dbData.votes[vote2] = (dbData.votes[vote2] || 0) + 1;
     dbData.usedCodes[codeUpper] = true;
 
+    let extraVoteUsed = false;
     if (viewerCode) {
         viewerCode.used = true;
         viewerCode.usedAt = Date.now();
         viewerCode.vote1 = vote1;
         viewerCode.vote2 = vote2;
+
+        const mmrKey = normalizeMmrUser(viewerCode.tiktokName || '');
+        const mmrSupporter = mmrKey && dbData.mmrSupporters ? dbData.mmrSupporters[mmrKey] : null;
+        if (mmrSupporter && (mmrSupporter.extraVotes || 0) > 0) {
+            dbData.votes[vote1] = (dbData.votes[vote1] || 0) + 1;
+            mmrSupporter.extraVotes -= 1;
+            extraVoteUsed = true;
+            addMmrEvent(mmrSupporter.username, 'extra_vote_used', 0, 'Extra Stimme im Voting eingelöst');
+        }
     }
 
     saveToDB();
-    res.json({ success: true });
+    res.json({ success: true, extraVoteUsed });
 });
 
 app.post('/api/admin/voting/start', checkAdminAuth, (req, res) => {
@@ -904,4 +1257,7 @@ app.post('/api/queue/reset', checkAdminAuth, (req, res) => {
     saveToDB(); res.json({ success: true });
 });
 
-app.listen(PORT, () => { console.log(`🚀 MONDO MANDO RECORDS RUNNING ON PORT ${PORT}`); });
+app.listen(PORT, () => {
+    console.log(`🚀 MONDO MANDO RECORDS RUNNING ON PORT ${PORT}`);
+    startTikFinityBridge();
+});
