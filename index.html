@@ -71,6 +71,15 @@
         label { display: block; margin-bottom: 8px; font-size: 16px; text-transform: uppercase; color: var(--text-main); }
         input[type="text"], input[type="url"], input[type="number"], select { width: 100%; padding: 14px; background-color: rgba(5, 5, 7, 0.8); border: 2px solid #2a2a35; border-radius: 8px; color: white; font-size: 16px; box-sizing: border-box; }
         .duration-inputs { display: flex; gap: 15px; }
+
+        .platform-choice-box { border:1px dashed var(--neon-cyan); background:rgba(0,242,254,.06); border-radius:10px; padding:14px; margin-top:15px; font-family:sans-serif; }
+        .platform-choice-title { font-family:'Impact',sans-serif; font-size:18px; letter-spacing:1px; color:var(--neon-cyan); margin-bottom:10px; }
+        .platform-choice-row { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px; }
+        .platform-choice-row label { display:flex; align-items:center; gap:9px; cursor:pointer; font-size:15px; color:#fff; }
+        .platform-link-fields { display:grid; gap:10px; margin-top:10px; }
+        .platform-link-fields input { margin-top:5px; }
+        .duration-feedback-chip { color:var(--neon-gold); font-weight:900; font-family:sans-serif; }
+
         .checkbox-group { display: flex; align-items: flex-start; gap: 15px; background-color: rgba(5, 5, 7, 0.8); padding: 15px; border: 1px dashed var(--neon-pink); border-radius: 8px; margin-top: 10px; font-family: sans-serif; }
         
         /* GESTREIFTER SONG EINSENDEN BUTTON */
@@ -553,7 +562,7 @@
                         <button onclick="changeMonth(1)">▶</button>
                     </div>
                     <div id="calendar-grid-content" class="calendar-grid"></div>
-                    <button id="btn-live-view" style="display:none; width: 100%; margin-top: 15px; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 6px; font-family: 'Impact', sans-serif; cursor: pointer; font-size: 16px; box-shadow: 0 0 10px #ef4444;" onclick="resetToLiveView()">🔴 ZURÜCK ZUR LIVE-SHOW</button>
+                    <button id="btn-live-view" style="display:none; width: 100%; margin-top: 15px; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 6px; font-family: 'Impact', sans-serif; cursor: pointer; font-size: 16px; box-shadow: 0 0 10px #ef4444;" onclick="resetToLiveView()">ZURÜCK ZUR LIVE-SHOW</button>
                 </div>
             </div>
 
@@ -583,8 +592,25 @@
                             <input type="text" id="songTitle" required placeholder="Titel deines Tracks">
                         </div>
                         <div class="form-group">
-                            <label for="songLink">Song Link <span style="color: var(--neon-pink);">(Spotify oder YouTube)</span></label>
-                            <input type="url" id="songLink" required placeholder="https://...">
+                            <label>Wo ist dein Song online?</label>
+                            <div class="platform-choice-box">
+                                <div class="platform-choice-title">Wähle die Plattform und füge den passenden Link ein</div>
+                                <div class="platform-choice-row">
+                                    <label><input type="checkbox" id="platformSpotify" value="spotify" onchange="updatePlatformLinkFields()"> Spotify</label>
+                                    <label><input type="checkbox" id="platformYoutube" value="youtube" onchange="updatePlatformLinkFields()"> YouTube</label>
+                                </div>
+                                <div class="platform-link-fields">
+                                    <div id="spotifyLinkField" style="display:none;">
+                                        <label for="spotifyLink" style="font-size:14px; color:#bff9ff;">Spotify-Link</label>
+                                        <input type="url" id="spotifyLink" placeholder="https://open.spotify.com/track/...">
+                                    </div>
+                                    <div id="youtubeLinkField" style="display:none;">
+                                        <label for="youtubeLink" style="font-size:14px; color:#ffd6d6;">YouTube-Link</label>
+                                        <input type="url" id="youtubeLink" placeholder="https://www.youtube.com/watch?v=...">
+                                    </div>
+                                </div>
+                                <div style="font-size:13px; color:#bff9ff; line-height:1.4; margin-top:8px;">Wenn du beide ankreuzt, musst du beide Links eingeben. Im Admin werden dann beide Buttons angezeigt.</div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Genaue Song-Dauer</label>
@@ -635,19 +661,6 @@
                                     <span style="font-family: sans-serif; font-size: 13px; color: #ff9999; line-height: 1.4;">Wer versucht das System mit Fake-Accounts oder erfundenen Namen auszutricksen, wird permanent von allen Mondo Mando Angeboten ausgeschlossen.</span>
                                 </div>
                             </label>
-
-                            <div class="checkbox-group" style="border-color: var(--neon-cyan); background-color: rgba(0, 242, 254, 0.06); flex-direction: column; gap: 10px; margin-top: 15px;">
-                                <div style="font-family: 'Impact', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--neon-cyan);">IST DEIN SONG AUF SPOTIFY UND/ODER YOUTUBE?</div>
-                                <label style="display: flex; align-items: center; gap: 12px; margin: 0; cursor: pointer; font-family: sans-serif; text-transform: none; font-size: 15px;">
-                                    <input type="checkbox" id="platformSpotify" value="spotify" style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
-                                    <span>🟢 Spotify</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 12px; margin: 0; cursor: pointer; font-family: sans-serif; text-transform: none; font-size: 15px;">
-                                    <input type="checkbox" id="platformYoutube" value="youtube" style="width: 20px; height: 20px; margin: 0; flex-shrink: 0;">
-                                    <span>🔴 YouTube</span>
-                                </label>
-                                <div style="font-family: sans-serif; font-size: 13px; color: #bff9ff; line-height: 1.4;">Du kannst Spotify, YouTube oder beide ankreuzen.</div>
-                            </div>
                         </div>
                         
                         <div id="submit-error-box"></div>
@@ -1134,20 +1147,40 @@
     }
 
 
+
+    function updatePlatformLinkFields() {
+        const sp = document.getElementById('platformSpotify')?.checked;
+        const yt = document.getElementById('platformYoutube')?.checked;
+        const spField = document.getElementById('spotifyLinkField');
+        const ytField = document.getElementById('youtubeLinkField');
+        const spInput = document.getElementById('spotifyLink');
+        const ytInput = document.getElementById('youtubeLink');
+        if (spField) spField.style.display = sp ? 'block' : 'none';
+        if (ytField) ytField.style.display = yt ? 'block' : 'none';
+        if (spInput) spInput.required = !!sp;
+        if (ytInput) ytInput.required = !!yt;
+        if (!sp && spInput) spInput.value = '';
+        if (!yt && ytInput) ytInput.value = '';
+    }
+
+    function formatDuration(seconds) {
+        const total = parseInt(seconds || 0, 10);
+        const m = Math.floor(total / 60);
+        const s = total % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function durationWithFeedbackHtml(seconds) {
+        return `Songdauer: ${formatDuration(seconds)} <span class="duration-feedback-chip">+1 Min Feedback</span>`;
+    }
+
     function escapePublicHtml(value) {
         return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || c));
     }
 
 
     function getPlatformIcon(item) {
-        const platforms = Array.isArray(item && item.platforms) ? item.platforms : [];
-        const platform = (item && item.platform) || '';
-        const hasSpotify = platforms.includes('spotify') || platform === 'spotify';
-        const hasYoutube = platforms.includes('youtube') || platform === 'youtube';
-        if (hasSpotify && hasYoutube) return '<span style="color:#1DB954; margin-right:4px;">🟢</span><span style="color:#FF0000; margin-right:5px;">🔴</span>';
-        if (hasSpotify) return '<span style="color:#1DB954; margin-right:5px;">🟢</span>';
-        if (hasYoutube) return '<span style="color:#FF0000; margin-right:5px;">🔴</span>';
-        return '🎵';
+        return '';
     }
 
     function renderMmrSupporters(mmr) {
@@ -1304,6 +1337,7 @@
                         <div>
                             <h4 style="margin:0 0 5px 0;">${platformIcon} ${item.artist} - ${item.title}</h4>
                             <p style="margin:0; font-size:14px; color:var(--text-muted);">Genre: ${item.genre}</p>
+                            <p style="margin:4px 0 0 0; font-size:13px; color:#e5e7eb;">${durationWithFeedbackHtml(item.duration)}</p>
                             <div style="margin-top:8px;">${badges}</div>
                             ${item.isDice ? '<div style="margin-top:7px; color:var(--neon-pink); font-size:13px; font-weight:900; text-shadow:0 0 8px var(--neon-pink);">🎲 Dieser Song wurde vom Song-Würfel ausgewählt!</div>' : ''}
                         </div>
@@ -1442,7 +1476,7 @@
 
     async function addSongToServer(e) {
         e.preventDefault(); const artist = document.getElementById('artistName').value; const title = document.getElementById('songTitle').value;
-        const songLink = document.getElementById('songLink').value; const min = parseInt(document.getElementById('durationMin').value) || 0; const sec = parseInt(document.getElementById('durationSec').value) || 0;
+        const spotifyLink = document.getElementById('spotifyLink') ? document.getElementById('spotifyLink').value.trim() : ''; const youtubeLink = document.getElementById('youtubeLink') ? document.getElementById('youtubeLink').value.trim() : ''; const min = parseInt(document.getElementById('durationMin').value) || 0; const sec = parseInt(document.getElementById('durationSec').value) || 0;
         const genre = document.getElementById('genre').value; const errBox = document.getElementById('submit-error-box');
         const platformSpotify = document.getElementById('platformSpotify') && document.getElementById('platformSpotify').checked;
         const platformYoutube = document.getElementById('platformYoutube') && document.getElementById('platformYoutube').checked;
@@ -1450,13 +1484,35 @@
         if (platformSpotify) platforms.push('spotify');
         if (platformYoutube) platforms.push('youtube');
         if (platforms.length === 0) {
-            errBox.innerText = "🚫 Bitte kreuze an, ob dein Song auf Spotify, YouTube oder auf beiden ist.";
+            errBox.innerText = "🚫 Bitte wähle Spotify, YouTube oder beide aus.";
             errBox.style.display = "block";
             return;
         }
+        if (platformSpotify && !spotifyLink) {
+            errBox.innerText = "🚫 Du hast Spotify ausgewählt. Bitte gib den Spotify-Link ein.";
+            errBox.style.display = "block";
+            return;
+        }
+        if (platformYoutube && !youtubeLink) {
+            errBox.innerText = "🚫 Du hast YouTube ausgewählt. Bitte gib den YouTube-Link ein.";
+            errBox.style.display = "block";
+            return;
+        }
+        if (spotifyLink && !/spotify\.com/i.test(spotifyLink)) {
+            errBox.innerText = "🚫 Der Spotify-Link muss von spotify.com sein.";
+            errBox.style.display = "block";
+            return;
+        }
+        if (youtubeLink && !/youtube\.com|youtu\.be/i.test(youtubeLink)) {
+            errBox.innerText = "🚫 Der YouTube-Link muss von YouTube sein.";
+            errBox.style.display = "block";
+            return;
+        }
+        const songLinks = { spotify: spotifyLink, youtube: youtubeLink };
+        const songLink = spotifyLink || youtubeLink;
         
         const afterHoursSessionId = (currentQueuePhase === 'base_full' || currentQueuePhase === 'extension') ? (localStorage.getItem('mondo_after_hours_pass') || '') : '';
-        const res = await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink, afterHoursSessionId, platforms }) });
+        const res = await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink, spotifyLink, youtubeLink, songLinks, afterHoursSessionId, platforms }) });
         const resData = await res.json();
         
         if (resData.error) {
@@ -1482,7 +1538,7 @@
 </div>`;
             document.body.appendChild(overlay);
 
-            document.getElementById('songForm').reset(); loadQueue();
+            document.getElementById('songForm').reset(); updatePlatformLinkFields(); loadQueue();
         }
     }
     
