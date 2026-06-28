@@ -45,6 +45,7 @@
         .platform-logo-badge:hover { transform:translateY(-1px) scale(1.02); }
         .platform-logo-badge.spotify { background:#1DB954; color:#08120b; box-shadow:0 0 12px rgba(29,185,84,.35); }
         .platform-logo-badge.youtube { background:#FF0000; color:white; box-shadow:0 0 12px rgba(255,0,0,.35); }
+        .duration-feedback-chip { color:var(--neon-gold); font-weight:900; }
         .platform-logo-symbol { font-size:16px; line-height:1; }
 
         .btn-trash { background: #ef4444; color: white; border: none; padding: 14px; border-radius: 6px; cursor: pointer; font-size: 16px; }
@@ -203,21 +204,27 @@
     
     function getPlatformLogoHtml(item) {
         const platforms = Array.isArray(item && item.platforms) ? item.platforms : [];
-        const platform = (item && item.platform) || '';
-        const normalized = [];
-        if (platforms.includes('spotify') || platform === 'spotify' || platform === 'both') normalized.push('spotify');
-        if (platforms.includes('youtube') || platform === 'youtube' || platform === 'both') normalized.push('youtube');
-        if (!normalized.length) {
-            if (/spotify\.com/i.test(item?.songLink || '')) normalized.push('spotify');
-            else if (/youtube\.com|youtu\.be/i.test(item?.songLink || '')) normalized.push('youtube');
-        }
-        if (!normalized.length) return `<a href="${item.songLink}" target="_blank" class="link-icon icon-text">LINK</a>`;
-        return `<div class="platform-logo-group">${normalized.map(name => {
-            if (name === 'spotify') return `<a href="${item.songLink}" target="_blank" class="platform-logo-badge spotify" title="Spotify"><span class="platform-logo-symbol">🟢</span><span>Spotify</span></a>`;
-            if (name === 'youtube') return `<a href="${item.songLink}" target="_blank" class="platform-logo-badge youtube" title="YouTube"><span class="platform-logo-symbol">▶</span><span>YouTube</span></a>`;
-            return '';
-        }).join('')}</div>`;
+        const songLinks = item && item.songLinks ? item.songLinks : {};
+        const spotifyHref = item.spotifyLink || songLinks.spotify || ((item.platform === 'spotify') ? item.songLink : '');
+        const youtubeHref = item.youtubeLink || songLinks.youtube || ((item.platform === 'youtube') ? item.songLink : '');
+        const parts = [];
+        if ((platforms.includes('spotify') || item.platform === 'spotify' || item.platform === 'both' || spotifyHref) && spotifyHref) parts.push(`<a href="${spotifyHref}" target="_blank" class="platform-logo-badge spotify">Spotify</a>`);
+        if ((platforms.includes('youtube') || item.platform === 'youtube' || item.platform === 'both' || youtubeHref) && youtubeHref) parts.push(`<a href="${youtubeHref}" target="_blank" class="platform-logo-badge youtube">YouTube</a>`);
+        if (!parts.length && item.songLink) parts.push(`<a href="${item.songLink}" target="_blank" class="link-icon icon-text">LINK</a>`);
+        return `<div class="platform-logo-group">${parts.join('')}</div>`;
     }
+
+    function formatDuration(seconds) {
+        const total = parseInt(seconds || 0, 10);
+        const m = Math.floor(total / 60);
+        const s = total % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function durationWithFeedbackHtml(seconds) {
+        return `⏱️ ${formatDuration(seconds)} Min <span class="duration-feedback-chip">+1 Min Feedback</span>`;
+    }
+
 
 async function loadAdminQueue() {
         if(!token) return;
@@ -388,7 +395,7 @@ async function loadAdminQueue() {
                             <div class="song-details">
                                 <h3 style="margin:0;">${titlePrefix}${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3>
                                 ${boostInfo}${afterInfo}${diceInfo}
-                                <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ⏱️ ${min}:${sec < 10 ? '0':''}${sec} Min <span style="color:var(--neon-gold); font-weight:900;">+1 Min</span></p>
+                                <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ${durationWithFeedbackHtml(item.duration)}</p>
                             </div>
                         </div>
                         <div class="actions-flex">
@@ -415,7 +422,7 @@ async function loadAdminQueue() {
                             <div class="song-details">
                                 <h3 style="margin:0; color:#ffd8bf;">${titlePrefix}${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3>
                                 ${boostInfo}${afterInfo}${diceInfo}
-                                <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ⏱️ ${min}:${sec < 10 ? '0':''}${sec} Min <span style="color:var(--neon-gold); font-weight:900;">+1 Min</span></p>
+                                <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ${durationWithFeedbackHtml(item.duration)}</p>
                             </div>
                         </div>
                         <div class="actions-flex">
