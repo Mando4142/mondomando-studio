@@ -112,6 +112,49 @@ function createUniqueVotingCode() {
     return code;
 }
 
+
+function normalizeSongLinks(raw = {}) {
+    const spotifyLink = String(raw.spotifyLink || raw.songLinks?.spotify || '').trim();
+    const youtubeLink = String(raw.youtubeLink || raw.songLinks?.youtube || '').trim();
+    const platforms = Array.isArray(raw.platforms)
+        ? [...new Set(raw.platforms.map(p => String(p || '').trim().toLowerCase()).filter(p => ['spotify', 'youtube'].includes(p)))]
+        : [];
+
+    if (spotifyLink && !platforms.includes('spotify')) platforms.push('spotify');
+    if (youtubeLink && !platforms.includes('youtube')) platforms.push('youtube');
+
+    return {
+        platforms,
+        spotifyLink,
+        youtubeLink,
+        songLinks: {
+            spotify: spotifyLink,
+            youtube: youtubeLink
+        },
+        primaryLink: spotifyLink || youtubeLink || String(raw.songLink || '').trim()
+    };
+}
+
+function getAllSongLinks(song = {}) {
+    const links = [];
+    if (song.songLink) links.push(String(song.songLink).trim());
+    if (song.spotifyLink) links.push(String(song.spotifyLink).trim());
+    if (song.youtubeLink) links.push(String(song.youtubeLink).trim());
+    if (song.songLinks && typeof song.songLinks === 'object') {
+        if (song.songLinks.spotify) links.push(String(song.songLinks.spotify).trim());
+        if (song.songLinks.youtube) links.push(String(song.songLinks.youtube).trim());
+    }
+    return [...new Set(links.filter(Boolean).map(l => l.toLowerCase()))];
+}
+
+function detectPlatformsFromLinks(song = {}) {
+    const links = getAllSongLinks(song).join(' ');
+    const platforms = [];
+    if (/spotify\.com/i.test(links)) platforms.push('spotify');
+    if (/youtube\.com|youtu\.be/i.test(links)) platforms.push('youtube');
+    return platforms;
+}
+
 function getViewerCodeStats() {
     const codes = Object.values(dbData.viewerVoteCodes || {});
     const used = codes.filter(c => c.used).length;
@@ -979,7 +1022,7 @@ app.get('/api/queue', (req, res) => {
         return { 
             id: song.id, artist: song.artist, title: song.title, 
             duration: song.duration, genre: song.genre, songLink: song.songLink, 
-            isHit: song.isHit, isDone: song.isDone, platform: song.platform || platform, platforms: Array.isArray(song.platforms) ? song.platforms : (song.platform ? [song.platform] : []),
+            isHit: song.isHit, isDone: song.isDone, platform: song.platform || platform, platforms: Array.isArray(song.platforms) ? song.platforms : (song.platform ? [song.platform] : []), spotifyLink: song.spotifyLink || song.songLinks?.spotify || null, youtubeLink: song.youtubeLink || song.songLinks?.youtube || null, songLinks: song.songLinks || {},
             isDice: song.isDice || false,
             isBoosted: song.isBoosted || false,
             isAfterHours: song.isAfterHours || false,
@@ -1060,17 +1103,18 @@ app.get('/api/queue', (req, res) => {
 app.post('/api/submit', (req, res) => {
     if (dbData.systemOnline === false) return res.status(400).json({ error: "Das Einreicheformular ist aktuell offline!" });
 
-    const { artist, title, duration, genre, songLink, afterHoursSessionId, platforms } = req.body;
-    const isSpotify = /spotify\.com/i.test(songLink);
-    const isYouTube = /youtube\.com|youtu\.be/i.test(songLink);
-    if (!isSpotify && !isYouTube) return res.status(400).json({ error: "Nur Links von Spotify oder YouTube erlaubt!" });
-
-    const submittedPlatforms = Array.isArray(platforms)
-        ? [...new Set(platforms.map(p => String(p || '').trim().toLowerCase()).filter(p => ['spotify', 'youtube'].includes(p)))]
-        : [];
+    const { artist, title, duration, genre, songLink, spotifyLink, youtubeLink, songLinks, platforms, afterHoursSessionId } = req.body;
+    const submitted = normalizeSongLinks({ songLink, spotifyLink, youtubeLink, songLinks, platforms });
+    const submittedPlatforms = submitted.platforms;
     if (submittedPlatforms.length === 0) return res.status(400).json({ error: "Bitte kreuze Spotify, YouTube oder beide an." });
+    if (submittedPlatforms.includes('spotify') && !submitted.spotifyLink) return res.status(400).json({ error: "Du hast Spotify angekreuzt. Bitte gib den Spotify-Link ein." });
+    if (submittedPlatforms.includes('youtube') && !submitted.youtubeLink) return res.status(400).json({ error: "Du hast YouTube angekreuzt. Bitte gib den YouTube-Link ein." });
+    if (submitted.spotifyLink && !/spotify\.com/i.test(submitted.spotifyLink)) return res.status(400).json({ error: "Der Spotify-Link muss von spotify.com sein." });
+    if (submitted.youtubeLink && !/youtube\.com|youtu\.be/i.test(submitted.youtubeLink)) return res.status(400).json({ error: "Der YouTube-Link muss von YouTube sein." });
+    if (!submitted.primaryLink) return res.status(400).json({ error: "Bitte gib mindestens einen Song-Link ein." });
 
-    const hasDuplicateLink = dbData.songQueue.some(song => song.songLink.trim().toLowerCase() === songLink.trim().toLowerCase());
+    const newLinks = [submitted.spotifyLink, submitted.youtubeLink].filter(Boolean).map(l => l.trim().toLowerCase());
+    const hasDuplicateLink = dbData.songQueue.some(song => getAllSongLinks(song).some(existing => newLinks.includes(existing)));
     if (hasDuplicateLink) return res.status(400).json({ error: "Song-Link ist bereits in der Liste!" });
 
     if (["Schlager", "Hardstyle", "Hardcore", "Metal"].includes(genre)) return res.status(400).json({ error: "Dieses Genre wird blockiert!" });
@@ -1102,7 +1146,7 @@ app.post('/api/submit', (req, res) => {
     const newSong = {
         id: "S-" + Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
         voteCode: newCode,
-        artist, title, duration: parseInt(duration) || 0, genre, songLink, platforms: submittedPlatforms, platform: submittedPlatforms.length === 1 ? submittedPlatforms[0] : 'both',
+        artist, title, duration: parseInt(duration) || 0, genre, songLink: submitted.primaryLink, spotifyLink: submitted.spotifyLink, youtubeLink: submitted.youtubeLink, songLinks: submitted.songLinks, platforms: submittedPlatforms, platform: submittedPlatforms.length === 1 ? submittedPlatforms[0] : 'both',
         isHit: false, isDone: false, isDice: false, isBoosted: false, isAfterHours: false, bonusNotes: [], timestamp: Date.now()
     };
 
