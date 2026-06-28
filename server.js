@@ -86,14 +86,6 @@ let dbData = {
 
 let votingTimeout = null;
 
-process.on('uncaughtException', (err) => {
-    console.error('[SERVER] Uncaught Exception:', err);
-});
-
-process.on('unhandledRejection', (err) => {
-    console.error('[SERVER] Unhandled Rejection:', err);
-});
-
 function generateVoteCode() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
@@ -160,10 +152,12 @@ if (fs.existsSync(DB_FILE)) {
             if (song.diceBuyerEmail === undefined) song.diceBuyerEmail = null;
             if (!Array.isArray(song.platforms)) {
                 if (song.platform === 'spotify' || song.platform === 'youtube') song.platforms = [song.platform];
+                else if (/spotify\.com/i.test(song.songLink || '')) song.platforms = ['spotify'];
+                else if (/youtube\.com|youtu\.be/i.test(song.songLink || '')) song.platforms = ['youtube'];
                 else song.platforms = [];
             }
             if (!song.platform && song.platforms.length === 1) song.platform = song.platforms[0];
-            if (!song.platform && song.platforms.length > 1) song.platform = 'both';
+            if ((!song.platform || song.platform === 'other') && song.platforms.length > 1) song.platform = 'both';
             return song;
         });
     } catch (e) { console.log("DB initialisiert."); }
@@ -175,7 +169,7 @@ function saveToDB() {
 
 const BASE_LIMIT_MINUTES = 90;
 const EXTENSION_LIMIT_MINUTES = 30;
-const FEEDBACK_BUFFER_SECONDS = 120;
+const FEEDBACK_BUFFER_SECONDS = 60;
 const ADMIN_PASSWORD = "Sutter1998!";
 
 function getTotalTimeSeconds() {
@@ -262,29 +256,7 @@ function getMmrDisplayName(data, fallback) {
     ).trim().slice(0, 80);
 }
 
-
-function hasRedeemedMmrReward(supporter, rewardKey) {
-    return Array.isArray(supporter?.redeemed) && supporter.redeemed.some(r => r && r.rewardKey === rewardKey);
-}
-
-function hasGlobalMmrRedemption(username, rewardKey) {
-    const key = normalizeMmrUser(username);
-    return Array.isArray(dbData.mmrRedemptions) && dbData.mmrRedemptions.some(r => normalizeMmrUser(r && r.username) === key && r.rewardKey === rewardKey);
-}
-
-function syncMmrSupporterBadges(supporter) {
-    if (!supporter) return supporter;
-    if (hasRedeemedMmrReward(supporter, 'legend') || hasGlobalMmrRedemption(supporter.username, 'legend')) supporter.isMondoLegend = true;
-    if (hasRedeemedMmrReward(supporter, 'vip') || hasGlobalMmrRedemption(supporter.username, 'vip')) supporter.isVipSupporter = true;
-    if (hasRedeemedMmrReward(supporter, 'supporter_wall') || hasGlobalMmrRedemption(supporter.username, 'supporter_wall')) supporter.isSupporterWall = true;
-    return supporter;
-}
-
-function getMmrRank(input) {
-    const supporter = (input && typeof input === 'object') ? syncMmrSupporterBadges(input) : null;
-    const points = supporter ? (Number(supporter.points) || 0) : (Number(input) || 0);
-    if (supporter && supporter.isMondoLegend) return '🏆 Mondo Legende';
-    if (supporter && supporter.isVipSupporter) return '👑 VIP Supporter';
+function getMmrRank(points) {
     if (points >= 1000) return '👑 Mondo Legende';
     if (points >= 600) return '💎 Gold Supporter';
     if (points >= 300) return '⭐ Label Insider';
@@ -326,7 +298,6 @@ function getOrCreateMmrSupporter(username, data = {}) {
     if (typeof supporter.likes !== 'number') supporter.likes = 0;
     if (typeof supporter.giftCoins !== 'number') supporter.giftCoins = 0;
     supporter.lastEventAt = Date.now();
-    syncMmrSupporterBadges(supporter);
     return supporter;
 }
 
@@ -355,94 +326,40 @@ function awardMmrPoints(username, rawPoints, type, data = {}, note = '') {
 }
 
 function getMmrTop(limit = 10) {
-    try {
-        const supporters = Object.values(dbData.mmrSupporters || {}).filter(Boolean).map(syncMmrSupporterBadges).filter(Boolean);
-        return supporters
-            .sort((a, b) => (Number(b.points) || 0) - (Number(a.points) || 0))
-            .slice(0, limit)
-            .map((s, index) => ({
-                position: index + 1,
-                username: s.username || '',
-                displayName: s.displayName || s.username || 'Unbekannt',
-                points: Number(s.points) || 0,
-                lifetimePoints: Number(s.lifetimePoints) || 0,
-                rank: getMmrRank(s),
-                isSubscriber: s.isSubscriber === true,
-                isMondoLegend: s.isMondoLegend === true,
-                isVipSupporter: s.isVipSupporter === true,
-                isSupporterWall: s.isSupporterWall === true,
-                extraVotes: Number(s.extraVotes) || 0,
-                shares: Number(s.shares) || 0,
-                likes: Number(s.likes) || 0,
-                giftCoins: Number(s.giftCoins) || 0,
-                redeemed: Array.isArray(s.redeemed) ? s.redeemed : []
-            }));
-    } catch (err) {
-        console.error('[MMR] getMmrTop Fehler:', err.message);
-        return [];
-    }
-}
-
-
-function getMmrLegends(limit = 30) {
-    try {
-        const supporters = Object.values(dbData.mmrSupporters || {}).filter(Boolean).map(syncMmrSupporterBadges).filter(Boolean);
-        return supporters
-            .filter(s => s.isMondoLegend === true)
-            .sort((a, b) => (Number(b.lifetimePoints || b.points) || 0) - (Number(a.lifetimePoints || a.points) || 0))
-            .slice(0, limit)
-            .map((s, index) => ({
-                position: index + 1,
-                username: s.username || '',
-                displayName: s.displayName || s.username || 'Unbekannt',
-                points: Number(s.points) || 0,
-                lifetimePoints: Number(s.lifetimePoints) || 0,
-                rank: '🏆 Mondo Legende',
-                isSubscriber: s.isSubscriber === true,
-                isMondoLegend: true,
-                isVipSupporter: s.isVipSupporter === true,
-                extraVotes: Number(s.extraVotes) || 0,
-                redeemed: Array.isArray(s.redeemed) ? s.redeemed : []
-            }));
-    } catch (err) {
-        console.error('[MMR] getMmrLegends Fehler:', err.message);
-        return [];
-    }
+    const supporters = Object.values(dbData.mmrSupporters || {});
+    return supporters
+        .sort((a, b) => (b.points || 0) - (a.points || 0))
+        .slice(0, limit)
+        .map((s, index) => ({
+            position: index + 1,
+            username: s.username,
+            displayName: s.displayName || s.username,
+            points: s.points || 0,
+            lifetimePoints: s.lifetimePoints || 0,
+            rank: getMmrRank(s.points || 0),
+            isSubscriber: s.isSubscriber === true,
+            extraVotes: s.extraVotes || 0,
+            shares: s.shares || 0,
+            likes: s.likes || 0,
+            giftCoins: s.giftCoins || 0,
+            redeemed: s.redeemed || []
+        }));
 }
 
 function getMmrSummary() {
-    try {
-        const supporters = Object.values(dbData.mmrSupporters || {}).filter(Boolean);
-        return {
-            top: getMmrTop(10),
-            legends: getMmrLegends(30),
-            totalSupporters: supporters.length,
-            totalPoints: supporters.reduce((sum, s) => sum + (Number(s.points) || 0), 0),
-            recentEvents: Array.isArray(dbData.mmrEvents) ? dbData.mmrEvents.slice(0, 12) : [],
-            recentRedemptions: Array.isArray(dbData.mmrRedemptions) ? dbData.mmrRedemptions.slice(0, 12) : [],
-            rewards: MMR_REWARDS,
-            tikfinityStatus: {
-                ...tikfinityStatus,
-                connected: tikfinityStatus.connected || tikfinityStatus.bridgeConnected
-            }
-        };
-    } catch (err) {
-        console.error('[MMR] getMmrSummary Fehler:', err.message);
-        return {
-            top: [],
-            legends: [],
-            totalSupporters: 0,
-            totalPoints: 0,
-            recentEvents: [],
-            recentRedemptions: [],
-            rewards: MMR_REWARDS,
-            tikfinityStatus: {
-                ...tikfinityStatus,
-                connected: tikfinityStatus.connected || tikfinityStatus.bridgeConnected,
-                lastError: 'MMR Summary Fehler: ' + err.message
-            }
-        };
-    }
+    const supporters = Object.values(dbData.mmrSupporters || {});
+    return {
+        top: getMmrTop(10),
+        totalSupporters: supporters.length,
+        totalPoints: supporters.reduce((sum, s) => sum + (s.points || 0), 0),
+        recentEvents: (dbData.mmrEvents || []).slice(0, 12),
+        recentRedemptions: (dbData.mmrRedemptions || []).slice(0, 12),
+        rewards: MMR_REWARDS,
+        tikfinityStatus: {
+            ...tikfinityStatus,
+            connected: tikfinityStatus.connected || tikfinityStatus.bridgeConnected
+        }
+    };
 }
 
 function redeemMmrReward(username, rewardKey, options = {}) {
@@ -481,10 +398,6 @@ function redeemMmrReward(username, rewardKey, options = {}) {
         note = `🌙 MMR After-Hours-Pass erstellt: ${passId}`;
         options.afterHoursPassId = passId;
     }
-
-    if (rewardKey === 'legend') supporter.isMondoLegend = true;
-    if (rewardKey === 'vip') supporter.isVipSupporter = true;
-    if (rewardKey === 'supporter_wall') supporter.isSupporterWall = true;
 
     supporter.points -= reward.cost;
     const redemption = {
@@ -1066,7 +979,7 @@ app.get('/api/queue', (req, res) => {
         return { 
             id: song.id, artist: song.artist, title: song.title, 
             duration: song.duration, genre: song.genre, songLink: song.songLink, 
-            isHit: song.isHit, isDone: song.isDone, platform,
+            isHit: song.isHit, isDone: song.isDone, platform: song.platform || platform, platforms: Array.isArray(song.platforms) ? song.platforms : (song.platform ? [song.platform] : []),
             isDice: song.isDice || false,
             isBoosted: song.isBoosted || false,
             isAfterHours: song.isAfterHours || false,
