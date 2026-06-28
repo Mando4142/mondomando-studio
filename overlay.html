@@ -402,6 +402,17 @@
     let currentSongs = [];
     let animationRunning = false;
 
+    function formatDuration(seconds) {
+        const total = parseInt(seconds || 0, 10);
+        const m = Math.floor(total / 60);
+        const s = total % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function durationWithFeedbackHtml(seconds) {
+        return `Songdauer: ${formatDuration(seconds)} +1 Min Feedback`;
+    }
+
     function escapeHtml(str) {
         return String(str || '').replace(/[&<>"']/g, m => ({
             '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
@@ -430,7 +441,7 @@
         let accTime = 0;
         queueBox.innerHTML = queue.slice(0, 8).map((song, index) => {
             const isPaid = !!(song.isBoosted || song.isDice);
-            const platformIcon = song.platform === 'spotify' ? '🟢' : (song.platform === 'youtube' ? '🔴' : '🎵');
+            const platformIcon = '';
             const isNowPlaying = index === 0;
             const waitText = isNowPlaying
                 ? '▶ LÄUFT JETZT'
@@ -450,8 +461,9 @@
                 <div class="song ${isPaid ? 'paid' : ''} ${isNowPlaying ? 'first now-playing' : ''}">
                     <div class="num">${index + 1}</div>
                     <div>
-                        <div class="song-title">${platformIcon} ${escapeHtml(songName(song))}</div>
+                        <div class="song-title">${escapeHtml(songName(song))}</div>
                         <div class="song-meta">${escapeHtml(song.genre || 'Genre offen')}</div>
+                        <div class="song-meta" style="font-size:12px; color:#e5e7eb;">${durationWithFeedbackHtml(song.duration)}</div>
                         <div class="badges">${badges}</div>
                     </div>
                     <div class="status">${timeText}</div>
