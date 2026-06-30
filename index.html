@@ -636,6 +636,9 @@
                                 <input type="number" id="durationMin" required placeholder="MIN" min="0" max="120">
                                 <input type="number" id="durationSec" required placeholder="SEK" min="0" max="59">
                             </div>
+                            <div style="font-family:sans-serif; font-size:13px; color:#ffd166; line-height:1.45; margin-top:8px;">
+                                ⚠️ Songs über <strong>5:00 Minuten</strong> sind nur <strong>1x pro Künstler und Monat</strong> erlaubt.
+                            </div>
                         </div>
                         
                         <!-- 10 ERLAUBTE & 4 VERBOTENE GENRES -->
@@ -689,6 +692,7 @@
                                     <p>Wähle Spotify, YouTube oder beide Plattformen. Wenn du beide auswählst, musst du auch beide Links eintragen. So kann dein Song bei einem Hit auf beiden Plattformen in die Hit-Playlist.</p>
                                     <h4>3. Songdauer & Feedback</h4>
                                     <p>Die Zeit wird immer so gerechnet: originale Songdauer + 1 Minute Feedback. Diese Zeit zählt für die 90 Minuten Hauptzeit und für die 30 Minuten After-Hours-Verlängerung.</p>
+                                    <p><strong>Wichtig:</strong> Songs über 5:00 Minuten sind nur 1x pro Künstler und Monat erlaubt.</p>
                                     <h4>4. Warteliste & Fair Play</h4>
                                     <p>Die Songs laufen grundsätzlich nach Reihenfolge. Stream Extras wie Platz 1 Push, After Hours oder Song-Würfel können die Warteliste beeinflussen.</p>
                                     <h4>5. Voting</h4>
@@ -1586,6 +1590,11 @@
         e.preventDefault(); const artist = document.getElementById('artistName').value; const title = document.getElementById('songTitle').value;
         const spotifyLink = document.getElementById('spotifyLink') ? document.getElementById('spotifyLink').value.trim() : ''; const youtubeLink = document.getElementById('youtubeLink') ? document.getElementById('youtubeLink').value.trim() : ''; const min = parseInt(document.getElementById('durationMin').value) || 0; const sec = parseInt(document.getElementById('durationSec').value) || 0;
         const genre = document.getElementById('genre').value; const errBox = document.getElementById('submit-error-box');
+        const totalSongSeconds = (min * 60) + sec;
+        if (totalSongSeconds > 300) {
+            const okLongSong = confirm("⚠️ Dein Song ist über 5:00 Minuten. Das ist nur 1x pro Künstler und Monat erlaubt. Trotzdem einreichen?");
+            if (!okLongSong) return;
+        }
         const rulesAccepted = document.getElementById('rulesAccepted') && document.getElementById('rulesAccepted').checked;
         if (!rulesAccepted) {
             errBox.innerText = "🚫 Bitte lies und akzeptiere die Stream-Regeln, bevor du deinen Song einreichst.";
