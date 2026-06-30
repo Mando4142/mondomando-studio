@@ -63,6 +63,8 @@ const DB_FILE = path.join(__dirname, 'database.json');
 let dbData = {
     songQueue: [],
     extraTimeMinutes: 0,
+    likeExtensionActive: false,
+    likeExtensionMinutes: 0,
     votingPhase: 'inactive', 
     votes: {},
     usedCodes: {},
@@ -182,6 +184,8 @@ if (fs.existsSync(DB_FILE)) {
         if (!dbData.mmrSupporters) dbData.mmrSupporters = {};
         if (!dbData.mmrEvents) dbData.mmrEvents = [];
         if (!dbData.mmrRedemptions) dbData.mmrRedemptions = [];
+        if (dbData.likeExtensionActive === undefined) dbData.likeExtensionActive = false;
+        if (dbData.likeExtensionMinutes === undefined) dbData.likeExtensionMinutes = 0;
         
         dbData.songQueue = dbData.songQueue.map(song => {
             if (!song.id) song.id = "S-" + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
@@ -193,6 +197,9 @@ if (fs.existsSync(DB_FILE)) {
             if (song.priorityBoostBuyerEmail === undefined) song.priorityBoostBuyerEmail = null;
             if (song.afterHoursBuyerEmail === undefined) song.afterHoursBuyerEmail = null;
             if (song.diceBuyerEmail === undefined) song.diceBuyerEmail = null;
+            if (song.isLikeExtension === undefined) song.isLikeExtension = false;
+            if (song.extensionReason === undefined) song.extensionReason = null;
+            if (song.afterHoursPaidAt === undefined) song.afterHoursPaidAt = null;
             if (!Array.isArray(song.platforms)) {
                 if (song.platform === 'spotify' || song.platform === 'youtube') song.platforms = [song.platform];
                 else if (/spotify\.com/i.test(song.songLink || '')) song.platforms = ['spotify'];
@@ -885,7 +892,7 @@ function redeemAfterHoursPass(sessionId, song) {
     pass.usedAt = Date.now();
     pass.songId = song.id;
     song.isAfterHours = true;
-    song.afterHoursPaidAt = Date.now();
+    song.afterHoursPaidAt = pass.createdAt || Date.now();
     song.afterHoursPassId = sessionId;
     song.afterHoursBuyerEmail = pass.buyerEmail;
     if (!song.bonusNotes) song.bonusNotes = [];
@@ -990,19 +997,31 @@ app.get('/regeln', (req, res) => res.sendFile(path.join(__dirname, 'regeln.html'
 
 app.get('/api/queue', (req, res) => {
     const totalSeconds = getTotalTimeSeconds();
-    const baseMaxSeconds = (BASE_LIMIT_MINUTES + dbData.extraTimeMinutes) * 60;
-    const extensionMaxSeconds = (BASE_LIMIT_MINUTES + dbData.extraTimeMinutes + EXTENSION_LIMIT_MINUTES) * 60;
-    
+    const baseMaxSeconds = BASE_LIMIT_MINUTES * 60;
+    const likeExtensionSeconds = Math.max(0, (parseFloat(dbData.likeExtensionMinutes || dbData.extraTimeMinutes || 0) || 0) * 60);
+    const freeExtensionMaxSeconds = baseMaxSeconds + likeExtensionSeconds;
+    const extensionMaxSeconds = freeExtensionMaxSeconds + (EXTENSION_LIMIT_MINUTES * 60);
+
     let phase = 'base';
     let submissionsOpen = false;
     let currentMaxSeconds = baseMaxSeconds;
 
-    if (!dbData.extensionActive) {
-        if (totalSeconds < baseMaxSeconds) { phase = 'base'; submissionsOpen = true; currentMaxSeconds = baseMaxSeconds; } 
-        else { phase = 'base_full'; submissionsOpen = false; currentMaxSeconds = baseMaxSeconds; }
+    if (totalSeconds < baseMaxSeconds) {
+        phase = 'base';
+        submissionsOpen = true;
+        currentMaxSeconds = baseMaxSeconds;
+    } else if (dbData.likeExtensionActive && likeExtensionSeconds > 0 && totalSeconds < freeExtensionMaxSeconds) {
+        phase = 'like_extension';
+        submissionsOpen = true;
+        currentMaxSeconds = freeExtensionMaxSeconds;
+    } else if (dbData.extensionActive && totalSeconds < extensionMaxSeconds) {
+        phase = 'after_hours';
+        submissionsOpen = true;
+        currentMaxSeconds = extensionMaxSeconds;
     } else {
-        if (totalSeconds < extensionMaxSeconds) { phase = 'extension'; submissionsOpen = true; currentMaxSeconds = extensionMaxSeconds; } 
-        else { phase = 'extension_full'; submissionsOpen = false; currentMaxSeconds = extensionMaxSeconds; }
+        phase = dbData.extensionActive ? 'extension_full' : 'base_full';
+        submissionsOpen = false;
+        currentMaxSeconds = dbData.extensionActive ? extensionMaxSeconds : baseMaxSeconds;
     }
 
     const remainingSecondsTotal = Math.max(0, currentMaxSeconds - totalSeconds);
@@ -1021,7 +1040,7 @@ app.get('/api/queue', (req, res) => {
         else if (/youtube\.com|youtu\.be/i.test(song.songLink)) platform = 'youtube';
         return { 
             id: song.id, artist: song.artist, title: song.title, 
-            duration: parseInt(song.duration) || 0, genre: song.genre, songLink: song.songLink, 
+            duration: parseInt(song.duration) || 0, genre: song.genre, songLink: song.songLink, timestamp: song.timestamp || 0,
             isHit: song.isHit, isDone: song.isDone, platform: song.platform || platform, platforms: Array.isArray(song.platforms) ? song.platforms : (song.platform ? [song.platform] : []), spotifyLink: song.spotifyLink || song.songLinks?.spotify || null, youtubeLink: song.youtubeLink || song.songLinks?.youtube || null, songLinks: song.songLinks || {},
             isDice: song.isDice || false,
             isBoosted: song.isBoosted || false,
@@ -1031,6 +1050,9 @@ app.get('/api/queue', (req, res) => {
             priorityBoostBuyerEmail: song.priorityBoostBuyerEmail || null,
             afterHoursBuyerEmail: song.afterHoursBuyerEmail || null,
             diceBuyerEmail: song.diceBuyerEmail || null,
+            isLikeExtension: song.isLikeExtension || false,
+            extensionReason: song.extensionReason || null,
+            afterHoursPaidAt: song.afterHoursPaidAt || null,
             bonusNotes: song.bonusNotes || []
         };
     });
@@ -1077,6 +1099,8 @@ app.get('/api/queue', (req, res) => {
         submissionsOpen: submissionsOpen,
         phase: phase,
         extensionActive: dbData.extensionActive === true,
+        likeExtensionActive: dbData.likeExtensionActive === true,
+        likeExtensionMinutes: parseFloat(dbData.likeExtensionMinutes || dbData.extraTimeMinutes || 0) || 0,
         votingPhase: dbData.votingPhase,
         votingRemainingSeconds: votingRemainingSeconds,
         votes: dbData.votes,
@@ -1103,9 +1127,8 @@ app.get('/api/queue', (req, res) => {
 app.post('/api/submit', (req, res) => {
     if (dbData.systemOnline === false) return res.status(400).json({ error: "Das Einreicheformular ist aktuell offline!" });
 
-    if (!(rulesAccepted === true || rulesAccepted === 'true')) return res.status(400).json({ error: "Bitte lies und akzeptiere die Stream-Regeln." });
-
     const { artist, title, duration, genre, songLink, spotifyLink, youtubeLink, songLinks, platforms, afterHoursSessionId, rulesAccepted } = req.body;
+    if (!(rulesAccepted === true || rulesAccepted === 'true')) return res.status(400).json({ error: "Bitte lies und akzeptiere die Stream-Regeln." });
     const submitted = normalizeSongLinks({ songLink, spotifyLink, youtubeLink, songLinks, platforms });
     const submittedPlatforms = submitted.platforms;
     if (submittedPlatforms.length === 0) return res.status(400).json({ error: "Bitte kreuze Spotify, YouTube oder beide an." });
@@ -1128,10 +1151,16 @@ app.post('/api/submit', (req, res) => {
     }
 
     const totalSeconds = getTotalTimeSeconds();
-    const baseMaxSeconds = (BASE_LIMIT_MINUTES + dbData.extraTimeMinutes) * 60;
-    const extensionMaxSeconds = (BASE_LIMIT_MINUTES + dbData.extraTimeMinutes + EXTENSION_LIMIT_MINUTES) * 60;
+    const baseMaxSeconds = BASE_LIMIT_MINUTES * 60;
+    const likeExtensionSeconds = Math.max(0, (parseFloat(dbData.likeExtensionMinutes || dbData.extraTimeMinutes || 0) || 0) * 60);
+    const freeExtensionMaxSeconds = baseMaxSeconds + likeExtensionSeconds;
+    const extensionMaxSeconds = freeExtensionMaxSeconds + (EXTENSION_LIMIT_MINUTES * 60);
 
     const wantsAfterHours = Boolean(afterHoursSessionId);
+    const isBasePhase = totalSeconds < baseMaxSeconds;
+    const isLikeExtensionPhase = dbData.likeExtensionActive === true && likeExtensionSeconds > 0 && totalSeconds >= baseMaxSeconds && totalSeconds < freeExtensionMaxSeconds;
+    const isAfterHoursPhase = dbData.extensionActive === true && totalSeconds >= freeExtensionMaxSeconds && totalSeconds < extensionMaxSeconds;
+
     if (wantsAfterHours) {
         if (totalSeconds < baseMaxSeconds) return res.status(400).json({ error: "Dein After-Hours-Pass ist für nach den freien 90 Minuten. Aktuell kannst du noch normal einreichen." });
         if (totalSeconds >= extensionMaxSeconds) return res.status(400).json({ error: "Verlängerung komplett voll!" });
@@ -1140,8 +1169,10 @@ app.post('/api/submit', (req, res) => {
         }
         dbData.extensionActive = true;
     } else {
-        if (!dbData.extensionActive && totalSeconds >= baseMaxSeconds) return res.status(400).json({ error: "Hauptzeit voll! Für die Verlängerung brauchst du einen After-Hours-Pass." });
-        if (dbData.extensionActive && totalSeconds >= extensionMaxSeconds) return res.status(400).json({ error: "Verlängerung komplett voll!" });
+        if (!isBasePhase && !isLikeExtensionPhase) {
+            return res.status(400).json({ error: "Hauptzeit voll! Für die Verlängerung brauchst du einen After-Hours-Pass oder einen aktiven 50K-Likes-Bonus." });
+        }
+        if (totalSeconds >= extensionMaxSeconds) return res.status(400).json({ error: "Verlängerung komplett voll!" });
     }
 
     const newCode = generateVoteCode();
@@ -1155,6 +1186,12 @@ app.post('/api/submit', (req, res) => {
     if (wantsAfterHours) {
         const redeem = redeemAfterHoursPass(afterHoursSessionId, newSong);
         if (!redeem.ok) return res.status(400).json({ error: redeem.error });
+    } else if (isLikeExtensionPhase) {
+        newSong.isAfterHours = true;
+        newSong.isLikeExtension = true;
+        newSong.extensionReason = '50k_likes';
+        if (!newSong.bonusNotes) newSong.bonusNotes = [];
+        newSong.bonusNotes.push('⚡ 50K Likes Bonus: +12 Minuten Sendezeit');
     }
 
     dbData.songQueue.push(newSong);
@@ -1463,7 +1500,17 @@ app.delete('/api/queue/:index', checkAdminAuth, (req, res) => {
 
 app.post('/api/admin/overtime', checkAdminAuth, (req, res) => {
     const { minutes } = req.body;
-    dbData.extraTimeMinutes = (dbData.extraTimeMinutes || 0) + (parseFloat(minutes) || 0); saveToDB(); res.json({ success: true });
+    const addedMinutes = Math.max(0, parseFloat(minutes) || 0);
+    if (addedMinutes <= 0) return res.status(400).json({ error: 'Ungültige Minuten.' });
+
+    dbData.extraTimeMinutes = (dbData.extraTimeMinutes || 0) + addedMinutes;
+    dbData.likeExtensionMinutes = (dbData.likeExtensionMinutes || 0) + addedMinutes;
+    dbData.likeExtensionActive = true;
+    dbData.extensionActive = true;
+
+    addBonusAnnouncement(`⚡ Danke für 50K Likes! Ihr habt die Sendezeit um ${addedMinutes} Minuten verlängert. Neue Einsendungen landen in der Verlängerungs-Warteliste.`);
+    saveToDB();
+    res.json({ success: true, minutesAdded: addedMinutes, likeExtensionActive: true, likeExtensionMinutes: dbData.likeExtensionMinutes });
 });
 
 app.delete('/api/admin/halloffame/:index', checkAdminAuth, (req, res) => {
@@ -1472,7 +1519,7 @@ app.delete('/api/admin/halloffame/:index', checkAdminAuth, (req, res) => {
 });
 
 app.post('/api/queue/reset', checkAdminAuth, (req, res) => {
-    dbData.songQueue = []; dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; dbData.extensionActive = false; dbData.extraTimeMinutes = 0; dbData.votingEndsAt = null; dbData.bonusUsage = {}; dbData.buyerBonusUsage = {}; dbData.afterHoursPasses = {}; dbData.processedStripeSessions = {}; dbData.bonusAnnouncements = [];
+    dbData.songQueue = []; dbData.votingPhase = 'inactive'; dbData.votes = {}; dbData.usedCodes = {}; dbData.tiedSongs = []; dbData.extensionActive = false; dbData.extraTimeMinutes = 0; dbData.likeExtensionActive = false; dbData.likeExtensionMinutes = 0; dbData.votingEndsAt = null; dbData.bonusUsage = {}; dbData.buyerBonusUsage = {}; dbData.afterHoursPasses = {}; dbData.processedStripeSessions = {}; dbData.bonusAnnouncements = [];
     if(votingTimeout) { clearTimeout(votingTimeout); votingTimeout = null; }
     saveToDB(); res.json({ success: true });
 });
