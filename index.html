@@ -539,7 +539,7 @@
             <!-- MMR SUPPORTER CLUB -->
             <div id="mmr-supporter-card" class="card gold-glow mmr-public-card">
                 <h2 style="color:var(--neon-gold); border-bottom-color:var(--neon-gold); text-align:center;">🌍 MMR SUPPORTER CLUB</h2>
-                <p class="mmr-public-intro">Sammle MMR Points im TikTok-Live durch Likes, Shares, Follows, Chat und Support. Mit genug Punkten kannst du Extras freischalten: After Hours für 3500 MMR Points oder Platz 1 Push für 10000 MMR Points. Schreib im Chat <strong>!punkte</strong>, um deinen Stand zu checken.</p>
+                <p class="mmr-public-intro">Sammle MMR Points im TikTok-Live durch Likes, Shares, Follows, Chat und Support. Mit genug Punkten kannst du Extras freischalten: Song-Würfel für 750 MMR Points, After Hours für 3500 MMR Points oder Platz 1 Push für 10000 MMR Points. Schreib im Chat <strong>!punkte</strong>, um deinen Stand zu checken.</p>
                 <div id="mmr-supporter-list"></div>
             </div>
 
@@ -597,7 +597,7 @@
                             <label>Auf welchen Plattformen sind deine Songs zu hören?</label>
                             <div class="platform-choice-box">
                                 <div class="platform-choice-title">Auf welchen Plattformen sind deine Songs zu hören?</div>
-                                <div style="font-family:sans-serif; font-size:13px; color:#bff9ff; line-height:1.45; margin-bottom:10px;">Kreuze Spotify, YouTube oder beide Plattformen an und füge den passenden Link ein.</div>
+                                <div style="font-family:sans-serif; font-size:13px; color:#bff9ff; line-height:1.45; margin-bottom:10px;">Kreuze Spotify, YouTube oder beide Plattformen an und füge den passenden Link ein. So landet dein Song auf beiden Plattformen in der Hit-Playlist.</div>
                                 <div class="platform-choice-row">
                                     <label><input type="checkbox" id="platformSpotify" value="spotify" onchange="updatePlatformLinkFields()"> Spotify</label>
                                     <label><input type="checkbox" id="platformYoutube" value="youtube" onchange="updatePlatformLinkFields()"> YouTube</label>
@@ -682,13 +682,13 @@
                     <p class="booster-preview-subtitle">Diese Extras sind nicht mehr an dein eigenes Einreichen gebunden. Jeder kann Stream Extras kaufen. Zum Schutz gilt: maximal 2 Extras pro Nutzer und Stream.</p>
                     <div class="booster-preview-grid">
                         <div class="booster-preview-item">
-                            <div class="booster-preview-name">🚀 Platz 1 Push – CHF 6.20 oder 10000 MMR Points oder 10000 MMR Points</div>
+                            <div class="booster-preview-name">🚀 Platz 1 Push – CHF 6.20 oder 10000 MMR Points</div>
                             <div class="booster-preview-desc">Wähle einen Song aus der Warteliste und pushe ihn automatisch auf Platz 1. Mit MMR Points wird dieses Extra manuell im Stream eingelöst.</div>
                             <span class="booster-preview-limit">Limit: maximal 2 Extras pro Nutzer und Stream</span><br>
                             <button type="button" class="stream-extra-buy-btn" style="background:linear-gradient(90deg,var(--neon-cyan),#60efff); color:#001;" onclick="document.getElementById('waitlist-card').scrollIntoView({behavior:'smooth'});">🚀 Song in der Warteliste auswählen</button>
                         </div>
                         <div class="booster-preview-item orange">
-                            <div class="booster-preview-name">🌙 After Hours – CHF 5.00 oder 3500 MMR Points oder 3500 MMR Points</div>
+                            <div class="booster-preview-name">🌙 After Hours – CHF 5.00 oder 3500 MMR Points</div>
                             <div class="booster-preview-desc">Nach dem Kauf wirst du einmalig freigeschaltet, damit du deinen Song nach den freien 90 Minuten in der Verlängerungszeit einreichen kannst. Mit MMR Points bekommst du den Pass manuell von Mondo Mando.</div>
                             <span class="booster-preview-limit">Limit: maximal 2 Extras pro Nutzer und Stream</span><br>
                             <button type="button" class="stream-extra-buy-btn" style="background:linear-gradient(90deg,var(--neon-orange),#ff9a3d); color:white;" onclick="startBonusCheckout('after_hours', null, this)">🌙 After Hours kaufen</button>
