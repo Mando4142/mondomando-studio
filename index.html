@@ -82,6 +82,16 @@
         .song-duration-line { margin:4px 0 0 0; font-size:13px; color:#e5e7eb; font-family:sans-serif; font-weight:700; }
         .song-duration-total { color:var(--neon-cyan); font-weight:900; }
 
+
+        .rules-read-box { margin-top:15px; background:rgba(0,242,254,0.06); border:2px dashed var(--neon-cyan); border-radius:12px; padding:14px; font-family:sans-serif; }
+        .rules-read-title { color:var(--neon-cyan); font-family:'Impact',sans-serif; font-size:20px; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; }
+        .rules-read-scroll { max-height:190px; overflow-y:auto; padding:12px; background:rgba(0,0,0,.42); border:1px solid rgba(255,255,255,.14); border-radius:10px; color:#e5e7eb; line-height:1.45; }
+        .rules-read-scroll h4 { margin:10px 0 4px 0; color:var(--neon-gold); font-size:15px; }
+        .rules-read-scroll p { margin:0 0 10px 0; font-size:13px; color:#d1d5db; }
+        .rules-read-check { display:flex; gap:10px; align-items:flex-start; margin-top:12px; color:#cbd5e1; font-size:14px; cursor:pointer; }
+        .rules-read-check input { width:20px; height:20px; margin:0; flex-shrink:0; }
+        .rules-read-check.ready span { color:var(--neon-green); font-weight:900; }
+
         .checkbox-group { display: flex; align-items: flex-start; gap: 15px; background-color: rgba(5, 5, 7, 0.8); padding: 15px; border: 1px dashed var(--neon-pink); border-radius: 8px; margin-top: 10px; font-family: sans-serif; }
         
         /* GESTREIFTER SONG EINSENDEN BUTTON */
@@ -664,6 +674,31 @@
                                     <span style="font-family: sans-serif; font-size: 13px; color: #ff9999; line-height: 1.4;">Wer versucht das System mit Fake-Accounts oder erfundenen Namen auszutricksen, wird permanent von allen Mondo Mando Angeboten ausgeschlossen.</span>
                                 </div>
                             </label>
+
+                            <div class="rules-read-box">
+                                <div class="rules-read-title">📜 Stream-Regeln lesen & akzeptieren</div>
+                                <div id="rulesReadScroll" class="rules-read-scroll">
+                                    <h4>1. Song-Einreichung</h4>
+                                    <p>Dein Song wird live im Mondo Mando Stream angehört und bewertet. Reiche nur Songs ein, an denen du die Rechte besitzt.</p>
+                                    <h4>2. Plattformen & Links</h4>
+                                    <p>Wähle Spotify, YouTube oder beide Plattformen. Wenn du beide auswählst, musst du auch beide Links eintragen. So kann dein Song bei einem Hit auf beiden Plattformen in die Hit-Playlist.</p>
+                                    <h4>3. Songdauer & Feedback</h4>
+                                    <p>Die Zeit wird immer so gerechnet: originale Songdauer + 1 Minute Feedback. Diese Zeit zählt für die 90 Minuten Hauptzeit und für die 30 Minuten After-Hours-Verlängerung.</p>
+                                    <h4>4. Warteliste & Fair Play</h4>
+                                    <p>Die Songs laufen grundsätzlich nach Reihenfolge. Stream Extras wie Platz 1 Push, After Hours oder Song-Würfel können die Warteliste beeinflussen.</p>
+                                    <h4>5. Voting</h4>
+                                    <p>Nach dem Einreichen erhältst du einen Voting-Code. Am Ende der Show startet das Voting. Codes dürfen nicht missbraucht oder mit Fake-Accounts ausgetrickst werden.</p>
+                                    <h4>6. Verbotene Inhalte</h4>
+                                    <p>Gesperrt sind Schlager, Hardstyle, Hardcore und Metal. Fake-Namen, Fake-Accounts oder unfairer Missbrauch führen zum Ausschluss oder Permabann.</p>
+                                    <h4>7. Bestätigung</h4>
+                                    <p>Erst wenn du diese Regeln gelesen hast, kannst du das Häkchen setzen und deinen Song einreichen.</p>
+                                </div>
+                                <label class="rules-read-check">
+                                    <input type="checkbox" id="rulesAccepted" disabled required>
+                                    <span id="rulesAcceptedText">Bitte scrolle die Regeln bis unten, danach kannst du bestätigen.</span>
+                                </label>
+                            </div>
+
                         </div>
                         
                         <div id="submit-error-box"></div>
@@ -739,32 +774,39 @@
             <span onclick="document.getElementById('rulesPopup').style.display='none'" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 36px; color: var(--neon-green); font-family: sans-serif;">&times;</span>
             <h2 style="color: var(--neon-green); border-bottom-color: var(--neon-green); font-size: 32px; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);">STREAM-REGELN & INFOS</h2>
             
+
             <div style="font-family: sans-serif; font-size: 16px; line-height: 1.6; color: #ccc; text-align: left;">
+                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">✅ Wichtig vor dem Einreichen</h3>
+                <p style="margin-top: 0; margin-bottom: 12px; background: rgba(0,242,254,0.08); border: 1px solid var(--neon-cyan); border-radius: 10px; padding: 12px; color: #d9ffff;"><strong>Du musst die Stream-Regeln lesen und akzeptieren, bevor du einen Song einreichen kannst.</strong> Im Einreicheformular gibt es dafür eine Regelbox. Erst wenn du bis unten gelesen hast, lässt sich die Bestätigung aktivieren.</p>
+
                 <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">⏱️ 1. Sendezeit & Ablauf</h3>
-                <p style="margin-top: 0; margin-bottom: 10px;">Der normale Stream hat einen festen Topf von <strong>90 Minuten</strong>. In dieser Zeit werden die regulär eingereichten Songs der Reihe nach angehört und bewertet.</p>
-                <p style="margin-top: 0; margin-bottom: 15px; background: rgba(255,85,0,0.10); border: 1px solid var(--neon-orange); border-radius: 10px; padding: 12px; color: #ffd8bf;"><strong>Nach den 90 Minuten:</strong> Wenn die Hauptzeit voll ist, können Songs nur noch über die bezahlte Stream-Verlängerung / After Hours berücksichtigt werden. Die Verlängerung läuft insgesamt maximal <strong>30 Minuten</strong>.</p>
-                
-                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🏆 2. Voting-Code & Live-Voting</h3>
-                <p style="margin-top: 0; margin-bottom: 10px;">Künstler erhalten nach dem Einsenden einen persönlichen <strong>Voting-Code</strong>. Zuschauer aus dem TikTok-Chat können sich auf der Webseite einen eigenen Zuschauer-Code holen.</p>
+                <p style="margin-top: 0; margin-bottom: 10px;">Die normale Hauptzeit beträgt <strong>90 Minuten</strong>. Die Zeit wird immer so gerechnet: <strong>originale Songdauer + 1 Minute Feedback</strong>.</p>
+                <p style="margin-top: 0; margin-bottom: 15px; background: rgba(255,85,0,0.10); border: 1px solid var(--neon-orange); border-radius: 10px; padding: 12px; color: #ffd8bf;"><strong>After Hours:</strong> Wenn die 90 Minuten voll sind, können Songs nur noch mit After Hours berücksichtigt werden. Die Verlängerung läuft maximal <strong>30 Minuten</strong>, ebenfalls mit Songdauer + 1 Minute Feedback.</p>
+
+                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🎵 2. Plattformen & Links</h3>
+                <p style="margin-top: 0; margin-bottom: 15px;">Du kannst Spotify, YouTube oder beide Plattformen auswählen. Wenn du beide auswählst, musst du beide Links angeben. So kann dein Song bei einem Hit auf beiden Plattformen in die Hit-Playlist.</p>
+
+                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">🏆 3. Voting-Code & Live-Voting</h3>
+                <p style="margin-top: 0; margin-bottom: 10px;">Nach dem Einsenden erhält jeder Künstler einen persönlichen <strong>Voting-Code</strong>. Zuschauer im TikTok-Live können sich ebenfalls einen Zuschauer-Code holen.</p>
                 <div style="background:#000; border:2px dashed var(--neon-cyan); border-radius:10px; padding:12px; margin-bottom:15px; color:#fff; box-shadow:0 0 12px rgba(0,242,254,0.25);">
-                    <strong style="color:var(--neon-cyan);">Wichtig:</strong> Der Code ist <strong>nur fürs Voting im Stream</strong>.
+                    <strong style="color:var(--neon-cyan);">Wichtig:</strong> Der Code ist nur fürs Voting im Stream. Fake-Codes, Fake-Accounts oder Missbrauch führen zum Ausschluss.
                 </div>
-                <p style="margin-top: 0; margin-bottom: 15px;">Am Ende der Show startet das <strong>Voting (4 Minuten)</strong>. Mit deinem Voting-Code kannst du für deine Favoriten abstimmen. Jeder Code kann nur einmal abstimmen.</p>
 
-                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">💸💎 3. Stream Extras</h3>
+                <h3 style="color: var(--neon-cyan); margin-bottom: 5px;">💸💎 4. Stream Extras</h3>
                 <div style="display:grid; gap:10px; margin-bottom:15px;">
-                    <div style="background:rgba(0,242,254,0.08); border:1px solid var(--neon-cyan); border-radius:10px; padding:12px;"><strong style="color:var(--neon-cyan);">🚀 Song Push auf Platz 1 – CHF 6.20</strong><br>Du kannst einen Song aus der Warteliste auswählen und automatisch auf Platz 1 pushen.<br><span style="color:#d9ffff; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
-                    <div style="background:rgba(255,85,0,0.10); border:1px solid var(--neon-orange); border-radius:10px; padding:12px;"><strong style="color:var(--neon-orange);">🌙 Stream-Verlängerung / After Hours – CHF 5.00</strong><br>Nach dem Kauf wirst du einmalig freigeschaltet, damit du deinen Song nach den freien 90 Minuten in der Verlängerungszeit einreichen kannst. Mit MMR Points bekommst du den Pass manuell von Mondo Mando. Die gesamte Verlängerungszeit beträgt maximal 30 Minuten.<br><span style="color:#ffd8bf; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
-                    <div style="background:rgba(255,0,127,0.08); border:1px solid var(--neon-pink); border-radius:10px; padding:12px;"><strong style="color:var(--neon-pink);">🎲 Song Würfel – CHF 3.50 oder 750 MMR Points</strong><br>Der Song-Würfel pickt zufällig einen Song aus der aktuellen Warteliste und pusht ihn direkt auf Platz 1. Mit MMR Points wird dieses Extra manuell im Stream eingelöst.<br><span style="color:#ffd1e8; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
-                    <div style="background:rgba(255,255,255,0.06); border:1px dashed rgba(255,255,255,0.35); border-radius:10px; padding:12px; color:#f3f4f6;"><strong>Fair-Play & Schutz:</strong> Stream Extras sind nicht auf Künstler beschränkt. Pro Nutzer sind maximal 2 Extras pro Stream erlaubt. Beim Kauf wird die E-Mail zur Limit-Kontrolle verwendet, damit niemand das System mit dauernden eigenen Pushs austrickst.</div>
+                    <div style="background:rgba(0,242,254,0.08); border:1px solid var(--neon-cyan); border-radius:10px; padding:12px;"><strong style="color:var(--neon-cyan);">🚀 Platz 1 Push – CHF 6.20 oder 10000 MMR Points</strong><br>Wähle einen Song aus der Warteliste und pushe ihn auf Platz 1.<br><span style="color:#d9ffff; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
+                    <div style="background:rgba(255,85,0,0.10); border:1px solid var(--neon-orange); border-radius:10px; padding:12px;"><strong style="color:var(--neon-orange);">🌙 After Hours – CHF 5.00 oder 3500 MMR Points</strong><br>Ermöglicht dir nach den freien 90 Minuten einen Song in der Verlängerung einzureichen.<br><span style="color:#ffd8bf; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
+                    <div style="background:rgba(255,0,127,0.08); border:1px solid var(--neon-pink); border-radius:10px; padding:12px;"><strong style="color:var(--neon-pink);">🎲 Song-Würfel – CHF 3.50 oder 750 MMR Points</strong><br>Der Song-Würfel pickt zufällig einen Song aus der Warteliste und pusht ihn auf Platz 1.<br><span style="color:#ffd1e8; font-size:13px;"><strong>Limit:</strong> maximal 2 Extras pro Nutzer und Stream.</span></div>
                 </div>
-                <p style="margin-top: 0; margin-bottom: 15px;">Bezahlen läuft sicher über Stripe. Die verfügbaren Zahlungsarten können je nach Gerät und Freischaltung angezeigt werden, z.B. TWINT, Apple Pay, Google Pay, Karte, Link oder Klarna.</p>
 
-                <h3 style="color:#ff1744; margin-bottom:5px; text-shadow:0 0 8px #ff1744, 0 0 18px rgba(255,23,68,0.9);">🚫 4. Verbote & Fair Play</h3>
-                <p style="margin-top: 0; margin-bottom: 15px;"><strong>Gesperrte Genres:</strong> Schlager, Hardstyle, Hardcore & Metal sind strikt verboten.<br><strong>Fake-Accounts:</strong> Wer sich unfaire Vorteile verschafft, kassiert ohne Vorwarnung einen <strong>Permabann</strong>!</p>
+                <h3 style="color: var(--neon-gold); margin-bottom: 5px;">🌍 5. MMR Supporter Club</h3>
+                <p style="margin-top: 0; margin-bottom: 15px;">Zuschauer sammeln MMR Points im TikTok-Live durch Likes, Shares, Follows, Chat, Gifts und Support. Einlösen läuft über Mondo Mando im Admin; Punkte werden automatisch abgezogen.</p>
+
+                <h3 style="color:#ff1744; margin-bottom:5px; text-shadow:0 0 8px #ff1744, 0 0 18px rgba(255,23,68,0.9);">🚫 6. Verbote & Fair Play</h3>
+                <p style="margin-top: 0; margin-bottom: 15px;"><strong>Gesperrte Genres:</strong> Schlager, Hardstyle, Hardcore & Metal.<br><strong>Rechte:</strong> Du darfst nur Songs einreichen, an denen du die Rechte besitzt.<br><strong>Fake-Accounts:</strong> Wer sich unfaire Vorteile verschafft, riskiert Sperre oder Permabann.</p>
             </div>
-            
-            <button type="button" onclick="document.getElementById('rulesPopup').style.display='none'" style="width: 100%; padding: 18px; background: var(--neon-green); border: none; color: black; font-family: 'Impact', sans-serif; font-size: 22px; letter-spacing: 2px; border-radius: 8px; cursor: pointer; margin-top: 20px; text-transform: uppercase; box-shadow: 0 0 15px var(--neon-green);">ICH HABE VERSTANDEN</button>
+
+            <button type="button" onclick="markRulesAsReadFromPopup()" style="width: 100%; padding: 18px; background: var(--neon-green); border: none; color: black; font-family: 'Impact', sans-serif; font-size: 22px; letter-spacing: 2px; border-radius: 8px; cursor: pointer; margin-top: 20px; text-transform: uppercase; box-shadow: 0 0 15px var(--neon-green);">ICH HABE GELESEN UND VERSTANDEN</button>
         </div>
     </div>
 
@@ -1488,10 +1530,45 @@
         }
     }
 
+
+    function enableRulesAccepted() {
+        const checkbox = document.getElementById('rulesAccepted');
+        const text = document.getElementById('rulesAcceptedText');
+        const label = checkbox ? checkbox.closest('.rules-read-check') : null;
+        if (!checkbox) return;
+        checkbox.disabled = false;
+        if (text) text.innerText = 'Regeln gelesen. Bitte Häkchen setzen, um fortzufahren.';
+        if (label) label.classList.add('ready');
+    }
+
+    function checkRulesReadScroll() {
+        const box = document.getElementById('rulesReadScroll');
+        if (!box) return;
+        if (box.scrollTop + box.clientHeight >= box.scrollHeight - 8) {
+            enableRulesAccepted();
+        }
+    }
+
+    function markRulesAsReadFromPopup() {
+        document.getElementById('rulesPopup').style.display = 'none';
+        enableRulesAccepted();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const box = document.getElementById('rulesReadScroll');
+        if (box) box.addEventListener('scroll', checkRulesReadScroll);
+    });
+
     async function addSongToServer(e) {
         e.preventDefault(); const artist = document.getElementById('artistName').value; const title = document.getElementById('songTitle').value;
         const spotifyLink = document.getElementById('spotifyLink') ? document.getElementById('spotifyLink').value.trim() : ''; const youtubeLink = document.getElementById('youtubeLink') ? document.getElementById('youtubeLink').value.trim() : ''; const min = parseInt(document.getElementById('durationMin').value) || 0; const sec = parseInt(document.getElementById('durationSec').value) || 0;
         const genre = document.getElementById('genre').value; const errBox = document.getElementById('submit-error-box');
+        const rulesAccepted = document.getElementById('rulesAccepted') && document.getElementById('rulesAccepted').checked;
+        if (!rulesAccepted) {
+            errBox.innerText = "🚫 Bitte lies und akzeptiere die Stream-Regeln, bevor du deinen Song einreichst.";
+            errBox.style.display = "block";
+            return;
+        }
         const platformSpotify = document.getElementById('platformSpotify') && document.getElementById('platformSpotify').checked;
         const platformYoutube = document.getElementById('platformYoutube') && document.getElementById('platformYoutube').checked;
         const platforms = [];
@@ -1526,7 +1603,7 @@
         const songLink = spotifyLink || youtubeLink;
         
         const afterHoursSessionId = (currentQueuePhase === 'base_full' || currentQueuePhase === 'extension') ? (localStorage.getItem('mondo_after_hours_pass') || '') : '';
-        const res = await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink, spotifyLink, youtubeLink, songLinks, afterHoursSessionId, platforms }) });
+        const res = await fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ artist, title, duration: (min * 60) + sec, genre, songLink, spotifyLink, youtubeLink, songLinks, afterHoursSessionId, platforms, rulesAccepted }) });
         const resData = await res.json();
         
         if (resData.error) {
