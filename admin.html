@@ -116,8 +116,8 @@
                     </div>
 
                     <div style="display:flex; gap:10px; margin-top:5px; flex-wrap: wrap;">
-                        <button class="btn-control" style="background: var(--neon-cyan); color: black;" onclick="addExactSlots(2)">⚡ 50K LIKES: +2 PLÄTZE</button>
-                        <button id="btn-extension-toggle" class="btn-control" onclick="toggleExtension()">⏳ LÄDT VERLÄNGERUNG...</button>
+                        <button class="btn-control" style="background: var(--neon-cyan); color: black;" onclick="addExactMinutes(12)">⚡ 50K LIKES: +12 MIN</button>
+                        <div id="admin-like-extension-status" style="font-family:sans-serif; font-weight:900; color:var(--neon-gold); padding:9px 12px; border:1px dashed var(--neon-gold); border-radius:8px; display:none;">⚡ 50K Likes Bonus aktiv</div>
                     </div>
                 </div>
 
@@ -195,6 +195,15 @@
     function escapeAdminHtml(value) {
         return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c] || c));
     }
+
+    function extensionQueueSort(a, b) {
+        const aPaid = !!(a.afterHoursBuyerEmail || a.afterHoursPaidAt);
+        const bPaid = !!(b.afterHoursBuyerEmail || b.afterHoursPaidAt);
+        if (aPaid !== bPaid) return aPaid ? -1 : 1;
+        if (aPaid && bPaid) return (a.afterHoursPaidAt || a.timestamp || 0) - (b.afterHoursPaidAt || b.timestamp || 0);
+        return (a.timestamp || 0) - (b.timestamp || 0);
+    }
+
     let adminTimerInterval = null;
     let adminRemainingSeconds = 0;
 
@@ -257,11 +266,15 @@ async function loadAdminQueue() {
             const queue = data.queue || []; adminCurrentQueue = queue; const hof = data.hallOfFame || [];
             
             document.getElementById('admin-total-time').innerText = data.spentFormatted;
+            const likeStatus = document.getElementById('admin-like-extension-status');
+            if (likeStatus) {
+                likeStatus.style.display = data.likeExtensionActive ? 'block' : 'none';
+                likeStatus.innerText = `⚡ Danke für 50K Likes: +${data.likeExtensionMinutes || 12} Min Sendezeit aktiv · neue Songs landen in der Verlängerungs-Warteliste`;
+            }
             
             const btnOnline = document.getElementById('btn-system-online');
             const btnOffline = document.getElementById('btn-system-offline');
             const statusText = document.getElementById('admin-form-status');
-            const btnExt = document.getElementById('btn-extension-toggle');
             
             if (data.systemOnline === false) {
                 btnOnline.style.background = "#374151"; btnOnline.style.opacity = "0.4"; btnOnline.style.boxShadow = "none";
@@ -274,12 +287,6 @@ async function loadAdminQueue() {
                 else if (data.phase === 'base_full') statusText.innerText = "🔒 90 MIN VOLL (WARTET)";
                 else if (data.phase === 'extension') statusText.innerText = "🔥 VERLÄNGERUNG LÄUFT";
                 else if (data.phase === 'extension_full') statusText.innerText = "🚫 ABSOLUT VOLL (STOPP)";
-            }
-            
-            if (data.extensionActive) {
-                btnExt.innerText = "🚫 VERLÄNGERUNG BEENDEN"; btnExt.style.background = "#ef4444"; btnExt.style.boxShadow = "0 0 10px #ef4444"; btnExt.style.color = "white";
-            } else {
-                btnExt.innerText = "⏳ 30 MIN. VERLÄNGERUNG FREIGEBEN"; btnExt.style.background = "linear-gradient(45deg, #ff5500, #cc3300)"; btnExt.style.boxShadow = "0 0 15px #ff5500"; btnExt.style.color = "white";
             }
 
             const vBox = document.getElementById('admin-voting-controls');
@@ -326,7 +333,7 @@ async function loadAdminQueue() {
             const hitExportList = document.getElementById('admin-hit-export-list');
             const activeAllSongs = queue.filter(item => !item.isDone);
             const activeSongs = queue.filter(item => !item.isDone && !item.isAfterHours);
-            const extensionSongs = queue.filter(item => !item.isDone && item.isAfterHours);
+            const extensionSongs = queue.filter(item => !item.isDone && item.isAfterHours).sort(extensionQueueSort);
 
             activeList.innerHTML = ''; extensionList.innerHTML = ''; doneList.innerHTML = ''; hofList.innerHTML = ''; hitExportList.innerHTML = '';
 
@@ -399,6 +406,7 @@ async function loadAdminQueue() {
                 let boostBadge = item.isBoosted ? '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-cyan);">🚀💎 PLATZ 1 PUSH</span> ' : '';
                 let afterHoursBadge = item.isAfterHours ? '<span style="background:#7000ff; color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px #7000ff;">🌙💎 AFTER HOURS</span> ' : '';
                 let diceBadge = item.isDice ? '<span style="background:var(--neon-pink); color:white; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-pink);">🎲💎 SONG-WÜRFEL</span> ' : '';
+                let likeExtensionBadge = item.isLikeExtension ? '<span style="background:var(--neon-cyan); color:black; padding:3px 8px; border-radius:4px; font-size:12px; margin-right:5px; font-family:\'Impact\'; vertical-align:middle; box-shadow:0 0 10px var(--neon-cyan);">⚡ 50K LIKES +12 MIN</span> ' : '';
 
                 if(!item.isDone && !item.isAfterHours) {
                     let activeIndex = activeSongs.indexOf(item);
@@ -417,7 +425,7 @@ async function loadAdminQueue() {
                         <div style="display:flex; align-items:center;">
                             <div class="drag-handle">☰</div>
                             <div class="song-details">
-                                <h3 style="margin:0;">${titlePrefix}${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3>
+                                <h3 style="margin:0;">${titlePrefix}${boostBadge}${afterHoursBadge}${diceBadge}${likeExtensionBadge}${item.artist} - ${item.title}</h3>
                                 ${boostInfo}${afterInfo}${diceInfo}
                                 <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ${durationWithFeedbackHtml(item.duration)}</p>
                             </div>
@@ -444,7 +452,7 @@ async function loadAdminQueue() {
                         <div style="display:flex; align-items:center;">
                             <div class="drag-handle">☰</div>
                             <div class="song-details">
-                                <h3 style="margin:0; color:#ffd8bf;">${titlePrefix}${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3>
+                                <h3 style="margin:0; color:#ffd8bf;">${titlePrefix}${boostBadge}${afterHoursBadge}${diceBadge}${likeExtensionBadge}${item.artist} - ${item.title}</h3>
                                 ${boostInfo}${afterInfo}${diceInfo}
                                 <p style="margin:5px 0 0 0;">Genre: ${item.genre} | ${durationWithFeedbackHtml(item.duration)}</p>
                             </div>
@@ -459,7 +467,7 @@ async function loadAdminQueue() {
                 } else {
                     const doneNotes = `${item.isBoosted && item.priorityBoostBuyerEmail ? `<p class="paid-note boost">🚀💎 Bezahlt von: ${item.priorityBoostBuyerEmail}</p>` : ''}${item.isAfterHours && item.afterHoursBuyerEmail ? `<p class="paid-note after">🌙💎 After-Hours-Pass von: ${item.afterHoursBuyerEmail}</p>` : ''}${item.isDice ? `<p class="paid-note dice">🎲💎 Vom Song-Würfel ausgewählt und auf Platz 1 gepusht${item.diceBuyerEmail ? ` · gekauft von: ${item.diceBuyerEmail}` : ''}</p>` : ''}`;
                     doneList.innerHTML += `<div class="admin-item is-done-admin ${item.isBoosted ? 'extra-boost is-extra-paid' : ''} ${item.isAfterHours ? 'extra-after is-extra-paid' : ''} ${item.isDice ? 'extra-dice is-extra-paid' : ''}">
-                            <div class="song-details"><h3 style="margin:0;">${boostBadge}${afterHoursBadge}${diceBadge}${item.artist} - ${item.title}</h3>${doneNotes}</div>
+                            <div class="song-details"><h3 style="margin:0;">${boostBadge}${afterHoursBadge}${diceBadge}${likeExtensionBadge}${item.artist} - ${item.title}</h3>${doneNotes}</div>
                             <div class="actions-flex">
                                 ${iconHtml}
                                 <button class="btn-control" onclick="toggleDone(${index})">↩</button>
@@ -593,24 +601,20 @@ async function loadAdminQueue() {
         }
     }
 
-    async function toggleExtension() {
-        const res = await fetch('/api/admin/toggle-extension', { method: 'POST', headers: {'Authorization': token} });
-        const resData = await res.json();
-        loadAdminQueue();
-        if (resData.extensionActive) alert("🔥 ORANGE PHASE AKTIV: Die 30 Minuten Verlängerung wurden für die Zuschauer geöffnet!");
-        else alert("🚫 Verlängerung geschlossen.");
-    }
-
     async function setSystemStatus(isOnline) {
         await fetch('/api/admin/set-system-status', { method: 'POST', headers: {'Authorization': token, 'Content-Type': 'application/json'}, body: JSON.stringify({ online: isOnline }) });
         loadAdminQueue(); if (isOnline) alert("✅ System ONLINE!"); else alert("🚫 System OFFLINE!");
     }
-
-    async function addExactSlots(slots) {
-        const minutesToAdd = slots * 6; 
-        await fetch('/api/admin/overtime', { method: 'POST', headers: {'Authorization': token, 'Content-Type':'application/json'}, body: JSON.stringify({ minutes: minutesToAdd }) }); 
-        loadAdminQueue(); alert(`⚡ +${minutesToAdd} Min. Limit freigeschaltet!`);
+    async function addExactMinutes(minutesToAdd) {
+        await fetch('/api/admin/overtime', {
+            method: 'POST',
+            headers: {'Authorization': token, 'Content-Type':'application/json'},
+            body: JSON.stringify({ minutes: minutesToAdd })
+        });
+        loadAdminQueue();
+        alert(`⚡ Danke für 50K Likes! +${minutesToAdd} Minuten Sendezeit freigeschaltet. Neue Songs landen jetzt in der Verlängerungs-Warteliste.`);
     }
+
 
     async function startVoting() { 
         await fetch('/api/admin/voting/start', { method: 'POST', headers: {'Authorization': token} }); 
