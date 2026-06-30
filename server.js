@@ -195,6 +195,8 @@ if (fs.existsSync(DB_FILE)) {
             if (song.isAfterHours === undefined) song.isAfterHours = false;
             if (song.bonusNotes === undefined) song.bonusNotes = [];
             if (song.priorityBoostBuyerEmail === undefined) song.priorityBoostBuyerEmail = null;
+            if (song.boostPaidAt === undefined) song.boostPaidAt = null;
+            if (song.priorityBoostPaidAt === undefined) song.priorityBoostPaidAt = null;
             if (song.afterHoursBuyerEmail === undefined) song.afterHoursBuyerEmail = null;
             if (song.diceBuyerEmail === undefined) song.diceBuyerEmail = null;
             if (song.isLikeExtension === undefined) song.isLikeExtension = false;
@@ -782,13 +784,56 @@ function addBonusAnnouncement(text) {
     dbData.bonusAnnouncements = dbData.bonusAnnouncements.slice(0, 8);
 }
 
+function getNormalPaidPriorityTime(song) {
+    if (!song || song.isAfterHours || song.isDone) return null;
+    if (song.isBoosted || song.isDice) {
+        return Number(song.boostPaidAt || song.priorityBoostPaidAt || song.diceSelectedAt || song.timestamp || 0) || 0;
+    }
+    return null;
+}
+
+function getAfterHoursPaidTime(song) {
+    if (!song || !song.isAfterHours || song.isDone) return null;
+    if (song.afterHoursBuyerEmail || song.afterHoursPaidAt) {
+        return Number(song.afterHoursPaidAt || song.timestamp || 0) || 0;
+    }
+    return null;
+}
+
+function sortSongQueueByPaidOrder() {
+    const withIndex = (dbData.songQueue || []).map((song, index) => ({ song, index }));
+
+    const activeNormal = withIndex.filter(x => !x.song.isDone && !x.song.isAfterHours);
+    const activeAfterHours = withIndex.filter(x => !x.song.isDone && x.song.isAfterHours);
+    const doneSongs = withIndex.filter(x => x.song.isDone);
+
+    activeNormal.sort((a, b) => {
+        const ap = getNormalPaidPriorityTime(a.song);
+        const bp = getNormalPaidPriorityTime(b.song);
+        if ((ap !== null) !== (bp !== null)) return ap !== null ? -1 : 1;
+        if (ap !== null && bp !== null) return ap - bp;
+        return a.index - b.index;
+    });
+
+    activeAfterHours.sort((a, b) => {
+        const ap = getAfterHoursPaidTime(a.song);
+        const bp = getAfterHoursPaidTime(b.song);
+        if ((ap !== null) !== (bp !== null)) return ap !== null ? -1 : 1;
+        if (ap !== null && bp !== null) return ap - bp;
+        return a.index - b.index;
+    });
+
+    dbData.songQueue = [
+        ...activeNormal.map(x => x.song),
+        ...activeAfterHours.map(x => x.song),
+        ...doneSongs.map(x => x.song)
+    ];
+}
+
 function moveSongToTop(songId) {
-    const index = dbData.songQueue.findIndex(s => s.id === songId);
-    if (index < 0) return null;
-    if (index === 0) return dbData.songQueue[index];
-    const [song] = dbData.songQueue.splice(index, 1);
-    dbData.songQueue.unshift(song);
-    return song;
+    const song = dbData.songQueue.find(s => s.id === songId);
+    sortSongQueueByPaidOrder();
+    return song || null;
 }
 
 function markSongPriorityBoost(songId, buyerEmail) {
@@ -797,10 +842,11 @@ function markSongPriorityBoost(songId, buyerEmail) {
     if (!targetSong.bonusNotes) targetSong.bonusNotes = [];
     targetSong.isBoosted = true;
     targetSong.boostPaidAt = Date.now();
+    targetSong.priorityBoostPaidAt = targetSong.boostPaidAt;
     targetSong.priorityBoostBuyerEmail = cleanBuyerEmail(buyerEmail);
     targetSong.bonusNotes.push('🚀💎 Platz-1-Push gekauft');
-    moveSongToTop(targetSong.id);
-    addBonusAnnouncement(`🚀💎 ${targetSong.artist} - ${targetSong.title} wurde per Platz-1-Push automatisch auf Platz 1 gesetzt.`);
+    sortSongQueueByPaidOrder();
+    addBonusAnnouncement(`🚀💎 ${targetSong.artist} - ${targetSong.title} wurde per Platz-1-Push in die bezahlte Warteliste gesetzt. Wer zuerst bezahlt hat, bleibt zuerst.`);
     return { ok: true };
 }
 
@@ -814,8 +860,8 @@ function markRandomSongDice(buyerEmail) {
     pickedSong.diceSelectedAt = Date.now();
     pickedSong.diceBuyerEmail = cleanBuyerEmail(buyerEmail);
     pickedSong.bonusNotes.push('🎲💎 Song-Würfel: zufällig ausgewählt und direkt auf Platz 1 gepusht');
-    moveSongToTop(pickedSong.id);
-    addBonusAnnouncement(`🎲💎 SONG-WÜRFEL: ${pickedSong.artist} - ${pickedSong.title} wurde zufällig ausgewählt und direkt auf Platz 1 gepusht.`);
+    sortSongQueueByPaidOrder();
+    addBonusAnnouncement(`🎲💎 SONG-WÜRFEL: ${pickedSong.artist} - ${pickedSong.title} wurde zufällig ausgewählt und in die bezahlte Warteliste gesetzt. Wer zuerst bezahlt hat, bleibt zuerst.`);
     return { ok: true, songId: pickedSong.id };
 }
 
@@ -996,6 +1042,7 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html'))
 app.get('/regeln', (req, res) => res.sendFile(path.join(__dirname, 'regeln.html')));
 
 app.get('/api/queue', (req, res) => {
+    sortSongQueueByPaidOrder();
     const totalSeconds = getTotalTimeSeconds();
     const baseMaxSeconds = BASE_LIMIT_MINUTES * 60;
     const likeExtensionSeconds = Math.max(0, (parseFloat(dbData.likeExtensionMinutes || dbData.extraTimeMinutes || 0) || 0) * 60);
@@ -1048,6 +1095,8 @@ app.get('/api/queue', (req, res) => {
             dicePickedBy: song.dicePickedBy || null,
             diceSelectedAt: song.diceSelectedAt || null,
             priorityBoostBuyerEmail: song.priorityBoostBuyerEmail || null,
+            boostPaidAt: song.boostPaidAt || song.priorityBoostPaidAt || null,
+            priorityBoostPaidAt: song.priorityBoostPaidAt || song.boostPaidAt || null,
             afterHoursBuyerEmail: song.afterHoursBuyerEmail || null,
             diceBuyerEmail: song.diceBuyerEmail || null,
             isLikeExtension: song.isLikeExtension || false,
@@ -1195,6 +1244,7 @@ app.post('/api/submit', (req, res) => {
     }
 
     dbData.songQueue.push(newSong);
+    sortSongQueueByPaidOrder();
     saveToDB();
     res.json({ success: true, voteCode: newCode, songId: newSong.id, afterHoursPassUsed: wantsAfterHours });
 });
