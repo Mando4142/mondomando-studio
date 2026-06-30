@@ -1449,6 +1449,29 @@ app.post('/api/admin/mmr/redeem', checkAdminAuth, (req, res) => {
     res.json({ success: true, redemption: result.redemption, supporter: result.supporter });
 });
 
+
+app.post('/api/admin/mmr/reset-points', checkAdminAuth, (req, res) => {
+    const supporters = dbData.mmrSupporters || {};
+    Object.values(supporters).forEach(supporter => {
+        supporter.points = 0;
+        supporter.likes = 0;
+        supporter.shares = 0;
+        supporter.follows = 0;
+        supporter.gifts = 0;
+        supporter.giftCoins = 0;
+        supporter.chats = 0;
+        supporter.extraVotes = 0;
+        supporter.redeemed = [];
+        supporter.lastChatPointAt = 0;
+        supporter.lastEventAt = Date.now();
+    });
+
+    dbData.mmrEvents = [];
+    dbData.mmrRedemptions = [];
+    saveToDB();
+    res.json({ success: true, message: 'Alle MMR Points wurden zurückgesetzt.' });
+});
+
 app.post('/api/admin/mmr/reset-events', checkAdminAuth, (req, res) => {
     dbData.mmrEvents = [];
     dbData.mmrRedemptions = [];
