@@ -4,7 +4,7 @@
   "description": "Song Submission Dashboard",
   "main": "server.js",
   "scripts": {
-    "start": "node patch-platform-checkboxes.js && node server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.19.2",
