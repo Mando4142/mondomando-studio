@@ -506,11 +506,51 @@
 
         .mmr-public-card { border-color: var(--neon-gold) !important; box-shadow:0 0 22px rgba(255,215,0,.24), inset 0 0 14px rgba(255,215,0,.08) !important; }
         .mmr-public-intro { font-family:sans-serif; color:#e5e7eb; text-align:center; line-height:1.45; margin:0 0 14px 0; }
-        .mmr-public-row { display:flex; justify-content:space-between; align-items:center; gap:10px; background:rgba(5,5,7,.78); border:1px solid rgba(255,215,0,.25); border-radius:12px; padding:12px; margin-top:8px; font-family:sans-serif; }
-        .mmr-public-row.top1 { border-color:var(--neon-gold); box-shadow:0 0 16px rgba(255,215,0,.25); }
-        .mmr-public-name { color:#fff; font-weight:900; }
-        .mmr-public-rank { color:var(--neon-cyan); font-size:12px; font-weight:800; margin-top:4px; }
-        .mmr-public-points { color:var(--neon-gold); font-weight:900; white-space:nowrap; }
+        .mmr-public-row {
+            display:flex; justify-content:space-between; align-items:center; gap:12px;
+            background:rgba(5,5,7,.82); border:1px solid rgba(255,215,0,.25);
+            border-radius:16px; padding:14px; margin-top:10px; font-family:sans-serif;
+            position:relative; overflow:hidden;
+        }
+        .mmr-public-row::before {
+            content:""; position:absolute; inset:0; opacity:.18; pointer-events:none;
+            background:linear-gradient(90deg, transparent, rgba(255,255,255,.20), transparent);
+        }
+        .mmr-public-row.top1 {
+            border:2px solid #ffd700;
+            background:radial-gradient(circle at left, rgba(255,215,0,.26), rgba(5,5,7,.92) 58%);
+            box-shadow:0 0 24px rgba(255,215,0,.55), inset 0 0 18px rgba(255,215,0,.16);
+        }
+        .mmr-public-row.top2 {
+            border:2px solid #a855f7;
+            background:radial-gradient(circle at left, rgba(168,85,247,.28), rgba(5,5,7,.92) 58%);
+            box-shadow:0 0 22px rgba(168,85,247,.45), inset 0 0 18px rgba(168,85,247,.14);
+        }
+        .mmr-public-row.top3 {
+            border:2px solid #00f2fe;
+            background:radial-gradient(circle at left, rgba(0,242,254,.24), rgba(5,5,7,.92) 58%);
+            box-shadow:0 0 22px rgba(0,242,254,.42), inset 0 0 18px rgba(0,242,254,.14);
+        }
+        .mmr-public-left { display:flex; align-items:center; gap:12px; min-width:0; position:relative; z-index:1; }
+        .mmr-public-medal {
+            width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+            font-size:24px; background:rgba(255,255,255,.08); box-shadow:inset 0 0 14px rgba(255,255,255,.10);
+            flex:0 0 44px;
+        }
+        .mmr-public-name { color:#fff; font-weight:900; font-size:18px; line-height:1.15; }
+        .mmr-public-rank { color:var(--neon-cyan); font-size:12px; font-weight:900; margin-top:5px; text-transform:uppercase; letter-spacing:.5px; }
+        .mmr-public-badge {
+            display:inline-block; margin-top:6px; padding:3px 8px; border-radius:999px; font-size:11px;
+            font-weight:900; color:#111; background:var(--neon-gold); box-shadow:0 0 10px rgba(255,215,0,.45);
+        }
+        .mmr-public-row.top2 .mmr-public-badge { background:#c4b5fd; color:#14082d; box-shadow:0 0 10px rgba(168,85,247,.55); }
+        .mmr-public-row.top3 .mmr-public-badge { background:#67e8f9; color:#06252c; box-shadow:0 0 10px rgba(0,242,254,.55); }
+        .mmr-public-points {
+            color:var(--neon-gold); font-weight:900; white-space:nowrap; font-size:18px;
+            text-shadow:0 0 10px rgba(255,215,0,.55); position:relative; z-index:1;
+        }
+        .mmr-public-row.top2 .mmr-public-points { color:#d8b4fe; text-shadow:0 0 10px rgba(168,85,247,.65); }
+        .mmr-public-row.top3 .mmr-public-points { color:#67e8f9; text-shadow:0 0 10px rgba(0,242,254,.65); }
 
     </style>
 </head>
@@ -550,37 +590,49 @@
             <div id="mmr-supporter-card" class="card gold-glow mmr-public-card">
                 <h2 style="color:var(--neon-gold); border-bottom-color:var(--neon-gold); text-align:center;">🌍 MMR SUPPORTER CLUB</h2>
                 <p class="mmr-public-intro">Sammle MMR Points im TikTok-Live durch Likes, Shares, Follows, Chat und Support. Mit genug Punkten kannst du Extra Stimme, Song-Würfel, Wall, VIP, After Hours, Legende oder Platz 1 Push freischalten. Schreib im Chat <strong>!punkte</strong>, um deinen Stand zu checken.</p>
-                <div class="mmr-extra-visual-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:16px 0 18px 0;">
+                <div class="mmr-extra-visual-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:14px; margin:18px 0 20px 0;">
                     <div class="mmr-extra-visual" style="border:2px solid #38bdf8; border-radius:16px; padding:15px; background:linear-gradient(135deg, rgba(56,189,248,.28), rgba(20,20,31,.95)); box-shadow:0 0 22px rgba(56,189,248,.45), inset 0 0 18px rgba(56,189,248,.12);">
                         <div style="font-size:28px;">🗳️</div><div style="font-family:Impact,sans-serif; font-size:20px; color:#fff; letter-spacing:1px;">EXTRA STIMME</div>
                         <div style="font-family:sans-serif; color:#bae6fd; font-weight:900;">400 MMR Points</div>
                         <div style="font-family:sans-serif; color:#f5f5f5; font-size:13px; margin-top:6px;">Mehr Einfluss beim Voting.</div>
                     </div>
+
                     <div class="mmr-extra-visual" style="border:2px solid #ff007f; border-radius:16px; padding:15px; background:linear-gradient(135deg, rgba(255,0,127,.26), rgba(20,20,31,.95)); box-shadow:0 0 22px rgba(255,0,127,.45), inset 0 0 18px rgba(255,0,127,.12);">
                         <div style="font-size:28px;">🎲</div><div style="font-family:Impact,sans-serif; font-size:20px; color:#fff; letter-spacing:1px;">SONG-WÜRFEL</div>
                         <div style="font-family:sans-serif; color:#ffd6eb; font-weight:900;">750 MMR Points</div>
                         <div style="font-family:sans-serif; color:#f5f5f5; font-size:13px; margin-top:6px;">Zufälliger Song bekommt Boost.</div>
                     </div>
-                    <div class="mmr-extra-visual" style="border:2px solid #22c55e; border-radius:16px; padding:15px; background:linear-gradient(135deg, rgba(34,197,94,.26), rgba(20,20,31,.95)); box-shadow:0 0 22px rgba(34,197,94,.45), inset 0 0 18px rgba(34,197,94,.12);">
-                        <div style="font-size:28px;">🌍</div><div style="font-family:Impact,sans-serif; font-size:20px; color:#fff; letter-spacing:1px;">SUPPORTER WALL</div>
-                        <div style="font-family:sans-serif; color:#bbf7d0; font-weight:900;">1200 MMR Points</div>
-                        <div style="font-family:sans-serif; color:#f5f5f5; font-size:13px; margin-top:6px;">Name sichtbar als Supporter.</div>
+
+                    <div class="mmr-extra-visual" style="position:relative; border:3px solid #00f2fe; border-radius:18px; padding:17px; background:radial-gradient(circle at top left, rgba(0,242,254,.35), rgba(2,8,23,.92) 55%), linear-gradient(135deg, rgba(0,242,254,.18), rgba(20,20,31,.98)); box-shadow:0 0 28px rgba(0,242,254,.70), inset 0 0 24px rgba(0,242,254,.18); transform:scale(1.02);">
+                        <div style="position:absolute; top:10px; right:10px; background:#00f2fe; color:#001018; font-family:Impact,sans-serif; font-size:12px; padding:4px 8px; border-radius:999px;">WALL</div>
+                        <div style="font-size:36px; filter:drop-shadow(0 0 10px #00f2fe);">🧱🌍</div>
+                        <div style="font-family:Impact,sans-serif; font-size:22px; color:#7dd3fc; letter-spacing:1px; text-shadow:0 0 12px #00f2fe;">SUPPORTER WALL</div>
+                        <div style="font-family:sans-serif; color:#e0f2fe; font-weight:900; font-size:16px;">1200 MMR Points</div>
+                        <div style="font-family:sans-serif; color:#f5f5f5; font-size:13px; margin-top:6px;">Dein Name wird sichtbar auf der Supporter-Wall gefeiert.</div>
                     </div>
-                    <div class="mmr-extra-visual" style="border:2px solid #facc15; border-radius:16px; padding:15px; background:linear-gradient(135deg, rgba(250,204,21,.30), rgba(20,20,31,.95)); box-shadow:0 0 24px rgba(250,204,21,.50), inset 0 0 18px rgba(250,204,21,.14);">
-                        <div style="font-size:28px;">👑</div><div style="font-family:Impact,sans-serif; font-size:20px; color:#fff; letter-spacing:1px;">VIP SUPPORTER</div>
-                        <div style="font-family:sans-serif; color:#fef08a; font-weight:900;">2500 MMR Points</div>
-                        <div style="font-family:sans-serif; color:#f5f5f5; font-size:13px; margin-top:6px;">VIP Supporter des Monats.</div>
+
+                    <div class="mmr-extra-visual" style="position:relative; border:3px solid #ffd700; border-radius:18px; padding:17px; background:radial-gradient(circle at top, rgba(255,215,0,.42), rgba(15,12,0,.92) 58%), linear-gradient(135deg, rgba(255,215,0,.30), rgba(20,20,31,.98)); box-shadow:0 0 34px rgba(255,215,0,.85), inset 0 0 28px rgba(255,215,0,.22); transform:scale(1.04);">
+                        <div style="position:absolute; top:10px; right:10px; background:#ffd700; color:#111; font-family:Impact,sans-serif; font-size:12px; padding:4px 8px; border-radius:999px;">VIP</div>
+                        <div style="font-size:40px; filter:drop-shadow(0 0 12px #ffd700);">👑✨</div>
+                        <div style="font-family:Impact,sans-serif; font-size:23px; color:#fff7ad; letter-spacing:1px; text-shadow:0 0 14px #ffd700;">VIP SUPPORTER</div>
+                        <div style="font-family:sans-serif; color:#fff3a3; font-weight:900; font-size:16px;">2500 MMR Points</div>
+                        <div style="font-family:sans-serif; color:#f5f5f5; font-size:13px; margin-top:6px;">Goldener VIP-Status für den Monat.</div>
                     </div>
+
                     <div class="mmr-extra-visual" style="border:2px solid #7c3aed; border-radius:16px; padding:15px; background:linear-gradient(135deg, rgba(124,58,237,.32), rgba(20,20,31,.95)); box-shadow:0 0 22px rgba(124,58,237,.50), inset 0 0 18px rgba(124,58,237,.16);">
                         <div style="font-size:28px;">🌙</div><div style="font-family:Impact,sans-serif; font-size:20px; color:#fff; letter-spacing:1px;">AFTER HOURS</div>
                         <div style="font-family:sans-serif; color:#ddd6fe; font-weight:900;">3500 MMR Points</div>
                         <div style="font-family:sans-serif; color:#f5f5f5; font-size:13px; margin-top:6px;">Platz in der Verlängerung.</div>
                     </div>
-                    <div class="mmr-extra-visual" style="border:2px solid #fb923c; border-radius:16px; padding:15px; background:linear-gradient(135deg, rgba(251,146,60,.30), rgba(20,20,31,.95)); box-shadow:0 0 22px rgba(251,146,60,.48), inset 0 0 18px rgba(251,146,60,.14);">
-                        <div style="font-size:28px;">🏆</div><div style="font-family:Impact,sans-serif; font-size:20px; color:#fff; letter-spacing:1px;">MONDO LEGENDE</div>
-                        <div style="font-family:sans-serif; color:#fed7aa; font-weight:900;">5000 MMR Points</div>
-                        <div style="font-family:sans-serif; color:#f5f5f5; font-size:13px; margin-top:6px;">Legenden-Status im Stream.</div>
+
+                    <div class="mmr-extra-visual" style="position:relative; border:3px solid #ff4500; border-radius:18px; padding:17px; background:radial-gradient(circle at top left, rgba(255,69,0,.40), rgba(20,8,0,.92) 55%), linear-gradient(135deg, rgba(255,69,0,.24), rgba(255,215,0,.12)); box-shadow:0 0 36px rgba(255,69,0,.78), 0 0 18px rgba(255,215,0,.45), inset 0 0 26px rgba(255,69,0,.20); transform:scale(1.03);">
+                        <div style="position:absolute; top:10px; right:10px; background:linear-gradient(90deg,#ff4500,#ffd700); color:#111; font-family:Impact,sans-serif; font-size:12px; padding:4px 8px; border-radius:999px;">LEGENDÄR</div>
+                        <div style="font-size:40px; filter:drop-shadow(0 0 12px #ff4500);">🏆🔥</div>
+                        <div style="font-family:Impact,sans-serif; font-size:23px; color:#ffedd5; letter-spacing:1px; text-shadow:0 0 14px #ff4500;">MONDO LEGENDE</div>
+                        <div style="font-family:sans-serif; color:#fed7aa; font-weight:900; font-size:16px;">5000 MMR Points</div>
+                        <div style="font-family:sans-serif; color:#f5f5f5; font-size:13px; margin-top:6px;">Legenden-Status im Stream mit Feuer-Effekt.</div>
                     </div>
+
                     <div class="mmr-extra-visual" style="border:2px solid #22c55e; border-radius:16px; padding:15px; background:linear-gradient(135deg, rgba(34,197,94,.32), rgba(20,20,31,.95)); box-shadow:0 0 24px rgba(34,197,94,.55), inset 0 0 18px rgba(34,197,94,.16);">
                         <div style="font-size:28px;">🚀</div><div style="font-family:Impact,sans-serif; font-size:20px; color:#fff; letter-spacing:1px;">PLATZ 1 PUSH</div>
                         <div style="font-family:sans-serif; color:#bbf7d0; font-weight:900;">10000 MMR Points</div>
@@ -1305,13 +1357,23 @@
             box.innerHTML = '<div style="font-family:sans-serif; color:#d1d5db; text-align:center; padding:12px; border:1px dashed rgba(255,215,0,.35); border-radius:12px;">Noch keine MMR Points gesammelt. Starte im TikTok-Live mit Likes, Shares und Chat!</div>';
             return;
         }
-        box.innerHTML = top.map(s => `<div class="mmr-public-row ${s.position === 1 ? 'top1' : ''}">
-            <div>
-                <div class="mmr-public-name">#${s.position} @${escapePublicHtml(s.displayName || s.username)} ${s.isSubscriber ? '👑' : ''}</div>
-                <div class="mmr-public-rank">${escapePublicHtml(s.rank)}</div>
-            </div>
-            <div class="mmr-public-points">${s.points || 0} MMR</div>
-        </div>`).join('');
+        box.innerHTML = top.map(s => {
+            const pos = Number(s.position || 0);
+            const rowClass = pos <= 3 ? `top${pos}` : '';
+            const medal = pos === 1 ? '👑' : pos === 2 ? '💎' : pos === 3 ? '🌍' : '🔥';
+            const badge = pos === 1 ? 'TOP LEGENDE' : pos === 2 ? 'VIP SUPPORTER' : pos === 3 ? 'SUPPORTER WALL' : 'STREET TEAM';
+            return `<div class="mmr-public-row ${rowClass}">
+                <div class="mmr-public-left">
+                    <div class="mmr-public-medal">${medal}</div>
+                    <div>
+                        <div class="mmr-public-name">#${s.position} @${escapePublicHtml(s.displayName || s.username)} ${s.isSubscriber ? '👑' : ''}</div>
+                        <div class="mmr-public-rank">${escapePublicHtml(s.rank)}</div>
+                        <div class="mmr-public-badge">${badge}</div>
+                    </div>
+                </div>
+                <div class="mmr-public-points">${s.points || 0} MMR</div>
+            </div>`;
+        }).join('');
     }
 
     async function loadQueue() {
